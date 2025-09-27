@@ -8,6 +8,14 @@ export default function About() {
   return (
     <section id="about" className="w-full bg-card py-20 md:py-32">
       <div className="container mx-auto grid grid-cols-1 items-center gap-8 px-4 md:grid-cols-2 md:gap-16 md:px-6">
+        <AnimatedDiv className="space-y-6">
+          <h2 className="font-headline text-3xl font-bold tracking-tighter text-primary sm:text-4xl md:text-5xl">
+            About Me
+          </h2>
+          <div className="space-y-4 text-muted-foreground">
+            <p>{about.description}</p>
+          </div>
+        </AnimatedDiv>
         <AnimatedDiv>
           <div className="relative aspect-square overflow-hidden rounded-lg shadow-lg">
             <Image
@@ -17,14 +25,6 @@ export default function About() {
               className="object-cover"
               data-ai-hint={about.imageHint}
             />
-          </div>
-        </AnimatedDiv>
-        <AnimatedDiv className="space-y-6">
-          <h2 className="font-headline text-3xl font-bold tracking-tighter text-primary sm:text-4xl md:text-5xl">
-            About Me
-          </h2>
-          <div className="space-y-4 text-muted-foreground">
-            <p>{about.description}</p>
           </div>
         </AnimatedDiv>
       </div>
