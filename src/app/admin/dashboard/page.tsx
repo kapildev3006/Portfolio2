@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import ProjectManager from "@/components/admin/project-manager"
+import ContentManager from "@/components/admin/content-manager"
 
 export default function DashboardPage() {
   return (
@@ -8,24 +9,14 @@ export default function DashboardPage() {
       <h1 className="text-3xl font-bold font-headline mb-2">Admin Dashboard</h1>
       <p className="text-muted-foreground mb-8">Manage your portfolio content here.</p>
 
-      <Tabs defaultValue="projects" className="w-full">
+      <Tabs defaultValue="content" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="content">Content</TabsTrigger>
           <TabsTrigger value="projects">Projects</TabsTrigger>
           <TabsTrigger value="submissions">Submissions</TabsTrigger>
         </TabsList>
         <TabsContent value="content">
-          <Card>
-            <CardHeader>
-              <CardTitle>Site Content</CardTitle>
-              <CardDescription>
-                Update the content for the Hero and About sections.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p>Content management forms for Home and About sections would be here.</p>
-            </CardContent>
-          </Card>
+          <ContentManager />
         </TabsContent>
         <TabsContent value="projects">
           <ProjectManager />

@@ -26,6 +26,7 @@ export type PortfolioData = {
     description: string;
     imageUrl: string;
     imageHint: string;
+    skills: string[];
   };
   projects: Project[];
   contact: {
