@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowDown, Download, Github, Linkedin } from 'lucide-react';
+import { Download, Github, Linkedin } from 'lucide-react';
 import { portfolioData } from '@/lib/data';
 import AnimatedDiv from '@/components/animated-div';
 import { Button } from '@/components/ui/button';
@@ -67,16 +67,6 @@ export default function Hero() {
           </div>
         </AnimatedDiv>
       </div>
-       <AnimatedDiv
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1, duration: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-      >
-        <Link href="#about" aria-label="Scroll down">
-          <ArrowDown className="h-6 w-6 animate-bounce text-muted-foreground" />
-        </Link>
-      </AnimatedDiv>
     </section>
   );
 }
