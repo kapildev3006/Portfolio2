@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useFormState } from 'react-dom';
+import { useActionState, useEffect, useRef } from 'react';
 
 import { portfolioData } from '@/lib/data';
 import AnimatedDiv from '@/components/animated-div';
@@ -12,7 +12,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect, useRef } from 'react';
 import { submitContactForm } from '@/actions/server-actions';
 
 const formSchema = z.object({
@@ -26,7 +25,7 @@ export default function Contact() {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
-  const [state, formAction] = useFormState(submitContactForm, {
+  const [state, formAction] = useActionState(submitContactForm, {
     message: '',
     success: false,
   });
