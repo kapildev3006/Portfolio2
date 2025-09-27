@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowDown, Github, Linkedin } from 'lucide-react';
+import { ArrowDown, Download, Github, Linkedin } from 'lucide-react';
 import { portfolioData } from '@/lib/data';
 import AnimatedDiv from '@/components/animated-div';
 import { Button } from '@/components/ui/button';
@@ -32,10 +32,18 @@ export default function Hero() {
               {hero.subtitle}
             </p>
           </AnimatedDiv>
-          <AnimatedDiv className="flex flex-col items-center justify-center gap-4 sm:flex-row md:justify-start">
-            <Button asChild size="lg" className="w-full sm:w-auto">
-              <Link href="#projects">View My Work</Link>
-            </Button>
+          <AnimatedDiv className="flex flex-col items-center justify-center gap-4 md:items-start">
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <Button asChild size="lg" className="w-full sm:w-auto">
+                <Link href="#projects">View My Work</Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+                <Link href="/resume.pdf" target="_blank" rel="noopener noreferrer">
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Resume
+                </Link>
+              </Button>
+            </div>
             <div className="flex gap-2">
               <Button asChild variant="outline" size="icon">
                   <Link href="#" aria-label="LinkedIn"><Linkedin /></Link>
