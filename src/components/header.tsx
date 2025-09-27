@@ -19,6 +19,7 @@ const navItems: NavItem[] = [
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState('home');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,6 +27,37 @@ export default function Header() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  useEffect(() => {
+    const sectionIds = navItems.map(item => item.href.substring(1)).filter(id => id && !id.startsWith('/'));
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: '-50% 0px -50% 0px' }
+    );
+
+    sectionIds.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      sectionIds.forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) {
+          observer.unobserve(element);
+        }
+      });
+    };
   }, []);
 
   return (
@@ -45,7 +77,12 @@ export default function Header() {
             <Link
               key={item.name}
               href={item.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+              className={cn(
+                'text-sm font-medium transition-colors hover:text-primary',
+                item.href === `#${activeSection}` && !item.href.startsWith('/admin')
+                  ? 'text-primary'
+                  : 'text-muted-foreground'
+              )}
             >
               {item.name}
             </Link>
@@ -71,7 +108,12 @@ export default function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-lg font-medium text-muted-foreground transition-colors hover:text-primary"
+                 className={cn(
+                  'text-lg font-medium transition-colors hover:text-primary',
+                  item.href === `#${activeSection}` && !item.href.startsWith('/admin')
+                    ? 'text-primary'
+                    : 'text-muted-foreground'
+                )}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.name}
