@@ -16,7 +16,7 @@ export default function Hero() {
       className="relative w-full bg-background py-20 md:py-32"
     >
       <div className="container mx-auto grid grid-cols-1 items-center gap-8 px-4 md:grid-cols-2 md:gap-16 md:px-6">
-        <div className="space-y-6 text-center md:text-left">
+        <div className="order-2 space-y-6 text-center md:order-1 md:text-left">
           <AnimatedDiv>
             <h1 className="font-headline text-4xl font-bold tracking-tighter text-primary sm:text-5xl md:text-6xl lg:text-7xl">
               {hero.name}
@@ -54,7 +54,7 @@ export default function Hero() {
             </div>
           </AnimatedDiv>
         </div>
-        <AnimatedDiv>
+        <AnimatedDiv className="order-1 md:order-2">
           <div className="relative aspect-square overflow-hidden rounded-lg shadow-lg">
             <Image
               src={hero.imageUrl}
