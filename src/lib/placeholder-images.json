@@ -29,6 +29,12 @@
       "description": "Person working on a laptop",
       "imageUrl": "https://images.unsplash.com/photo-1603575448878-868a20723f5d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwZXJzb24lMjBsYXB0b3B8ZW58MHx8fHwxNzU4OTU0MjYwfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person laptop"
+    },
+    {
+      "id": "hero-image",
+      "description": "Abstract colorful background",
+      "imageUrl": "https://images.unsplash.com/photo-1749836851408-a41779f37ff4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8YWJzdHJhY3QlMjBjb2xvcmZ1bHxlbnwwfHx8fDE3NTg5NDExOTV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract colorful"
     }
   ]
 }
