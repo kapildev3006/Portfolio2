@@ -13,10 +13,7 @@ export const portfolioData: PortfolioData = {
     subtitle: 'I build beautiful and functional web experiences from concept to completion.',
   },
   about: {
-    description: [
-      "Hello! I'm a passionate developer with a keen eye for design. I specialize in creating modern, responsive, and user-friendly web applications using the latest technologies.",
-      "With a background in both creative arts and computer science, I bring a unique perspective to every project, ensuring a perfect blend of form and function. When I'm not coding, you can find me exploring new coffee shops or hiking in the mountains."
-    ],
+    description: "Hello! I'm a passionate developer with a keen eye for design. I specialize in creating modern, responsive, and user-friendly web applications using the latest technologies. With a background in both creative arts and computer science, I bring a unique perspective to every project, ensuring a perfect blend of form and function. When I'm not coding, you can find me exploring new coffee shops or hiking in the mountains.",
     ...getImage('about-image'),
   },
   projects: [

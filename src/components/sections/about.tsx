@@ -24,9 +24,7 @@ export default function About() {
             About Me
           </h2>
           <div className="space-y-4 text-muted-foreground">
-            {about.description.map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
+            <p>{about.description}</p>
           </div>
         </AnimatedDiv>
       </div>

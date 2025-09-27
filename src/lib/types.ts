@@ -21,7 +21,7 @@ export type PortfolioData = {
     subtitle: string;
   };
   about: {
-    description: string[];
+    description: string;
     imageUrl: string;
     imageHint: string;
   };
