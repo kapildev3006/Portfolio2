@@ -22,14 +22,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import type { Experience, SkillCategory, PortfolioData } from '@/lib/types';
+import { portfolioData } from '@/lib/portfolio-data';
+import type { Experience, SkillCategory } from '@/lib/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Edit, Plus, Trash2, Wand2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { getPortfolioData } from '@/lib/portfolio-data';
-import { Skeleton } from '@/components/ui/skeleton';
 
 // Schemas for form validation
 const skillSchema = z.object({
@@ -191,64 +190,9 @@ const ExperienceForm = ({
 
 
 export default function AdminAboutPage() {
-  const [portfolioData, setPortfolioData] = React.useState<PortfolioData | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const { about } = portfolioData;
   const [skillDialogOpen, setSkillDialogOpen] = React.useState(false);
   const [experienceDialogOpen, setExperienceDialogOpen] = React.useState(false);
-
-  React.useEffect(() => {
-    async function fetchData() {
-      try {
-        const data = await getPortfolioData();
-        setPortfolioData(data);
-      } catch (error) {
-        console.error("Failed to fetch portfolio data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex-1 bg-background p-8 text-foreground">
-        <div className="mb-8">
-          <Skeleton className="h-10 w-1/2" />
-          <Skeleton className="h-4 w-1/3 mt-2" />
-        </div>
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          <Card>
-            <CardHeader><Skeleton className="h-8 w-1/3" /></CardHeader>
-            <CardContent className="space-y-4">
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-20 w-full" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader><Skeleton className="h-8 w-1/3" /></CardHeader>
-            <CardContent className="space-y-4">
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  if (!portfolioData) {
-    return (
-        <div className="flex-1 bg-background p-8 text-foreground">
-            <h1 className="text-2xl font-bold text-destructive">Error</h1>
-            <p className="text-muted-foreground">Failed to load portfolio data. Please try again later.</p>
-        </div>
-    )
-  }
-
-  const { about } = portfolioData;
 
   return (
     <div className="flex-1 bg-background p-8 text-foreground">
@@ -371,5 +315,3 @@ export default function AdminAboutPage() {
     </div>
   );
 }
-
-    
