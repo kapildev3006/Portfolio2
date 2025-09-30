@@ -1,0 +1,10 @@
+{
+  "name": "root",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd Portfolio && npm install",
+    "dev": "cd Portfolio && npm run dev",
+    "build": "cd Portfolio && npm run build",
+    "start": "cd Portfolio && npm run start"
+  }
+}
