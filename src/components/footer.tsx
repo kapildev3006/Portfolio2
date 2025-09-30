@@ -3,7 +3,7 @@ import { Github, Instagram, Linkedin, Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Separator } from './ui/separator';
-import { portfolioData } from '@/lib/data';
+import { portfolioData } from '@/lib/portfolio-data';
 
 const quickLinks = [
   { name: 'Home', href: '#home' },

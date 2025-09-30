@@ -7,7 +7,7 @@ import { ThemeToggle } from './theme-toggle';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/lib/types';
-import { portfolioData } from '@/lib/data';
+import { portfolioData } from '@/lib/portfolio-data';
 
 const navItems: NavItem[] = [
   { name: 'Home', href: '#home' },

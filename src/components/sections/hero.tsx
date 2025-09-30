@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Download, Github, Linkedin, Mail } from 'lucide-react';
-import { portfolioData } from '@/lib/data';
+import { portfolioData } from '@/lib/portfolio-data';
 import AnimatedDiv from '@/components/animated-div';
 import { Button } from '@/components/ui/button';
 

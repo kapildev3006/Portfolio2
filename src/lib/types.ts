@@ -26,6 +26,20 @@ export type Testimonial = {
   imageHint: string;
 }
 
+export type SkillCategory = {
+  title: string;
+  skills: string;
+  icon: React.ReactNode;
+}
+
+export type Experience = {
+  role: string;
+  company: string;
+  period: string;
+  description: string;
+  icon: React.ReactNode;
+}
+
 export type PortfolioData = {
   hero: {
     name: string;
@@ -35,10 +49,9 @@ export type PortfolioData = {
     imageHint: string;
   };
   about: {
-    description: string;
-    imageUrl: string;
-    imageHint: string;
-    skills: string[];
+    subtitle: string;
+    skills: SkillCategory[];
+    experience: Experience[];
   };
   projects: Project[];
   services: Service[];
@@ -49,7 +62,7 @@ export type PortfolioData = {
 };
 
 export type ContactFormData = {
-  name: string;
+  name:string;
   email: string;
   message: string;
 };

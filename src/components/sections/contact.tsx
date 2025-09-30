@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useActionState, useEffect, useRef } from 'react';
 
-import { portfolioData } from '@/lib/data';
+import { portfolioData } from '@/lib/portfolio-data';
 import AnimatedDiv from '@/components/animated-div';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

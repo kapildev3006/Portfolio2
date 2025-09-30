@@ -1,4 +1,4 @@
-import { portfolioData } from "@/lib/data"
+import { portfolioData } from "@/lib/portfolio-data"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"

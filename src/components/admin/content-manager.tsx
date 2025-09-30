@@ -1,4 +1,4 @@
-import { portfolioData } from "@/lib/data"
+import { portfolioData } from "@/lib/portfolio-data"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -34,7 +34,7 @@ export default function ContentManager() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="about-description">About Me</Label>
-            <Textarea id="about-description" defaultValue={about.description} rows={5} />
+            <Textarea id="about-description" defaultValue={about.subtitle} rows={5} />
           </div>
            <div className="flex justify-end">
             <Button>Save Changes</Button>
@@ -52,10 +52,10 @@ export default function ContentManager() {
           <div className="flex flex-wrap gap-2">
             {about.skills.map((skill, index) => (
               <Badge key={index} variant="secondary" className="flex items-center gap-1 pr-1">
-                {skill}
+                {skill.title}
                 <button className="rounded-full bg-background p-0.5 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground">
                   <X className="h-3 w-3" />
-                  <span className="sr-only">Remove {skill}</span>
+                  <span className="sr-only">Remove {skill.title}</span>
                 </button>
               </Badge>
             ))}
