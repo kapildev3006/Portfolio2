@@ -18,7 +18,6 @@ import {
   LayoutGrid,
   MessageSquare,
   UserCircle,
-  Users,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -42,29 +41,32 @@ export default function AdminSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-3 p-2">
-          <Avatar className="h-10 w-10">
+        <div className="flex items-center gap-3 p-4">
+          <Avatar className="h-12 w-12">
               <AvatarImage src="https://i.pravatar.cc/150?u=rohit" alt="Rohit Senger" />
               <AvatarFallback>RS</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-              <span className="text-lg font-semibold text-sidebar-foreground">Admin Panel</span>
-              <span className="text-sm text-muted-foreground">Rohit Senger</span>
+              <span className="text-lg font-bold text-sidebar-foreground">Admin Panel</span>
+              <span className="text-sm text-muted-foreground/80">Rohit Senger</span>
           </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="p-2">
+      <Separator className="my-2 bg-sidebar-border/50"/>
+
+      <SidebarContent className="p-4">
         <SidebarMenu>
           {sidebarNavItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <Link href={item.href} legacyBehavior passHref>
                 <SidebarMenuButton
                   isActive={pathname === item.href}
-                  className="sidebar-gradient data-[active=true]:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-accent"
+                  className="group rounded-lg text-sidebar-foreground/80 transition-colors hover:bg-primary/10 hover:text-sidebar-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                 >
-                  <item.icon />
-                  <span>{item.label}</span>
+                  <div className="absolute left-0 h-6 w-1 rounded-r-full bg-transparent transition-all group-hover:bg-primary/80 data-[active=true]:bg-primary"></div>
+                  <item.icon className="h-5 w-5" />
+                  <span className="font-medium">{item.label}</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -72,15 +74,15 @@ export default function AdminSidebar() {
         </SidebarMenu>
       </SidebarContent>
 
-      <Separator />
+      <Separator className="my-2 bg-sidebar-border/50"/>
 
-      <SidebarFooter>
+      <SidebarFooter className="p-4">
         <SidebarMenu>
             <SidebarMenuItem>
               <Link href="/" legacyBehavior passHref>
-                <SidebarMenuButton>
+                <SidebarMenuButton className="rounded-lg text-sidebar-foreground/80 transition-colors hover:bg-primary/10 hover:text-sidebar-foreground">
                   <Home />
-                  <span>Back to Website</span>
+                  <span className="font-medium">Back to Website</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>

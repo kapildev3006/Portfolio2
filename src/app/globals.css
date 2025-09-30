@@ -66,6 +66,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Poppins', sans-serif;
   }
   
   body:not(.admin-body) {
@@ -91,12 +92,4 @@ body.admin-body {
   background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-
-.sidebar-gradient {
-    background: linear-gradient(to bottom right, hsl(var(--sidebar-accent)), hsl(var(--primary)));
-}
-
-.dark .sidebar-gradient {
-    background: linear-gradient(to right, hsl(var(--sidebar-accent)), hsl(var(--primary)));
 }
