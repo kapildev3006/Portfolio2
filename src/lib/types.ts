@@ -58,6 +58,8 @@ export type PortfolioData = {
   testimonials: Testimonial[];
   contact: {
     email: string;
+    phone?: string;
+    location?: string;
   };
 };
 

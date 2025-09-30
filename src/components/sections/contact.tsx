@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -13,6 +14,7 @@ import { submitContactForm } from '@/actions/server-actions';
 import { Github, Linkedin, Mail, MapPin, Phone, Send, Twitter } from 'lucide-react';
 import Link from 'next/link';
 import AnimatedDiv from '../animated-div';
+import { portfolioData } from '@/lib/portfolio-data';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -25,28 +27,32 @@ const formSchema = z.object({
 type ContactInfoCardProps = {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value?: string;
   href?: string;
 };
 
-const ContactInfoCard = ({ icon, label, value, href }: ContactInfoCardProps) => (
-  <Link href={href || '#'} className="block rounded-lg bg-secondary/50 p-6 transition-colors hover:bg-secondary">
-    <div className="flex items-center gap-4">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-        {icon}
+const ContactInfoCard = ({ icon, label, value, href }: ContactInfoCardProps) => {
+  if (!value) return null;
+  return (
+    <Link href={href || '#'} className="block rounded-lg bg-secondary/50 p-6 transition-colors hover:bg-secondary">
+      <div className="flex items-center gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          {icon}
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-foreground">{label}</p>
+          <p className="text-sm text-muted-foreground">{value}</p>
+        </div>
       </div>
-      <div>
-        <p className="text-sm font-semibold text-foreground">{label}</p>
-        <p className="text-sm text-muted-foreground">{value}</p>
-      </div>
-    </div>
-  </Link>
-);
+    </Link>
+  );
+};
 
 
 export default function Contact() {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const { contact } = portfolioData;
 
   const [state, formAction] = useActionState(submitContactForm, {
     message: '',
@@ -92,9 +98,9 @@ export default function Contact() {
               </p>
             </div>
             <div className="space-y-4">
-              <ContactInfoCard icon={<Mail />} label="Email" value="kapildev@example.com" href="mailto:kapildev@example.com" />
-              <ContactInfoCard icon={<Phone />} label="Phone" value="+1 (555) 123-4567" />
-              <ContactInfoCard icon={<MapPin />} label="Location" value="San Francisco, CA" />
+              <ContactInfoCard icon={<Mail />} label="Email" value={contact.email} href={`mailto:${contact.email}`} />
+              <ContactInfoCard icon={<Phone />} label="Phone" value={contact.phone} />
+              <ContactInfoCard icon={<MapPin />} label="Location" value={contact.location} />
             </div>
             <div>
                 <h3 className="font-headline text-lg font-semibold text-foreground">Follow Me</h3>

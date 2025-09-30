@@ -31,6 +31,8 @@ const profileSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
   title: z.string().min(5, 'Title is too short'),
   email: z.string().email('Invalid email address'),
+  phone: z.string().optional(),
+  location: z.string().optional(),
   linkedin: z.string().url('Invalid URL').optional().or(z.literal('')),
   github: z.string().url('Invalid URL').optional().or(z.literal('')),
   twitter: z.string().url('Invalid URL').optional().or(z.literal('')),
@@ -45,6 +47,8 @@ export default function AdminProfilePage() {
       name: portfolioData.hero.name,
       title: portfolioData.hero.title,
       email: portfolioData.contact.email,
+      phone: portfolioData.contact.phone,
+      location: portfolioData.contact.location,
       imageUrl: portfolioData.hero.imageUrl,
       // In a real app, these would come from a user-specific data source
       linkedin: 'https://linkedin.com/in/your-profile',
@@ -140,6 +144,15 @@ export default function AdminProfilePage() {
                   )}
                 />
               </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="mt-8">
+            <CardHeader>
+              <CardTitle>Contact Information</CardTitle>
+              <CardDescription>Update your public contact details.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="email"
@@ -153,9 +166,35 @@ export default function AdminProfilePage() {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+1 (555) 123-4567" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Location</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., San Francisco, CA" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
             </CardContent>
           </Card>
-          
+
           <Card className="mt-8">
              <CardHeader>
               <CardTitle>Social Profiles</CardTitle>
