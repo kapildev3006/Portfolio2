@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -28,6 +29,11 @@ import { ColorWheelIcon } from '@radix-ui/react-icons';
 export default function AdminSettingsPage() {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSave = (e: React.FormEvent, section: string) => {
     e.preventDefault();
@@ -92,22 +98,31 @@ export default function AdminSettingsPage() {
               <div className="space-y-2">
                 <Label>Color Theme</Label>
                  <div className="flex items-center gap-4">
-                    <Button
-                      type="button"
-                      variant={theme === 'light' ? 'default' : 'outline'}
-                      onClick={() => setTheme('light')}
-                      className="w-full"
-                    >
-                      Light Mode
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={theme === 'dark' ? 'default' : 'outline'}
-                      onClick={() => setTheme('dark')}
-                      className="w-full"
-                    >
-                      Dark Mode
-                    </Button>
+                    {mounted ? (
+                      <>
+                        <Button
+                          type="button"
+                          variant={theme === 'light' ? 'default' : 'outline'}
+                          onClick={() => setTheme('light')}
+                          className="w-full"
+                        >
+                          Light Mode
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={theme === 'dark' ? 'default' : 'outline'}
+                          onClick={() => setTheme('dark')}
+                          className="w-full"
+                        >
+                          Dark Mode
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button type="button" variant="outline" className="w-full" disabled>Light Mode</Button>
+                        <Button type="button" variant="outline" className="w-full" disabled>Dark Mode</Button>
+                      </>
+                    )}
                  </div>
               </div>
                <div className="space-y-2">
