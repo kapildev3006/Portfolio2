@@ -4,16 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import type { SkillCategory, Experience } from '@/lib/types';
 
 const SkillCard = ({ skill }: { skill: SkillCategory }) => (
-  <Card className="bg-secondary/50 p-2">
-    <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-4">
+  <Card className="bg-secondary/50">
+    <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-6">
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
         {skill.icon}
       </div>
-      <div>
-        <CardTitle className="text-lg font-bold">{skill.title}</CardTitle>
-      </div>
+      <CardTitle className="text-lg font-bold">{skill.title}</CardTitle>
     </CardHeader>
-    <CardContent className="p-4 pt-0">
+    <CardContent className="p-6 pt-0">
       <p className="text-sm text-muted-foreground">{skill.skills}</p>
     </CardContent>
   </Card>
@@ -21,17 +19,19 @@ const SkillCard = ({ skill }: { skill: SkillCategory }) => (
 
 const JourneyCard = ({ item }: { item: Experience }) => (
   <Card className="bg-secondary/50">
-    <CardHeader className="flex flex-row items-start justify-between space-y-0 p-6 pb-2">
-      <div className="flex items-center gap-4">
-         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          {item.icon}
+    <CardHeader className="space-y-0 p-6 pb-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            {item.icon}
+          </div>
+          <div>
+            <CardTitle className="text-lg font-bold">{item.role}</CardTitle>
+            <p className="text-sm text-primary">{item.company}</p>
+          </div>
         </div>
-        <div>
-          <CardTitle className="text-lg font-bold">{item.role}</CardTitle>
-           <p className="text-sm text-primary">{item.company}</p>
-        </div>
+        <div className="text-sm text-muted-foreground">{item.period}</div>
       </div>
-      <div className="text-sm text-muted-foreground">{item.period}</div>
     </CardHeader>
     <CardContent className="p-6 pt-2">
       <p className="text-sm text-muted-foreground">{item.description}</p>
