@@ -11,7 +11,7 @@ const contacts = [
     { name: 'Alice', message: 'Hey, how are you?', time: '10:30 AM', avatar: 'A' },
     { name: 'Bob', message: 'Meeting at 2 PM.', time: '9:15 AM', avatar: 'B' },
     { name: 'Charlie', message: 'Can you send the file?', time: 'Yesterday', avatar: 'C' },
-    { name: 'Diana', message: 'Thanks for the update!', time: 'Yesterday', avatar: 'D' },
+    { name: 'Diana', message: 'Thanks for the update! This is a very long message preview that should wrap.', time: 'Yesterday', avatar: 'D' },
 ];
 
 const messages = [
@@ -39,12 +39,12 @@ export default function AdminChatPage() {
                     <Avatar>
                        <AvatarFallback>{contact.avatar}</AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
+                    <div className="flex-1 overflow-hidden">
                        <div className="flex justify-between items-center">
                           <p className="font-semibold">{contact.name}</p>
                           <p className="text-xs text-muted-foreground">{contact.time}</p>
                        </div>
-                       <p className="text-sm text-muted-foreground truncate">{contact.message}</p>
+                       <p className="text-sm text-muted-foreground break-words">{contact.message}</p>
                     </div>
                  </div>
                </Card>
