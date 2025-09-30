@@ -34,7 +34,7 @@ export default function Hero() {
           </AnimatedDiv>
           <AnimatedDiv className="flex flex-col items-center justify-center gap-4 md:flex-row md:justify-start">
               <Button asChild size="lg" className="w-full md:w-auto">
-                <Link href="#projects">View My Work</Link>
+                <Link href="/projects">View My Work</Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="w-full md:w-auto">
                 <Link href="/resume.pdf" target="_blank" rel="noopener noreferrer">

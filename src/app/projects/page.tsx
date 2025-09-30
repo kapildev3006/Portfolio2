@@ -1,13 +1,13 @@
 import Header from '@/components/header';
-import Hero from '@/components/sections/hero';
+import Projects from '@/components/sections/projects';
 import Footer from '@/components/footer';
 
-export default function Home() {
+export default function ProjectsPage() {
   return (
     <div className="flex min-h-dvh flex-col">
       <Header />
       <main className="flex-1">
-        <Hero />
+        <Projects />
       </main>
       <Footer />
     </div>

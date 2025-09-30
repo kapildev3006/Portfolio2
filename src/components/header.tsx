@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, X, User } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
@@ -10,65 +11,25 @@ import { portfolioData } from '@/lib/portfolio-data';
 import { ThemeToggle } from './theme-toggle';
 
 const navItems: NavItem[] = [
-  { name: 'Home', href: '#home' },
-  { name: 'About', href: '#about' },
-  { name: 'Projects', href: '#projects' },
-  { name: 'Contact', href: '#contact' },
+  { name: 'Home', href: '/' },
+  { name: 'About', href: '/about' },
+  { name: 'Projects', href: '/projects' },
+  { name: 'Contact', href: '/contact' },
 ];
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-  
-  useEffect(() => {
-    const sectionIds = navItems.map(item => item.href.substring(1)).filter(id => id && !id.startsWith('/'));
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: '-50% 0px -50% 0px' }
-    );
-
-    sectionIds.forEach((id) => {
-      const element = document.getElementById(id);
-      if (element) {
-        observer.observe(element);
-      }
-    });
-
-    return () => {
-      sectionIds.forEach((id) => {
-        const element = document.getElementById(id);
-        if (element) {
-          observer.unobserve(element);
-        }
-      });
-    };
-  }, []);
+  const pathname = usePathname();
 
   return (
     <header
       className={cn(
         'sticky top-0 z-50 w-full transition-all duration-300',
-        isScrolled ? 'bg-background/80 backdrop-blur-sm shadow-md' : 'bg-transparent'
+        'bg-background/80 backdrop-blur-sm shadow-md'
       )}
     >
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
-        <Link href="#home" className="flex items-center gap-2 text-xl font-bold">
+        <Link href="/" className="flex items-center gap-2 text-xl font-bold">
           <span className="text-gradient">{portfolioData.hero.name}</span>
         </Link>
         <nav className="hidden items-center gap-8 md:flex">
@@ -78,7 +39,7 @@ export default function Header() {
               href={item.href}
               className={cn(
                 'text-sm font-medium transition-colors hover:text-primary',
-                item.href === `#${activeSection}`
+                item.href === pathname
                   ? 'text-primary'
                   : 'text-muted-foreground'
               )}
@@ -114,7 +75,7 @@ export default function Header() {
                 href={item.href}
                  className={cn(
                   'text-lg font-medium transition-colors hover:text-primary',
-                  item.href === `#${activeSection}`
+                  item.href === pathname
                     ? 'text-primary'
                     : 'text-muted-foreground'
                 )}

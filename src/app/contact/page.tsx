@@ -1,13 +1,13 @@
 import Header from '@/components/header';
-import Hero from '@/components/sections/hero';
+import Contact from '@/components/sections/contact';
 import Footer from '@/components/footer';
 
-export default function Home() {
+export default function ContactPage() {
   return (
     <div className="flex min-h-dvh flex-col">
       <Header />
       <main className="flex-1">
-        <Hero />
+        <Contact />
       </main>
       <Footer />
     </div>

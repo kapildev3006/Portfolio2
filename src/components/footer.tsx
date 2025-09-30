@@ -8,10 +8,10 @@ import { Separator } from './ui/separator';
 import { portfolioData } from '@/lib/portfolio-data';
 
 const quickLinks = [
-  { name: 'Home', href: '#home' },
-  { name: 'About', href: '#about' },
-  { name: 'Projects', href: '#projects' },
-  { name: 'Contact', href: '#contact' },
+  { name: 'Home', href: '/' },
+  { name: 'About', href: '/about' },
+  { name: 'Projects', href: '/projects' },
+  { name: 'Contact', href: '/contact' },
 ];
 
 const connectLinks = [
@@ -29,7 +29,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Column 1: Profile */}
           <div className="flex flex-col gap-4">
-             <Link href="#home" className="flex items-center gap-2 font-headline text-2xl font-bold text-gradient">
+             <Link href="/" className="flex items-center gap-2 font-headline text-2xl font-bold text-gradient">
                 <span>{portfolioData.hero.name}</span>
             </Link>
             <p className="text-sm">
