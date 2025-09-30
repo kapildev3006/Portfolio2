@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CalendarDays, LayoutGrid, List, Plus, Search } from 'lucide-react';
-import { projectsData } from '@/lib/admin-projects-data';
+import { projectsData } from '@/lib/admin-projects-data.tsx';
 import AdminProjectCard from '@/components/admin/project-card';
 
 export default function AdminProjectsPage() {
