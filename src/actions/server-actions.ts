@@ -154,6 +154,13 @@ const profileSchema = z.object({
 
 
 export async function saveProfileData(data: z.infer<typeof profileSchema>) {
+    if (!adminDb) {
+      return {
+        success: false,
+        message: 'Database connection not configured. Please check server environment.',
+      };
+    }
+
     try {
         const validatedData = profileSchema.parse(data);
         

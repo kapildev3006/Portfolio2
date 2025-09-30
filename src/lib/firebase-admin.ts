@@ -2,18 +2,21 @@
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
 
-const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
-  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
-  : undefined;
+let adminDb: admin.firestore.Firestore | null = null;
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    // You might need to provide your database URL here if not using a service account
-    // databaseURL: `https://<DATABASE_NAME>.firebaseio.com`
-  });
+const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+
+if (serviceAccountKey) {
+    const serviceAccount = JSON.parse(serviceAccountKey);
+    if (!admin.apps.length) {
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+        });
+    }
+    adminDb = getFirestore();
+} else {
+    console.warn("Firebase Admin SDK not initialized. FIREBASE_SERVICE_ACCOUNT_KEY is missing.");
 }
 
-const adminDb = getFirestore();
 
 export { adminDb };
