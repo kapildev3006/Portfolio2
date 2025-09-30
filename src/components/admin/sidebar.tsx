@@ -35,7 +35,8 @@ const sidebarNavItems = [
   { href: '/admin/notifications', label: 'Notifications', icon: Bell },
   { href: '/admin/chat', label: 'Chat', icon: MessageSquare },
   { href: '/admin/contacts', label: 'Contacts', icon: Contact },
-  { href: '/admin/profile', label: 'Profile', icon: Cog },
+  { href: '/admin/profile', label: 'Profile', icon: UserCircle },
+  { href: '/admin/settings', label: 'Settings', icon: Cog },
 ];
 
 export default function AdminSidebar() {
