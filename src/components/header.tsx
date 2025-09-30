@@ -7,13 +7,13 @@ import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/lib/types';
 import { portfolioData } from '@/lib/portfolio-data';
+import { ThemeToggle } from './theme-toggle';
 
 const navItems: NavItem[] = [
   { name: 'Home', href: '#home' },
   { name: 'About', href: '#about' },
   { name: 'Projects', href: '#projects' },
   { name: 'Contact', href: '#contact' },
-  { name: 'Admin', href: '/admin/dashboard' },
 ];
 
 export default function Header() {
@@ -78,7 +78,7 @@ export default function Header() {
               href={item.href}
               className={cn(
                 'text-sm font-medium transition-colors hover:text-primary',
-                item.href === `#${activeSection}` && !item.href.startsWith('/admin')
+                item.href === `#${activeSection}`
                   ? 'text-primary'
                   : 'text-muted-foreground'
               )}
@@ -93,6 +93,7 @@ export default function Header() {
                   <User />
               </Link>
           </Button>
+          <ThemeToggle />
           <Button
             variant="ghost"
             size="icon"
@@ -113,7 +114,7 @@ export default function Header() {
                 href={item.href}
                  className={cn(
                   'text-lg font-medium transition-colors hover:text-primary',
-                  item.href === `#${activeSection}` && !item.href.startsWith('/admin')
+                  item.href === `#${activeSection}`
                     ? 'text-primary'
                     : 'text-muted-foreground'
                 )}
