@@ -3,7 +3,6 @@
 
 import { z } from 'zod';
 import { v2 as cloudinary } from 'cloudinary';
-import { doc, setDoc } from 'firebase/firestore';
 import { adminDb } from '@/lib/firebase-admin';
 
 cloudinary.config({
@@ -157,14 +156,14 @@ export async function saveProfileData(data: z.infer<typeof profileSchema>) {
     if (!adminDb) {
       return {
         success: false,
-        message: 'Database connection not configured. Please set the FIREBASE_SERVICE_ACCOUNT_KEY environment variable on your server.',
+        message: "Database connection not configured. Please set the FIREBASE_SERVICE_ACCOUNT_KEY environment variable on your server.",
       };
     }
 
     try {
         const validatedData = profileSchema.parse(data);
         
-        const portfolioDocRef = doc(adminDb, 'portfolio', 'main');
+        const portfolioDocRef = adminDb.doc('portfolio/main');
 
         const dataToSave = {
             hero: {
@@ -186,7 +185,7 @@ export async function saveProfileData(data: z.infer<typeof profileSchema>) {
             }
         };
 
-        await setDoc(portfolioDocRef, dataToSave, { merge: true });
+        await portfolioDocRef.set(dataToSave, { merge: true });
 
         return {
             success: true,
