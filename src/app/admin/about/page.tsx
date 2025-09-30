@@ -205,7 +205,7 @@ export default function AdminAboutPage() {
     fetchData();
   }, []);
 
-  if (loading) {
+  if (loading || !portfolioData) {
     return (
       <div className="flex-1 bg-background p-8 text-foreground">
         <div className="mb-8">
@@ -232,19 +232,6 @@ export default function AdminAboutPage() {
         </div>
       </div>
     );
-  }
-  
-  if (!portfolioData) {
-    return (
-        <div className="flex-1 bg-background p-8 text-foreground">
-            <div className="mb-8">
-                <h1 className="text-4xl font-bold">Manage About Page</h1>
-                <p className="text-muted-foreground">
-                    Could not load portfolio data.
-                </p>
-            </div>
-        </div>
-    )
   }
 
   const { about } = portfolioData;
@@ -326,7 +313,7 @@ export default function AdminAboutPage() {
                 <DialogHeader>
                   <DialogTitle>Add New Journey Item</DialogTitle>
                   <DialogDescription>Fill out the form to add a new item to your professional journey.</DialogDescription>
-                </Header>
+                </DialogHeader>
                 <ExperienceForm onClose={() => setExperienceDialogOpen(false)} />
               </DialogContent>
             </Dialog>
@@ -370,5 +357,3 @@ export default function AdminAboutPage() {
     </div>
   );
 }
-
-    
