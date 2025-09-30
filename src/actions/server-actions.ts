@@ -157,7 +157,7 @@ export async function saveProfileData(data: z.infer<typeof profileSchema>) {
     if (!adminDb) {
       return {
         success: false,
-        message: 'Database connection not configured. Please check server environment.',
+        message: 'Database connection not configured. Please set the FIREBASE_SERVICE_ACCOUNT_KEY environment variable on your server.',
       };
     }
 
