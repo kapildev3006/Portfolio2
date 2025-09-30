@@ -69,22 +69,31 @@ const ResumeUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => v
       const formData = new FormData();
       formData.append('file', file);
 
-      const result = await uploadFile(formData);
+      try {
+        const result = await uploadFile(formData);
 
-      if (result.success && result.fileUrl) {
-          onUpload(result.fileUrl);
-          toast({
-              title: 'Resume Uploaded!',
-              description: 'Your resume has been successfully updated.',
-          });
-      } else {
-          toast({
-              title: 'Upload Failed',
-              description: result.message,
-              variant: 'destructive',
-          });
+        if (result.success && result.fileUrl) {
+            onUpload(result.fileUrl);
+            toast({
+                title: 'Resume Uploaded!',
+                description: 'Your resume has been successfully updated.',
+            });
+        } else {
+            toast({
+                title: 'Upload Failed',
+                description: result.message,
+                variant: 'destructive',
+            });
+        }
+      } catch (error) {
+        toast({
+            title: 'Upload Failed',
+            description: 'An unexpected error occurred.',
+            variant: 'destructive',
+        });
+      } finally {
+        setIsUploading(false);
       }
-      setIsUploading(false);
     }, [onUpload, toast]);
     
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -451,7 +460,7 @@ export default function AdminProfilePage() {
              <CardHeader>
               <CardTitle>Social Profiles</CardTitle>
               <CardDescription>Link your social media accounts.</CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent className="space-y-4">
                  <FormField
                   control={form.control}
