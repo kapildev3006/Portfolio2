@@ -31,7 +31,7 @@ export default function AdminHeader() {
       </div>
       <div className="flex items-center gap-4">
         <Button asChild variant="ghost" size="icon" className="relative rounded-full">
-          <Link href="/admin/contacts">
+          <Link href="/admin/notifications">
             <Bell className="h-5 w-5" />
             <span className="sr-only">Notifications</span>
             {/* This is a static indicator. In a real app, you'd drive this with state. */}
