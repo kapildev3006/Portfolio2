@@ -3,9 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarDays, LayoutGrid, List, Plus, Search } from 'lucide-react';
-import { projectsData } from '@/lib/admin-projects-data.tsx';
+import { LayoutGrid, List, Plus, Search } from 'lucide-react';
+import { projectsData } from '@/lib/admin-projects-data';
 import AdminProjectCard from '@/components/admin/project-card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import AddProjectForm from '@/components/admin/add-project-form';
 
 export default function AdminProjectsPage() {
   return (
@@ -15,10 +24,23 @@ export default function AdminProjectsPage() {
           <h1 className="text-4xl font-bold">Projects</h1>
           <p className="text-muted-foreground">Manage your project portfolio</p>
         </div>
-        <Button className="bg-gradient-to-r from-green-400 to-yellow-500 text-black">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Project
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-to-r from-green-400 to-yellow-500 text-black">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Project
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add New Project</DialogTitle>
+              <DialogDescription>
+                Fill in the details below to add a new project.
+              </DialogDescription>
+            </DialogHeader>
+            <AddProjectForm />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card className="mb-8 bg-card p-4">
