@@ -4,24 +4,47 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useActionState, useEffect, useRef } from 'react';
-
-import { portfolioData } from '@/lib/portfolio-data';
-import AnimatedDiv from '@/components/animated-div';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { submitContactForm } from '@/actions/server-actions';
+import { Github, Linkedin, Mail, MapPin, Phone, Send, Twitter } from 'lucide-react';
+import Link from 'next/link';
+import AnimatedDiv from '../animated-div';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email." }),
-  message: z.string().min(10, { message: "Message must be at least 10 characters." }),
+  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+  email: z.string().email({ message: 'Please enter a valid email.' }),
+  phone: z.string().optional(),
+  subject: z.string().min(5, { message: 'Subject must be at least 5 characters.' }),
+  message: z.string().min(10, { message: 'Message must be at least 10 characters.' }),
 });
 
+type ContactInfoCardProps = {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  href?: string;
+};
+
+const ContactInfoCard = ({ icon, label, value, href }: ContactInfoCardProps) => (
+  <Link href={href || '#'} className="block rounded-lg bg-secondary/50 p-6 transition-colors hover:bg-secondary">
+    <div className="flex items-center gap-4">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-foreground">{label}</p>
+        <p className="text-sm text-muted-foreground">{value}</p>
+      </div>
+    </div>
+  </Link>
+);
+
+
 export default function Contact() {
-  const { contact } = portfolioData;
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -35,6 +58,8 @@ export default function Contact() {
     defaultValues: {
       name: '',
       email: '',
+      phone: '',
+      subject: '',
       message: '',
     },
   });
@@ -54,64 +79,120 @@ export default function Contact() {
   }, [state, toast, form]);
 
   return (
-    <section id="contact" className="w-full bg-card py-20 md:py-32">
+    <section id="contact" className="w-full bg-background py-20 md:py-32">
       <div className="container mx-auto px-4 md:px-6">
-        <AnimatedDiv className="mb-12 text-center">
-          <h2 className="font-headline text-3xl font-bold tracking-tighter text-primary sm:text-4xl md:text-5xl">
-            Get In Touch
-          </h2>
-          <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">
-            Have a project in mind or just want to say hello? My inbox is always open.
-          </p>
-        </AnimatedDiv>
-        <AnimatedDiv className="mx-auto max-w-xl">
-          <Form {...form}>
-            <form ref={formRef} action={formAction} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Your Name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="your@email.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="message"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Message</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Your message here..." rows={5} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                Send Message
-              </Button>
-            </form>
-          </Form>
-        </AnimatedDiv>
+        <div className="grid gap-16 lg:grid-cols-2">
+          <AnimatedDiv className="space-y-8">
+            <div>
+              <h2 className="font-headline text-4xl font-bold tracking-tighter text-foreground sm:text-5xl">
+                Let's Connect
+              </h2>
+              <p className="mt-4 max-w-[600px] text-muted-foreground md:text-xl">
+                Ready to bring your ideas to life? I'm here to help you create something amazing. Let's discuss your project and make it happen.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <ContactInfoCard icon={<Mail />} label="Email" value="kapildev@example.com" href="mailto:kapildev@example.com" />
+              <ContactInfoCard icon={<Phone />} label="Phone" value="+1 (555) 123-4567" />
+              <ContactInfoCard icon={<MapPin />} label="Location" value="San Francisco, CA" />
+            </div>
+            <div>
+                <h3 className="font-headline text-lg font-semibold text-foreground">Follow Me</h3>
+                <div className="mt-4 flex gap-4">
+                    <Button asChild variant="outline" size="icon" className="rounded-full">
+                        <Link href="#"><Github /></Link>
+                    </Button>
+                    <Button asChild variant="outline" size="icon" className="rounded-full">
+                        <Link href="#"><Linkedin /></Link>
+                    </Button>
+                    <Button asChild variant="outline" size="icon" className="rounded-full">
+                        <Link href="#"><Twitter /></Link>
+                    </Button>
+                </div>
+            </div>
+          </AnimatedDiv>
+          
+          <AnimatedDiv className="rounded-lg bg-card p-8 shadow-lg">
+             <h3 className="font-headline text-3xl font-bold text-foreground">Send Message</h3>
+            <Form {...form}>
+              <form ref={formRef} action={formAction} className="mt-6 space-y-6">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Full Name *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Your full name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email Address *</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="your.email@example.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                </div>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <Input placeholder="+91 1234567890" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="subject"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Subject *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Project inquiry, collaboration, etc." {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="message"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Message *</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Tell me about your project, requirements, timeline, or any questions you have..." rows={5} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
+                    <Send className="mr-2"/>
+                    Send Message
+                </Button>
+              </form>
+            </Form>
+          </AnimatedDiv>
+        </div>
       </div>
     </section>
   );
