@@ -3,8 +3,8 @@
 
 import { z } from 'zod';
 import { v2 as cloudinary } from 'cloudinary';
-import { db } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -157,7 +157,7 @@ export async function saveProfileData(data: z.infer<typeof profileSchema>) {
     try {
         const validatedData = profileSchema.parse(data);
         
-        const portfolioDocRef = doc(db, 'portfolio', 'main');
+        const portfolioDocRef = doc(adminDb, 'portfolio', 'main');
 
         const dataToSave = {
             hero: {
