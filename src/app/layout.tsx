@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from "@/components/ui/toaster"
 import './globals.css';
+import ScrollToTop from '@/components/scroll-to-top';
 
 export const metadata: Metadata = {
   title: 'Portfolio',
@@ -27,6 +28,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           {children}
           <Toaster />
+          <ScrollToTop />
         </ThemeProvider>
       </body>
     </html>

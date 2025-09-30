@@ -14,6 +14,18 @@ export type Project = {
   sourceUrl?: string;
 };
 
+export type Service = {
+  name: string;
+};
+
+export type Testimonial = {
+  name: string;
+  role: string;
+  comment: string;
+  imageUrl: string;
+  imageHint: string;
+}
+
 export type PortfolioData = {
   hero: {
     name: string;
@@ -29,6 +41,8 @@ export type PortfolioData = {
     skills: string[];
   };
   projects: Project[];
+  services: Service[];
+  testimonials: Testimonial[];
   contact: {
     email: string;
   };

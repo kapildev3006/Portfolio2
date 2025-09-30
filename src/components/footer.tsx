@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Code, Github, Instagram, Linkedin, Send } from 'lucide-react';
+import { Github, Instagram, Linkedin, Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Separator } from './ui/separator';
@@ -12,13 +12,6 @@ const quickLinks = [
   { name: 'Contact', href: '#contact' },
 ];
 
-const services = [
-    { name: 'Web Development', href: '#' },
-    { name: 'Mobile Apps', href: '#' },
-    { name: 'API Development', href: '#' },
-    { name: 'Consulting', href: '#' },
-];
-
 const connectLinks = [
     { name: 'LinkedIn', href: '#', icon: Linkedin },
     { name: 'GitHub', href: '#', icon: Github },
@@ -29,15 +22,12 @@ const connectLinks = [
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-background text-muted-foreground border-t">
+    <footer className="w-full border-t border-border/20 bg-background/50 text-muted-foreground">
       <div className="container mx-auto px-4 py-12 md:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Column 1: Profile */}
           <div className="flex flex-col gap-4">
-             <Link href="#home" className="flex items-center gap-2 font-headline text-lg font-bold text-foreground">
-                <div className="rounded-full bg-primary p-2">
-                    <Code className="h-6 w-6 text-primary-foreground" />
-                </div>
+             <Link href="#home" className="flex items-center gap-2 font-headline text-2xl font-bold text-gradient">
                 <span>{portfolioData.hero.name}</span>
             </Link>
             <p className="text-sm">
@@ -74,9 +64,9 @@ export default function Footer() {
           <div className="flex flex-col gap-4">
              <h3 className="font-headline text-lg font-semibold text-foreground">Services</h3>
             <ul className="space-y-2">
-              {services.map((service) => (
+              {portfolioData.services.map((service) => (
                 <li key={service.name}>
-                  <Link href={service.href} className="text-sm hover:text-primary transition-colors">
+                  <Link href="#" className="text-sm hover:text-primary transition-colors">
                     {service.name}
                   </Link>
                 </li>
@@ -101,7 +91,7 @@ export default function Footer() {
         </div>
 
         {/* Newsletter Section */}
-        <div className="mt-12 rounded-lg bg-card p-8 text-center shadow-inner">
+        <div className="mt-12 rounded-lg bg-secondary/50 p-8 text-center">
           <h3 className="font-headline text-2xl font-bold text-foreground">Stay Updated</h3>
           <p className="mt-2 text-sm text-muted-foreground">
             Get notified about new projects and blog posts.
@@ -120,13 +110,12 @@ export default function Footer() {
         </div>
       </div>
 
-      <Separator />
+      <Separator className="bg-border/20" />
 
       {/* Bottom Bar */}
       <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 px-4 py-6 text-sm md:px-6">
         <p>
-          &copy; {new Date().getFullYear()} {portfolioData.hero.name}. Made with{' '}
-          <span role="img" aria-label="love">❤️</span> in the world.
+          &copy; {new Date().getFullYear()} {portfolioData.hero.name}. All rights reserved.
         </p>
         <div className="flex gap-4">
           <Link href="#" className="hover:text-primary transition-colors">

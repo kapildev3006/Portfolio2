@@ -32,9 +32,9 @@
     },
     {
       "id": "hero-image",
-      "description": "Abstract colorful background",
-      "imageUrl": "https://images.unsplash.com/photo-1749836851408-a41779f37ff4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8YWJzdHJhY3QlMjBjb2xvcmZ1bHxlbnwwfHx8fDE3NTg5NDExOTV8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "abstract colorful"
+      "description": "Man in a suit",
+      "imageUrl": "https://images.unsplash.com/photo-1629670131498-4a4087528a7b?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageHint": "man suit"
     }
   ]
 }

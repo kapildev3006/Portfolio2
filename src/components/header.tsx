@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, Code } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/lib/types';
+import { portfolioData } from '@/lib/data';
 
 const navItems: NavItem[] = [
   { name: 'Home', href: '#home' },
-  { name: 'About', href: '#about' },
   { name: 'Projects', href: '#projects' },
+  { name: 'Services', href: '#services' },
+  { name: 'About', href: '#about' },
+  { name: 'Testimonials', href: '#testimonials' },
   { name: 'Contact', href: '#contact' },
-  { name: 'Admin', href: '/admin/dashboard' },
 ];
 
 export default function Header() {
@@ -67,12 +69,11 @@ export default function Header() {
         isScrolled ? 'bg-background/80 backdrop-blur-sm shadow-md' : 'bg-transparent'
       )}
     >
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        <Link href="#home" className="flex items-center gap-2 font-headline text-lg font-bold">
-          <Code className="h-6 w-6 text-primary" />
-          <span>Portfolio</span>
+      <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
+        <Link href="#home" className="flex items-center gap-2 font-headline text-2xl font-bold text-gradient">
+          <span>{portfolioData.hero.name}</span>
         </Link>
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-8 md:flex">
           {navItems.map((item) => (
             <Link
               key={item.name}
@@ -88,8 +89,11 @@ export default function Header() {
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" className="hidden md:inline-flex">
+            <User className="h-5 w-5" />
+            <span className="sr-only">User profile</span>
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -119,6 +123,10 @@ export default function Header() {
                 {item.name}
               </Link>
             ))}
+            <Button variant="ghost" size="icon">
+                <User className="h-5 w-5" />
+                <span className="sr-only">User profile</span>
+            </Button>
           </nav>
         </div>
       )}
