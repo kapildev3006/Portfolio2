@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -59,7 +60,7 @@ export default function AdminSidebar() {
         <SidebarMenu>
           {sidebarNavItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} legacyBehavior passHref>
+              <Link href={item.href}>
                 <SidebarMenuButton
                   isActive={pathname === item.href}
                   className="group rounded-lg text-sidebar-foreground/80 transition-colors hover:bg-primary/10 hover:text-sidebar-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
@@ -79,7 +80,7 @@ export default function AdminSidebar() {
       <SidebarFooter className="p-4">
         <SidebarMenu>
             <SidebarMenuItem>
-              <Link href="/" legacyBehavior passHref>
+              <Link href="/">
                 <SidebarMenuButton className="rounded-lg text-sidebar-foreground/80 transition-colors hover:bg-primary/10 hover:text-sidebar-foreground">
                   <Home />
                   <span className="font-medium">Back to Website</span>
