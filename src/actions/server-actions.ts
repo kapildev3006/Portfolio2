@@ -93,3 +93,45 @@ export async function uploadImage(formData: FormData) {
     };
   }
 }
+
+export async function uploadFile(formData: FormData) {
+  const file = formData.get('file') as File;
+  if (!file) {
+    return {
+      message: 'No file provided.',
+      success: false,
+    };
+  }
+
+  // Optional: Add file type/size validation here
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const results = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream({
+        resource_type: 'auto', // Automatically detect file type
+        public_id: 'resume' // Or make this dynamic if needed
+      }, (error, result) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(result);
+      }).end(buffer);
+    });
+
+    return {
+      message: 'File uploaded successfully.',
+      success: true,
+      fileUrl: (results as any).secure_url,
+    };
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    return {
+      message: 'Failed to upload file.',
+      success: false,
+    };
+  }
+}

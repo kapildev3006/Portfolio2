@@ -25,10 +25,12 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { portfolioData } from '@/lib/portfolio-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera } from 'lucide-react';
+import { Camera, FileUp, Upload } from 'lucide-react';
 import React from 'react';
-import { uploadImage } from '@/actions/server-actions';
+import { uploadImage, uploadFile } from '@/actions/server-actions';
 import { useRouter } from 'next/navigation';
+import { useDropzone } from 'react-dropzone';
+import { cn } from '@/lib/utils';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
@@ -40,7 +42,81 @@ const profileSchema = z.object({
   github: z.string().url('Invalid URL').optional().or(z.literal('')),
   twitter: z.string().url('Invalid URL').optional().or(z.literal('')),
   imageUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+  resumeUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
 });
+
+const ResumeUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => void; currentUrl?: string }) => {
+    const [isUploading, setIsUploading] = React.useState(false);
+    const { toast } = useToast();
+
+    const onDrop = React.useCallback(async (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (!file) return;
+
+      if (file.type !== 'application/pdf') {
+          toast({
+              title: 'Invalid File Type',
+              description: 'Please upload a PDF file.',
+              variant: 'destructive',
+          });
+          return;
+      }
+
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const result = await uploadFile(formData);
+
+      if (result.success && result.fileUrl) {
+          onUpload(result.fileUrl);
+          toast({
+              title: 'Resume Uploaded!',
+              description: 'Your resume has been successfully updated.',
+          });
+      } else {
+          toast({
+              title: 'Upload Failed',
+              description: result.message,
+              variant: 'destructive',
+          });
+      }
+      setIsUploading(false);
+    }, [onUpload, toast]);
+    
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+      onDrop,
+      multiple: false,
+      accept: { 'application/pdf': ['.pdf'] },
+    });
+
+    return (
+      <div 
+        {...getRootProps()} 
+        className={cn(
+          "flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer text-muted-foreground",
+          isDragActive ? "border-primary bg-primary/10" : "border-input"
+        )}
+      >
+        <input {...getInputProps()} />
+        <Upload className="w-10 h-10 mb-2" />
+        {isUploading ? (
+          <p>Uploading...</p>
+        ) : isDragActive ? (
+          <p>Drop the file here...</p>
+        ) : (
+          <p>Drag 'n' drop your resume here, or click to select a file</p>
+        )}
+        <p className="text-xs mt-1">(PDF format only)</p>
+        {currentUrl && !isUploading && (
+            <Button asChild variant="link" className="mt-2" onClick={(e) => e.stopPropagation()}>
+                <a href={currentUrl} target="_blank" rel="noopener noreferrer">View Current Resume</a>
+            </Button>
+        )}
+      </div>
+    );
+};
+
 
 export default function AdminProfilePage() {
   const { toast } = useToast();
@@ -60,6 +136,7 @@ export default function AdminProfilePage() {
       linkedin: 'https://linkedin.com/in/your-profile',
       github: 'https://github.com/your-profile',
       twitter: 'https://twitter.com/your-profile',
+      resumeUrl: '/resume.pdf' // Placeholder, will be updated
     },
   });
 
@@ -220,6 +297,30 @@ export default function AdminProfilePage() {
                       <FormLabel>Location</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g., San Francisco, CA" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            </CardContent>
+          </Card>
+
+           <Card className="mt-8">
+            <CardHeader>
+              <CardTitle>Resume / CV</CardTitle>
+              <CardDescription>Upload and manage your resume.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <FormField
+                  control={form.control}
+                  name="resumeUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                         <ResumeUploader 
+                            onUpload={(url) => field.onChange(url)}
+                            currentUrl={field.value}
+                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
