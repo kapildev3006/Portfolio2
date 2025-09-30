@@ -198,14 +198,19 @@ export default function AdminAboutPage() {
 
   React.useEffect(() => {
     async function fetchData() {
-      const data = await getPortfolioData();
-      setPortfolioData(data);
-      setLoading(false);
+      try {
+        const data = await getPortfolioData();
+        setPortfolioData(data);
+      } catch (error) {
+        console.error("Failed to fetch portfolio data:", error);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchData();
   }, []);
 
-  if (loading || !portfolioData) {
+  if (loading) {
     return (
       <div className="flex-1 bg-background p-8 text-foreground">
         <div className="mb-8">
@@ -232,6 +237,15 @@ export default function AdminAboutPage() {
         </div>
       </div>
     );
+  }
+
+  if (!portfolioData) {
+    return (
+        <div className="flex-1 bg-background p-8 text-foreground">
+            <h1 className="text-2xl font-bold text-destructive">Error</h1>
+            <p className="text-muted-foreground">Failed to load portfolio data. Please try again later.</p>
+        </div>
+    )
   }
 
   const { about } = portfolioData;
@@ -357,3 +371,5 @@ export default function AdminAboutPage() {
     </div>
   );
 }
+
+    
