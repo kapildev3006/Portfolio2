@@ -31,8 +31,8 @@ export default function AdminSidebar() {
                     <AvatarFallback>KD</AvatarFallback>
                 </Avatar>
                 <div>
-                    <p className="text-sm font-semibold">Admin Panel</p>
-                    <p className="text-xs text-muted-foreground">Kapil Dev</p>
+                    <p className="text-sm font-semibold">Kapil Dev</p>
+                    <p className="text-xs text-muted-foreground">Admin Panel</p>
                 </div>
             </div>
             <div className="flex flex-1 flex-col justify-between overflow-y-auto">
