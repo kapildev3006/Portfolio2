@@ -28,28 +28,35 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+
+    --sidebar-background: 222 83% 4%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-accent: 80 85% 55%;
+    --sidebar-accent-foreground: 222 83% 4%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 80 85% 55%;
   }
 
   .dark {
-    --background: 222 83% 4%;
+    --background: 222 83% 6%;
     --foreground: 210 40% 98%;
-    --card: 222 83% 4%;
+    --card: 222 83% 10%;
     --card-foreground: 210 40% 98%;
     --popover: 222 83% 4%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 80 85% 55%;
+    --primary-foreground: 222 83% 4%;
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
-    --accent: 217 91% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 80 85% 55%;
+    --accent-foreground: 222 83% 4%;
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
     --border: 217 33% 17%;
     --input: 217 33% 17%;
-    --ring: 217 91% 60%;
+    --ring: 80 85% 55%;
   }
 }
 
@@ -61,7 +68,7 @@
     @apply bg-background text-foreground;
   }
   
-  body {
+  body:not(.admin-body) {
     background-color: hsl(var(--background));
     background-image: radial-gradient(at 20% 20%, hsla(222, 70%, 95%, 0.3) 0px, transparent 50%),
                       radial-gradient(at 80% 20%, hsla(217, 80%, 90%, 0.2) 0px, transparent 50%),
@@ -69,15 +76,23 @@
   }
 }
 
-.dark body {
+.dark body:not(.admin-body) {
   background-color: hsl(var(--background));
   background-image: radial-gradient(at 20% 20%, hsla(222, 83%, 20%, 0.3) 0px, transparent 50%),
                     radial-gradient(at 80% 20%, hsla(217, 91%, 60%, 0.2) 0px, transparent 50%),
                     radial-gradient(at 80% 80%, hsla(260, 80%, 70%, 0.2) 0px, transparent 50%);
 }
 
+.admin-body {
+  background-color: hsl(var(--background));
+}
+
 .text-gradient {
   background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.sidebar-gradient {
+    background: linear-gradient(to bottom right, #a8e063, #56ab2f);
 }
