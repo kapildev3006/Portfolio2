@@ -30,9 +30,13 @@ export default function AdminHeader() {
         </div>
       </div>
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <Bell className="h-5 w-5" />
-          <span className="sr-only">Notifications</span>
+        <Button asChild variant="ghost" size="icon" className="relative rounded-full">
+          <Link href="/admin/contacts">
+            <Bell className="h-5 w-5" />
+            <span className="sr-only">Notifications</span>
+            {/* This is a static indicator. In a real app, you'd drive this with state. */}
+            <span className="absolute right-1 top-1 block h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background"></span>
+          </Link>
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
