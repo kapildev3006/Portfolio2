@@ -14,7 +14,7 @@ import { submitContactForm } from '@/actions/server-actions';
 import { Github, Linkedin, Mail, MapPin, Phone, Send, Twitter } from 'lucide-react';
 import Link from 'next/link';
 import AnimatedDiv from '../animated-div';
-import { portfolioData } from '@/lib/portfolio-data';
+import type { PortfolioData } from '@/lib/types';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -49,10 +49,10 @@ const ContactInfoCard = ({ icon, label, value, href }: ContactInfoCardProps) => 
 };
 
 
-export default function Contact() {
+export default function Contact({ portfolioData }: { portfolioData: PortfolioData }) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const { contact } = portfolioData;
+  const { contact, socials } = portfolioData;
 
   const [state, formAction] = useActionState(submitContactForm, {
     message: '',
@@ -106,13 +106,13 @@ export default function Contact() {
                 <h3 className="font-headline text-lg font-semibold text-foreground">Follow Me</h3>
                 <div className="mt-4 flex gap-4">
                     <Button asChild variant="outline" size="icon" className="rounded-full">
-                        <Link href="#"><Github /></Link>
+                        <Link href={socials.github}><Github /></Link>
                     </Button>
                     <Button asChild variant="outline" size="icon" className="rounded-full">
-                        <Link href="#"><Linkedin /></Link>
+                        <Link href={socials.linkedin}><Linkedin /></Link>
                     </Button>
                     <Button asChild variant="outline" size="icon" className="rounded-full">
-                        <Link href="#"><Twitter /></Link>
+                        <Link href={socials.twitter}><Twitter /></Link>
                     </Button>
                 </div>
             </div>

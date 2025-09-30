@@ -3,12 +3,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Download, Github, Linkedin, Mail } from 'lucide-react';
-import { portfolioData } from '@/lib/portfolio-data';
+import type { PortfolioData } from '@/lib/types';
 import AnimatedDiv from '@/components/animated-div';
 import { Button } from '@/components/ui/button';
 
-export default function Hero() {
-  const { hero } = portfolioData;
+type HeroProps = {
+  hero: PortfolioData['hero'];
+  socials: PortfolioData['socials'];
+};
+
+export default function Hero({ hero, socials }: HeroProps) {
 
   return (
     <section
@@ -45,12 +49,12 @@ export default function Hero() {
           </AnimatedDiv>
           <AnimatedDiv className="flex justify-center md:justify-start gap-4 mt-6">
             <Button asChild variant="outline" size="icon">
-              <Link href="#" aria-label="Github">
+              <Link href={socials.github} aria-label="Github">
                 <Github />
               </Link>
             </Button>
             <Button asChild variant="outline" size="icon">
-              <Link href="#" aria-label="LinkedIn">
+              <Link href={socials.linkedin} aria-label="LinkedIn">
                 <Linkedin />
               </Link>
             </Button>

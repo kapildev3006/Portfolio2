@@ -7,7 +7,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <AdminSidebar />
       <main className="flex-1">{children}</main>
     </SidebarProvider>

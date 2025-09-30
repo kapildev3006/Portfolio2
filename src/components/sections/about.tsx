@@ -1,6 +1,7 @@
+
 'use client';
 
-import { portfolioData } from '@/lib/portfolio-data';
+import { staticData } from '@/lib/portfolio-data';
 import AnimatedDiv from '@/components/animated-div';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import type { SkillCategory, Experience } from '@/lib/types';
@@ -43,7 +44,7 @@ const JourneyCard = ({ item }: { item: Experience }) => (
 
 
 export default function About() {
-  const { about } = portfolioData;
+  const { about } = staticData;
 
   return (
     <section id="about" className="w-full bg-background py-20 md:py-32">

@@ -6,8 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, User } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import type { NavItem } from '@/lib/types';
-import { portfolioData } from '@/lib/portfolio-data';
+import type { NavItem, PortfolioData } from '@/lib/types';
 import { ThemeToggle } from './theme-toggle';
 
 const navItems: NavItem[] = [
@@ -17,7 +16,11 @@ const navItems: NavItem[] = [
   { name: 'Contact', href: '/contact' },
 ];
 
-export default function Header() {
+type HeaderProps = {
+  portfolioData: PortfolioData;
+}
+
+export default function Header({ portfolioData }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 

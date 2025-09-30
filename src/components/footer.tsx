@@ -5,7 +5,7 @@ import { Github, Instagram, Linkedin, Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Separator } from './ui/separator';
-import { portfolioData } from '@/lib/portfolio-data';
+import { PortfolioData } from '@/lib/types';
 
 const quickLinks = [
   { name: 'Home', href: '/' },
@@ -14,15 +14,16 @@ const quickLinks = [
   { name: 'Contact', href: '/contact' },
 ];
 
-const connectLinks = [
-    { name: 'LinkedIn', href: '#', icon: Linkedin },
-    { name: 'GitHub', href: '#', icon: Github },
-    { name: 'Instagram', href: '#', icon: Instagram },
-    { name: 'Email', href: 'mailto:someone@example.com', icon: Send },
-];
+export default function Footer({ portfolioData }: { portfolioData: PortfolioData }) {
+  const { hero, socials, services, contact } = portfolioData;
 
+  const connectLinks = [
+      { name: 'LinkedIn', href: socials.linkedin, icon: Linkedin },
+      { name: 'GitHub', href: socials.github, icon: Github },
+      { name: 'Instagram', href: '#', icon: Instagram },
+      { name: 'Email', href: `mailto:${contact.email}`, icon: Send },
+  ];
 
-export default function Footer() {
   return (
     <footer className="w-full border-t border-border/20 bg-background/50 text-muted-foreground">
       <div className="container mx-auto px-4 py-12 md:px-6">
@@ -30,17 +31,17 @@ export default function Footer() {
           {/* Column 1: Profile */}
           <div className="flex flex-col gap-4">
              <Link href="/" className="flex items-center gap-2 font-headline text-2xl font-bold text-gradient">
-                <span>{portfolioData.hero.name}</span>
+                <span>{hero.name}</span>
             </Link>
             <p className="text-sm">
-              {portfolioData.hero.subtitle}
+              {hero.subtitle}
             </p>
             <div className="flex gap-2">
               <Button asChild variant="outline" size="icon">
-                  <Link href="#" aria-label="LinkedIn"><Linkedin /></Link>
+                  <Link href={socials.linkedin} aria-label="LinkedIn"><Linkedin /></Link>
               </Button>
               <Button asChild variant="outline" size="icon">
-                  <Link href="#" aria-label="GitHub"><Github /></Link>
+                  <Link href={socials.github} aria-label="GitHub"><Github /></Link>
               </Button>
                <Button asChild variant="outline" size="icon">
                   <Link href="#" aria-label="Instagram"><Instagram /></Link>
@@ -66,7 +67,7 @@ export default function Footer() {
           <div className="flex flex-col gap-4">
              <h3 className="font-headline text-lg font-semibold text-foreground">Services</h3>
             <ul className="space-y-2">
-              {portfolioData.services.map((service) => (
+              {services.map((service) => (
                 <li key={service.name}>
                   <Link href="#" className="text-sm hover:text-primary transition-colors">
                     {service.name}
@@ -117,7 +118,7 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 px-4 py-6 text-sm md:px-6">
         <p>
-          &copy; {new Date().getFullYear()} {portfolioData.hero.name}. All rights reserved.
+          &copy; {new Date().getFullYear()} {hero.name}. All rights reserved.
         </p>
         <div className="flex gap-4">
           <Link href="#" className="hover:text-primary transition-colors">

@@ -1,11 +1,12 @@
+
 'use client';
 
-import { portfolioData } from '@/lib/portfolio-data';
+import { staticData } from '@/lib/portfolio-data';
 import AnimatedDiv from '@/components/animated-div';
 import ProjectCard from '@/components/project-card';
 
 export default function Projects() {
-  const { projects } = portfolioData;
+  const { projects } = staticData;
 
   return (
     <section id="projects" className="w-full bg-background py-20 md:py-32">

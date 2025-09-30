@@ -23,15 +23,18 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { portfolioData } from '@/lib/portfolio-data';
+import { staticData } from '@/lib/portfolio-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, FileUp, Upload } from 'lucide-react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { uploadImage, uploadFile, saveProfileData } from '@/actions/server-actions';
 import { useRouter } from 'next/navigation';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
@@ -119,28 +122,119 @@ const ResumeUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => v
     );
 };
 
+function ProfileFormSkeleton() {
+  return (
+    <div className="space-y-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Personal Information</CardTitle>
+          <CardDescription>Update your photo and personal details here.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-20 w-20 rounded-full" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-1/6" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Contact Information</CardTitle>
+          <CardDescription>Update your public contact details.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="md:col-span-2 space-y-2">
+                <Skeleton className="h-4 w-1/6" />
+                <Skeleton className="h-10 w-full" />
+            </div>
+        </CardContent>
+      </Card>
+      {/* Add other skeletons as needed */}
+    </div>
+  );
+}
+
 
 export default function AdminProfilePage() {
   const { toast } = useToast();
   const router = useRouter();
   const [isUploading, setIsUploading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: portfolioData.hero.name,
-      title: portfolioData.hero.title,
-      subtitle: portfolioData.hero.subtitle,
-      email: portfolioData.contact.email,
-      phone: portfolioData.contact.phone,
-      location: portfolioData.contact.location,
-      imageUrl: portfolioData.hero.imageUrl,
-      resumeUrl: portfolioData.hero.resumeUrl,
-      linkedin: portfolioData.socials.linkedin,
-      github: portfolioData.socials.github,
-      twitter: portfolioData.socials.twitter,
+      name: '',
+      title: '',
+      subtitle: '',
+      email: '',
+      phone: '',
+      location: '',
+      imageUrl: '',
+      resumeUrl: '',
+      linkedin: '',
+      github: '',
+      twitter: '',
     },
   });
+
+  useEffect(() => {
+    async function fetchProfileData() {
+      try {
+        const docRef = doc(db, 'portfolio', 'main');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          form.reset({
+            name: data.hero?.name || '',
+            title: data.hero?.title || '',
+            subtitle: data.hero?.subtitle || '',
+            imageUrl: data.hero?.imageUrl || '',
+            resumeUrl: data.hero?.resumeUrl || '',
+            email: data.contact?.email || '',
+            phone: data.contact?.phone || '',
+            location: data.contact?.location || '',
+            linkedin: data.socials?.linkedin || '',
+            github: data.socials?.github || '',
+            twitter: data.socials?.twitter || '',
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+        toast({
+          title: 'Error',
+          description: 'Could not fetch profile data.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchProfileData();
+  }, [form, toast]);
+
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -158,8 +252,6 @@ export default function AdminProfilePage() {
         title: 'Image Uploaded!',
         description: 'Your profile picture has been updated.',
       });
-      // In a real app, you'd likely save this new URL to the database.
-      // For now, we'll just refresh to see the change reflected if it were persisted.
       router.refresh();
     } else {
       toast({
@@ -180,6 +272,19 @@ export default function AdminProfilePage() {
       variant: result.success ? 'default' : 'destructive',
     });
   };
+  
+  if (isLoading) {
+    return (
+        <div className="flex-1 bg-background p-8 text-foreground">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold">My Profile</h1>
+            <p className="text-muted-foreground">Manage your personal information and settings.</p>
+          </div>
+          <ProfileFormSkeleton />
+        </div>
+    );
+  }
+
 
   return (
     <div className="flex-1 bg-background p-8 text-foreground">
@@ -350,7 +455,7 @@ export default function AdminProfilePage() {
              <CardHeader>
               <CardTitle>Social Profiles</CardTitle>
               <CardDescription>Link your social media accounts.</CardDescription>
-            </CardHeader>
+            </Header>
             <CardContent className="space-y-4">
                  <FormField
                   control={form.control}

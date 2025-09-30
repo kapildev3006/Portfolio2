@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Separator } from '../ui/separator';
-import { portfolioData } from '@/lib/portfolio-data';
+import { staticData } from '@/lib/portfolio-data';
 import {
   Sidebar,
   SidebarContent,
@@ -26,6 +26,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useEffect, useState } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Skeleton } from '../ui/skeleton';
 
 const sidebarNavItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutGrid },
@@ -39,22 +43,61 @@ const sidebarNavItems = [
   { href: '/admin/settings', label: 'Settings', icon: Cog },
 ];
 
+type SidebarData = {
+    name: string;
+    imageUrl: string;
+}
+
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const { name, imageUrl } = portfolioData.hero;
-  const fallback = name.substring(0, 2).toUpperCase();
+  const [sidebarData, setSidebarData] = useState<SidebarData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchSidebarData() {
+      try {
+        const docRef = doc(db, 'portfolio', 'main');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setSidebarData({
+            name: data.hero?.name || staticData.hero.name,
+            imageUrl: data.hero?.imageUrl || staticData.hero.imageUrl,
+          });
+        } else {
+           setSidebarData({ name: staticData.hero.name, imageUrl: staticData.hero.imageUrl });
+        }
+      } catch (error) {
+        console.error("Error fetching sidebar data:", error);
+        setSidebarData({ name: staticData.hero.name, imageUrl: staticData.hero.imageUrl });
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSidebarData();
+  }, []);
+
+  const fallback = sidebarData?.name ? sidebarData.name.substring(0, 2).toUpperCase() : "AD";
 
   return (
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-3 p-4">
-          <Avatar className="h-12 w-12">
-              <AvatarImage src={imageUrl} alt={name} />
-              <AvatarFallback>{fallback}</AvatarFallback>
-          </Avatar>
+          {loading ? (
+             <Skeleton className="h-12 w-12 rounded-full" />
+          ) : (
+            <Avatar className="h-12 w-12">
+                <AvatarImage src={sidebarData?.imageUrl} alt={sidebarData?.name} />
+                <AvatarFallback>{fallback}</AvatarFallback>
+            </Avatar>
+          )}
           <div className="flex flex-col">
               <span className="text-lg font-bold text-sidebar-foreground">Admin Panel</span>
-              <span className="text-sm text-muted-foreground/80">{name}</span>
+              {loading ? (
+                <Skeleton className="h-4 w-24 mt-1" />
+              ) : (
+                <span className="text-sm text-muted-foreground/80">{sidebarData?.name}</span>
+              )}
           </div>
         </div>
       </SidebarHeader>
