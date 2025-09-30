@@ -94,5 +94,5 @@
 }
 
 .sidebar-gradient {
-    background: linear-gradient(to bottom right, #a8e063, #56ab2f);
+    background: linear-gradient(to bottom right, hsl(var(--sidebar-accent)), hsl(var(--primary)));
 }
