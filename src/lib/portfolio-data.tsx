@@ -16,6 +16,7 @@ export const portfolioData: PortfolioData = {
     title: 'Full Stack Developer',
     subtitle: 'Passionate Full Stack Developer with expertise in modern web technologies.',
     ...getImage('hero-image'),
+    resumeUrl: '/resume.pdf',
   },
   about: {
     subtitle: 'Passionate Full Stack Developer with expertise in modern web technologies.',

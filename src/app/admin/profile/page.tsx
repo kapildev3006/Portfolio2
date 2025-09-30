@@ -135,11 +135,11 @@ export default function AdminProfilePage() {
       phone: portfolioData.contact.phone,
       location: portfolioData.contact.location,
       imageUrl: portfolioData.hero.imageUrl,
+      resumeUrl: portfolioData.hero.resumeUrl,
       // In a real app, these would come from a user-specific data source
       linkedin: 'https://linkedin.com/in/your-profile',
       github: 'https://github.com/your-profile',
       twitter: 'https://twitter.com/your-profile',
-      resumeUrl: '/resume.pdf' // Placeholder, will be updated
     },
   });
 

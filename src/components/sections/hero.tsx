@@ -37,7 +37,7 @@ export default function Hero() {
                 <Link href="/projects">View My Work</Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="w-full md:w-auto">
-                <Link href="/resume.pdf" target="_blank" rel="noopener noreferrer">
+                <Link href={hero.resumeUrl} target="_blank" rel="noopener noreferrer">
                   <Download className="mr-2 h-4 w-4" />
                   Download CV
                 </Link>
