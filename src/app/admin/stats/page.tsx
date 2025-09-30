@@ -1,9 +1,8 @@
 
 'use client';
 
-import { BarChart, Book, Briefcase, BrainCircuit, Grip, Layers, TrendingUp } from 'lucide-react';
+import { BarChart, Briefcase, BrainCircuit, Layers, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { portfolioData } from '@/lib/portfolio-data';
 import {
   Bar,
   XAxis,
@@ -18,54 +17,115 @@ import {
   Cell,
 } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-
-// Process project data to get tag counts
-const getProjectTagCounts = () => {
-  const tagCounts: { [key: string]: number } = {};
-  portfolioData.projects.forEach(project => {
-    project.tags.forEach(tag => {
-      tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-    });
-  });
-  return Object.entries(tagCounts)
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value);
-};
-
-// Process skills data
-const getSkillStats = () => {
-  return portfolioData.about.skills.map(category => ({
-    name: category.title,
-    value: category.skills.split(',').length,
-  }));
-};
+import React, { useEffect, useState } from 'react';
+import { getPortfolioData } from '@/lib/portfolio-data';
+import type { PortfolioData } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'];
 
-const projectTagData = getProjectTagCounts();
-const skillData = getSkillStats();
-const totalProjects = portfolioData.projects.length;
-const totalExperience = portfolioData.about.experience.length;
-const totalSkillCategories = portfolioData.about.skills.length;
-const totalServices = portfolioData.services.length;
-
-
-const chartConfig = {
-  value: {
-    label: 'Count',
-  },
-  ...projectTagData.reduce((acc, tag) => {
-    acc[tag.name] = { label: tag.name };
-    return acc;
-  }, {}),
-  ...skillData.reduce((acc, skill) => {
-    acc[skill.name] = { label: skill.name };
-    return acc;
-  }, {}),
-};
+function StatsPageSkeleton() {
+    return (
+        <div className="flex-1 bg-background p-8 text-foreground">
+            <div className="mb-8">
+                <Skeleton className="h-10 w-1/2" />
+                <Skeleton className="h-4 w-1/3 mt-2" />
+            </div>
+            <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
+                    <Card key={i}>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <Skeleton className="h-4 w-2/3" />
+                            <Skeleton className="h-4 w-4" />
+                        </CardHeader>
+                        <CardContent>
+                            <Skeleton className="h-8 w-1/3" />
+                            <Skeleton className="h-3 w-1/2 mt-1" />
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-1/2 mt-2" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-[350px] w-full" />
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-1/2 mt-2" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-[350px] w-full" />
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
+}
 
 
 export default function AdminStatsPage() {
+    const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const data = await getPortfolioData();
+            setPortfolioData(data);
+        };
+        fetchData();
+    }, []);
+
+    if (!portfolioData) {
+        return <StatsPageSkeleton />;
+    }
+
+    const getProjectTagCounts = () => {
+      const tagCounts: { [key: string]: number } = {};
+      portfolioData.projects.forEach(project => {
+        project.tags.forEach(tag => {
+          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+        });
+      });
+      return Object.entries(tagCounts)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value);
+    };
+
+    const getSkillStats = () => {
+      return portfolioData.about.skills.map(category => ({
+        name: category.title,
+        value: category.skills.split(',').length,
+      }));
+    };
+    
+    const projectTagData = getProjectTagCounts();
+    const skillData = getSkillStats();
+    const totalProjects = portfolioData.projects.length;
+    const totalExperience = portfolioData.about.experience.length;
+    const totalSkillCategories = portfolioData.about.skills.length;
+    const totalServices = portfolioData.services.length;
+
+    const chartConfig = {
+      value: {
+        label: 'Count',
+      },
+      ...projectTagData.reduce((acc, tag) => {
+        acc[tag.name] = { label: tag.name };
+        return acc;
+      }, {}),
+      ...skillData.reduce((acc, skill) => {
+        acc[skill.name] = { label: skill.name };
+        return acc;
+      }, {}),
+    };
+
+
   return (
     <div className="flex-1 bg-background p-8 text-foreground">
       <div className="mb-8">
@@ -151,7 +211,7 @@ export default function AdminStatsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-               <Grip className="h-5 w-5"/>
+               <BrainCircuit className="h-5 w-5"/>
               Skills Breakdown
             </CardTitle>
             <CardDescription>Number of skills per category.</CardDescription>
