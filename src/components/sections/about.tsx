@@ -55,9 +55,9 @@ export default function About() {
           </p>
         </AnimatedDiv>
         
-        <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
           <AnimatedDiv className="space-y-8">
-            <h3 className="font-headline text-2xl font-bold text-center lg:text-left">My Skills</h3>
+            <h3 className="font-headline text-2xl font-bold text-center md:text-left">My Skills</h3>
             <div className="space-y-6">
               {about.skills.map((skill, index) => (
                 <SkillCard key={index} skill={skill} />
@@ -66,7 +66,7 @@ export default function About() {
           </AnimatedDiv>
           
           <AnimatedDiv className="space-y-8">
-            <h3 className="font-headline text-2xl font-bold text-center lg:text-left">My Journey</h3>
+            <h3 className="font-headline text-2xl font-bold text-center md:text-left">My Journey</h3>
             <div className="space-y-6">
               {about.experience.map((item, index) => (
                 <JourneyCard key={index} item={item} />
