@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/lib/types';
@@ -49,6 +49,12 @@ export default function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
+           <Button asChild variant="ghost" size="icon">
+              <Link href="/admin">
+                <User />
+                <span className="sr-only">Admin</span>
+              </Link>
+            </Button>
           <ThemeToggle />
           <Button
             variant="ghost"
