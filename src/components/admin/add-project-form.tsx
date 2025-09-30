@@ -19,7 +19,7 @@ import Image from 'next/image';
 const formSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
   description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
-  tags: z.string().min(1, { message: 'Please add at least one tag.' }),
+  techstack: z.string().min(1, { message: 'Please add at least one technology.' }),
   liveUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
   sourceUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
   imageUrl: z.string().url({ message: 'Please upload an image.' }).min(1, 'Please upload an image.'),
@@ -107,7 +107,7 @@ export default function AddProjectForm() {
     defaultValues: {
       title: '',
       description: '',
-      tags: '',
+      techstack: '',
       liveUrl: '',
       sourceUrl: '',
       imageUrl: '',
@@ -155,10 +155,10 @@ export default function AddProjectForm() {
         />
         <FormField
           control={form.control}
-          name="tags"
+          name="techstack"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tags (comma-separated)</FormLabel>
+              <FormLabel>Tech Stack (comma-separated)</FormLabel>
               <FormControl>
                 <Input placeholder="e.g., React, Next.js, Tailwind" {...field} />
               </FormControl>
