@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, User } from 'lucide-react';
-import { ThemeToggle } from './theme-toggle';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/lib/types';
@@ -94,7 +93,6 @@ export default function Header() {
                   <User />
               </Link>
           </Button>
-          <ThemeToggle />
           <Button
             variant="ghost"
             size="icon"
