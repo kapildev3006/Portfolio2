@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -5,7 +6,10 @@ import { Github, Instagram, Linkedin, Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Separator } from './ui/separator';
-import { PortfolioData } from '@/lib/types';
+import type { PortfolioData } from '@/lib/types';
+import { useEffect, useState } from 'react';
+import { getPortfolioData } from '@/lib/portfolio-data';
+import { Skeleton } from './ui/skeleton';
 
 const quickLinks = [
   { name: 'Home', href: '/' },
@@ -14,7 +18,68 @@ const quickLinks = [
   { name: 'Contact', href: '/contact' },
 ];
 
-export default function Footer({ portfolioData }: { portfolioData: PortfolioData }) {
+function FooterSkeleton() {
+  return (
+    <div className="container mx-auto px-4 py-12 md:px-6">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-7 w-32" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-10 w-10 rounded-full" />
+          </div>
+        </div>
+        <div className="flex flex-col gap-4">
+          <h3 className="font-headline text-lg font-semibold text-foreground">Quick Links</h3>
+          <ul className="space-y-2">
+            {quickLinks.map((link) => (
+              <li key={link.name}><Skeleton className="h-4 w-20" /></li>
+            ))}
+          </ul>
+        </div>
+        <div className="flex flex-col gap-4">
+           <h3 className="font-headline text-lg font-semibold text-foreground">Services</h3>
+           <ul className="space-y-2">
+              <li><Skeleton className="h-4 w-24" /></li>
+              <li><Skeleton className="h-4 w-20" /></li>
+              <li><Skeleton className="h-4 w-28" /></li>
+           </ul>
+        </div>
+        <div className="flex flex-col gap-4">
+          <h3 className="font-headline text-lg font-semibold text-foreground">Connect</h3>
+          <ul className="space-y-2">
+              <li><Skeleton className="h-4 w-24" /></li>
+              <li><Skeleton className="h-4 w-20" /></li>
+              <li><Skeleton className="h-4 w-28" /></li>
+           </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function Footer() {
+  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      const data = await getPortfolioData();
+      setPortfolioData(data);
+    }
+    fetchData();
+  }, []);
+
+  if (!portfolioData) {
+    return (
+      <footer className="w-full border-t border-border/20 bg-background/50 text-muted-foreground">
+        <FooterSkeleton />
+      </footer>
+    )
+  }
+
   const { hero, socials, services, contact } = portfolioData;
 
   const connectLinks = [
@@ -28,7 +93,6 @@ export default function Footer({ portfolioData }: { portfolioData: PortfolioData
     <footer className="w-full border-t border-border/20 bg-background/50 text-muted-foreground">
       <div className="container mx-auto px-4 py-12 md:px-6">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-          {/* Column 1: Profile */}
           <div className="flex flex-col gap-4">
              <Link href="/" className="flex items-center gap-2 font-headline text-2xl font-bold text-gradient">
                 <span>{hero.name}</span>
@@ -49,7 +113,6 @@ export default function Footer({ portfolioData }: { portfolioData: PortfolioData
             </div>
           </div>
 
-          {/* Column 2: Quick Links */}
           <div className="flex flex-col gap-4">
             <h3 className="font-headline text-lg font-semibold text-foreground">Quick Links</h3>
             <ul className="space-y-2">
@@ -63,7 +126,6 @@ export default function Footer({ portfolioData }: { portfolioData: PortfolioData
             </ul>
           </div>
 
-          {/* Column 3: Services */}
           <div className="flex flex-col gap-4">
              <h3 className="font-headline text-lg font-semibold text-foreground">Services</h3>
             <ul className="space-y-2">
@@ -77,7 +139,6 @@ export default function Footer({ portfolioData }: { portfolioData: PortfolioData
             </ul>
           </div>
 
-          {/* Column 4: Connect */}
           <div className="flex flex-col gap-4">
             <h3 className="font-headline text-lg font-semibold text-foreground">Connect</h3>
             <ul className="space-y-2">
@@ -93,7 +154,6 @@ export default function Footer({ portfolioData }: { portfolioData: PortfolioData
           </div>
         </div>
 
-        {/* Newsletter Section */}
         <div className="mt-12 rounded-lg bg-secondary/50 p-8 text-center">
           <h3 className="font-headline text-2xl font-bold text-foreground">Stay Updated</h3>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -115,7 +175,6 @@ export default function Footer({ portfolioData }: { portfolioData: PortfolioData
 
       <Separator className="bg-border/20" />
 
-      {/* Bottom Bar */}
       <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 px-4 py-6 text-sm md:px-6">
         <p>
           &copy; {new Date().getFullYear()} {hero.name}. All rights reserved.

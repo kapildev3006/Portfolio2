@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -6,13 +7,49 @@ import { Download, Github, Linkedin, Mail } from 'lucide-react';
 import type { PortfolioData } from '@/lib/types';
 import AnimatedDiv from '@/components/animated-div';
 import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import { getPortfolioData } from '@/lib/portfolio-data';
+import { Skeleton } from '../ui/skeleton';
 
-type HeroProps = {
-  hero: PortfolioData['hero'];
-  socials: PortfolioData['socials'];
-};
+function HeroSkeleton() {
+  return (
+    <section className="relative w-full overflow-hidden py-20 md:py-32 min-h-[80vh] flex items-center">
+      <div className="container mx-auto grid grid-cols-1 items-center gap-16 px-4 md:grid-cols-2 md:px-6">
+        <div className="space-y-6 text-center md:text-left">
+          <Skeleton className="h-16 w-3/4 mx-auto md:mx-0" />
+          <Skeleton className="h-10 w-1/2 mx-auto md:mx-0" />
+          <Skeleton className="h-5 w-full mx-auto md:mx-0" />
+          <Skeleton className="h-5 w-5/6 mx-auto md:mx-0" />
+          <div className="flex justify-center md:justify-start gap-4">
+            <Skeleton className="h-12 w-32" />
+            <Skeleton className="h-12 w-32" />
+          </div>
+        </div>
+        <div className="relative flex justify-center items-center">
+          <Skeleton className="w-80 h-80 rounded-full" />
+        </div>
+      </div>
+    </section>
+  )
+}
 
-export default function Hero({ hero, socials }: HeroProps) {
+
+export default function Hero() {
+  const [data, setData] = useState<PortfolioData | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      const portfolioData = await getPortfolioData();
+      setData(portfolioData);
+    }
+    fetchData();
+  }, []);
+
+  if (!data) {
+    return <HeroSkeleton />;
+  }
+
+  const { hero, socials } = data;
 
   return (
     <section

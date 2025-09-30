@@ -5,21 +5,18 @@ import About from '@/components/sections/about';
 import Projects from '@/components/sections/projects';
 import Contact from '@/components/sections/contact';
 import Footer from '@/components/footer';
-import { getPortfolioData } from '@/lib/portfolio-data';
 
-export default async function Home() {
-  const portfolioData = await getPortfolioData();
-
+export default function Home() {
   return (
     <div className="flex min-h-dvh flex-col">
-      <Header portfolioData={portfolioData} />
+      <Header />
       <main className="flex-1">
-        <Hero hero={portfolioData.hero} socials={portfolioData.socials} />
+        <Hero />
         <About />
         <Projects />
-        <Contact portfolioData={portfolioData} />
+        <Contact />
       </main>
-      <Footer portfolioData={portfolioData}/>
+      <Footer />
     </div>
   );
 }

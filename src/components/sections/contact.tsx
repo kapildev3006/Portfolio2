@@ -4,7 +4,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,6 +15,8 @@ import { Github, Linkedin, Mail, MapPin, Phone, Send, Twitter } from 'lucide-rea
 import Link from 'next/link';
 import AnimatedDiv from '../animated-div';
 import type { PortfolioData } from '@/lib/types';
+import { getPortfolioData } from '@/lib/portfolio-data';
+import { Skeleton } from '../ui/skeleton';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -48,11 +50,18 @@ const ContactInfoCard = ({ icon, label, value, href }: ContactInfoCardProps) => 
   );
 };
 
-
-export default function Contact({ portfolioData }: { portfolioData: PortfolioData }) {
+export default function Contact() {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const { contact, socials } = portfolioData;
+  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      const data = await getPortfolioData();
+      setPortfolioData(data);
+    }
+    fetchData();
+  }, []);
 
   const [state, formAction] = useActionState(submitContactForm, {
     message: '',
@@ -97,23 +106,41 @@ export default function Contact({ portfolioData }: { portfolioData: PortfolioDat
                 Ready to bring your ideas to life? I'm here to help you create something amazing. Let's discuss your project and make it happen.
               </p>
             </div>
-            <div className="space-y-4">
-              <ContactInfoCard icon={<Mail />} label="Email" value={contact.email} href={`mailto:${contact.email}`} />
-              <ContactInfoCard icon={<Phone />} label="Phone" value={contact.phone} />
-              <ContactInfoCard icon={<MapPin />} label="Location" value={contact.location} />
-            </div>
+            {portfolioData ? (
+                <div className="space-y-4">
+                  <ContactInfoCard icon={<Mail />} label="Email" value={portfolioData.contact.email} href={`mailto:${portfolioData.contact.email}`} />
+                  <ContactInfoCard icon={<Phone />} label="Phone" value={portfolioData.contact.phone} />
+                  <ContactInfoCard icon={<MapPin />} label="Location" value={portfolioData.contact.location} />
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-24 w-full" />
+                </div>
+            )}
             <div>
                 <h3 className="font-headline text-lg font-semibold text-foreground">Follow Me</h3>
                 <div className="mt-4 flex gap-4">
-                    <Button asChild variant="outline" size="icon" className="rounded-full">
-                        <Link href={socials.github}><Github /></Link>
-                    </Button>
-                    <Button asChild variant="outline" size="icon" className="rounded-full">
-                        <Link href={socials.linkedin}><Linkedin /></Link>
-                    </Button>
-                    <Button asChild variant="outline" size="icon" className="rounded-full">
-                        <Link href={socials.twitter}><Twitter /></Link>
-                    </Button>
+                  {portfolioData ? (
+                    <>
+                      <Button asChild variant="outline" size="icon" className="rounded-full">
+                          <Link href={portfolioData.socials.github}><Github /></Link>
+                      </Button>
+                      <Button asChild variant="outline" size="icon" className="rounded-full">
+                          <Link href={portfolioData.socials.linkedin}><Linkedin /></Link>
+                      </Button>
+                      <Button asChild variant="outline" size="icon" className="rounded-full">
+                          <Link href={portfolioData.socials.twitter}><Twitter /></Link>
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                    </>
+                  )}
                 </div>
             </div>
           </AnimatedDiv>

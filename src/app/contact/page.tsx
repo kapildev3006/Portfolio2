@@ -1,18 +1,17 @@
 
+'use client'
 import Header from '@/components/header';
 import Contact from '@/components/sections/contact';
 import Footer from '@/components/footer';
-import { getPortfolioData } from '@/lib/portfolio-data';
 
-export default async function ContactPage() {
-  const portfolioData = await getPortfolioData();
+export default function ContactPage() {
   return (
     <div className="flex min-h-dvh flex-col">
-      <Header portfolioData={portfolioData} />
+      <Header />
       <main className="flex-1">
-        <Contact portfolioData={portfolioData}/>
+        <Contact />
       </main>
-      <Footer portfolioData={portfolioData} />
+      <Footer />
     </div>
   );
 }
