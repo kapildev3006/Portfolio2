@@ -24,6 +24,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Separator } from '../ui/separator';
+import { portfolioData } from '@/lib/portfolio-data';
 
 const sidebarNavItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutGrid },
@@ -37,18 +38,20 @@ const sidebarNavItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const { name, imageUrl } = portfolioData.hero;
+  const fallback = name.substring(0, 2).toUpperCase();
 
   return (
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-3 p-4">
           <Avatar className="h-12 w-12">
-              <AvatarImage src="https://i.pravatar.cc/150?u=rohit" alt="Rohit Senger" />
-              <AvatarFallback>RS</AvatarFallback>
+              <AvatarImage src={imageUrl} alt={name} />
+              <AvatarFallback>{fallback}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
               <span className="text-lg font-bold text-sidebar-foreground">Admin Panel</span>
-              <span className="text-sm text-muted-foreground/80">Rohit Senger</span>
+              <span className="text-sm text-muted-foreground/80">{name}</span>
           </div>
         </div>
       </SidebarHeader>
