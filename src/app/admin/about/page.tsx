@@ -218,6 +218,7 @@ export default function AdminAboutPage() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add New Skill</DialogTitle>
+                  <DialogDescription>Fill out the form to add a new skill category to your portfolio.</DialogDescription>
                 </DialogHeader>
                 <SkillForm onClose={() => setSkillDialogOpen(false)} />
               </DialogContent>
@@ -243,6 +244,7 @@ export default function AdminAboutPage() {
                         <DialogContent>
                             <DialogHeader>
                                <DialogTitle>Edit Skill</DialogTitle>
+                               <DialogDescription>Update the details for this skill category.</DialogDescription>
                             </DialogHeader>
                             <SkillForm skill={skill} onClose={() => {}} />
                         </DialogContent>
@@ -268,6 +270,7 @@ export default function AdminAboutPage() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add New Journey Item</DialogTitle>
+                  <DialogDescription>Fill out the form to add a new item to your professional journey.</DialogDescription>
                 </DialogHeader>
                 <ExperienceForm onClose={() => setExperienceDialogOpen(false)} />
               </DialogContent>
@@ -295,6 +298,7 @@ export default function AdminAboutPage() {
                             <DialogContent>
                                 <DialogHeader>
                                    <DialogTitle>Edit Journey Item</DialogTitle>
+                                   <DialogDescription>Update the details for this journey item.</DialogDescription>
                                 </DialogHeader>
                                 <ExperienceForm experience={item} onClose={() => {}} />
                             </DialogContent>
