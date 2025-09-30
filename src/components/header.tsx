@@ -11,11 +11,10 @@ import { portfolioData } from '@/lib/data';
 
 const navItems: NavItem[] = [
   { name: 'Home', href: '#home' },
-  { name: 'Projects', href: '#projects' },
-  { name: 'Services', href: '#services' },
   { name: 'About', href: '#about' },
-  { name: 'Testimonials', href: '#testimonials' },
+  { name: 'Projects', href: '#projects' },
   { name: 'Contact', href: '#contact' },
+  { name: 'Admin', href: '/admin/dashboard' },
 ];
 
 export default function Header() {
@@ -70,7 +69,7 @@ export default function Header() {
       )}
     >
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
-        <Link href="#home" className="flex items-center gap-2 font-headline text-2xl font-bold text-gradient">
+        <Link href="#home" className="flex items-center gap-2 text-xl font-bold">
           <span>{portfolioData.hero.name}</span>
         </Link>
         <nav className="hidden items-center gap-8 md:flex">
@@ -90,10 +89,7 @@ export default function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="hidden md:inline-flex">
-            <User className="h-5 w-5" />
-            <span className="sr-only">User profile</span>
-          </Button>
+          <ThemeToggle />
           <Button
             variant="ghost"
             size="icon"
@@ -123,10 +119,6 @@ export default function Header() {
                 {item.name}
               </Link>
             ))}
-            <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
-                <span className="sr-only">User profile</span>
-            </Button>
           </nav>
         </div>
       )}

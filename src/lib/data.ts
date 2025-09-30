@@ -8,9 +8,9 @@ const getImage = (id: string) => {
 
 export const portfolioData: PortfolioData = {
   hero: {
-    name: 'Rohit Sengar',
+    name: 'Kapil Dev',
     title: 'Full Stack Developer',
-    subtitle: 'I build exceptional digital experiences with modern web technologies. Let\'s create something amazing together!',
+    subtitle: 'Passionate Full Stack Developer with expertise in modern web technologies.',
     ...getImage('hero-image'),
   },
   about: {
