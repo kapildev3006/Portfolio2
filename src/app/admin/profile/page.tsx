@@ -23,12 +23,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { staticData } from '@/lib/portfolio-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, FileUp, Upload } from 'lucide-react';
+import { Camera, Upload } from 'lucide-react';
 import React, { useEffect } from 'react';
 import { uploadImage, uploadFile, saveProfileData } from '@/actions/server-actions';
-import { useRouter } from 'next/navigation';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
@@ -179,7 +177,6 @@ function ProfileFormSkeleton() {
 
 export default function AdminProfilePage() {
   const { toast } = useToast();
-  const router = useRouter();
   const [isUploading, setIsUploading] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
 
@@ -252,7 +249,6 @@ export default function AdminProfilePage() {
         title: 'Image Uploaded!',
         description: 'Your profile picture has been updated.',
       });
-      router.refresh();
     } else {
       toast({
         title: 'Upload Failed',
