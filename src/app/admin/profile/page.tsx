@@ -27,7 +27,7 @@ import { portfolioData } from '@/lib/portfolio-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, FileUp, Upload } from 'lucide-react';
 import React from 'react';
-import { uploadImage, uploadFile } from '@/actions/server-actions';
+import { uploadImage, uploadFile, saveProfileData } from '@/actions/server-actions';
 import { useRouter } from 'next/navigation';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
@@ -136,10 +136,9 @@ export default function AdminProfilePage() {
       location: portfolioData.contact.location,
       imageUrl: portfolioData.hero.imageUrl,
       resumeUrl: portfolioData.hero.resumeUrl,
-      // In a real app, these would come from a user-specific data source
-      linkedin: 'https://linkedin.com/in/your-profile',
-      github: 'https://github.com/your-profile',
-      twitter: 'https://twitter.com/your-profile',
+      linkedin: portfolioData.socials.linkedin,
+      github: portfolioData.socials.github,
+      twitter: portfolioData.socials.twitter,
     },
   });
 
@@ -172,11 +171,13 @@ export default function AdminProfilePage() {
     setIsUploading(false);
   };
 
-  const onSubmit = (values: z.infer<typeof profileSchema>) => {
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof profileSchema>) => {
+    const result = await saveProfileData(values);
+    
     toast({
-      title: 'Profile Updated!',
-      description: 'Your changes have been saved successfully.',
+      title: result.success ? 'Profile Updated!' : 'Update Failed',
+      description: result.message,
+      variant: result.success ? 'default' : 'destructive',
     });
   };
 
@@ -400,5 +401,3 @@ export default function AdminProfilePage() {
     </div>
   );
 }
-
-    

@@ -1,3 +1,4 @@
+
 import type { PortfolioData } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Code, Database, Equal, Rocket, ScreenShare, Wand2 } from 'lucide-react';
@@ -108,4 +109,9 @@ export const portfolioData: PortfolioData = {
     phone: '+1 (555) 123-4567',
     location: 'San Francisco, CA',
   },
+  socials: {
+    linkedin: 'https://linkedin.com/in/your-profile',
+    github: 'https://github.com/your-profile',
+    twitter: 'https://twitter.com/your-profile',
+  }
 };

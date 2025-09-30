@@ -1,3 +1,4 @@
+
 export type NavItem = {
   name: string;
   href: string;
@@ -62,6 +63,11 @@ export type PortfolioData = {
     phone?: string;
     location?: string;
   };
+  socials: {
+    linkedin: string;
+    github: string;
+    twitter: string;
+  }
 };
 
 export type ContactFormData = {

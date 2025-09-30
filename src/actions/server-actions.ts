@@ -3,6 +3,8 @@
 
 import { z } from 'zod';
 import { v2 as cloudinary } from 'cloudinary';
+import { db } from '@/lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -134,4 +136,66 @@ export async function uploadFile(formData: FormData) {
       success: false,
     };
   }
+}
+
+const profileSchema = z.object({
+  name: z.string().min(2, 'Name is too short'),
+  title: z.string().min(5, 'Title is too short'),
+  subtitle: z.string().min(10, 'Subtitle is too short'),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().optional(),
+  location: z.string().optional(),
+  linkedin: z.string().url('Invalid URL').optional().or(z.literal('')),
+  github: z.string().url('Invalid URL').optional().or(z.literal('')),
+  twitter: z.string().url('Invalid URL').optional().or(z.literal('')),
+  imageUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+  resumeUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+});
+
+
+export async function saveProfileData(data: z.infer<typeof profileSchema>) {
+    try {
+        const validatedData = profileSchema.parse(data);
+        
+        const portfolioDocRef = doc(db, 'portfolio', 'main');
+
+        const dataToSave = {
+            hero: {
+                name: validatedData.name,
+                title: validatedData.title,
+                subtitle: validatedData.subtitle,
+                imageUrl: validatedData.imageUrl,
+                resumeUrl: validatedData.resumeUrl,
+            },
+            contact: {
+                email: validatedData.email,
+                phone: validatedData.phone,
+                location: validatedData.location,
+            },
+            socials: {
+                linkedin: validatedData.linkedin,
+                github: validatedData.github,
+                twitter: validatedData.twitter,
+            }
+        };
+
+        await setDoc(portfolioDocRef, dataToSave, { merge: true });
+
+        return {
+            success: true,
+            message: 'Profile updated successfully!',
+        };
+    } catch (error) {
+        console.error("Error saving profile data: ", error);
+        if (error instanceof z.ZodError) {
+            return {
+                success: false,
+                message: 'Validation failed: ' + error.errors.map(e => e.message).join(', '),
+            };
+        }
+        return {
+            success: false,
+            message: 'An unexpected error occurred while saving your profile.',
+        };
+    }
 }
