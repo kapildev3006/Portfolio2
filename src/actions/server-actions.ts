@@ -1,6 +1,15 @@
+
 'use server';
 
 import { z } from 'zod';
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 
 const formSchema = z.object({
   name: z.string().min(2),
@@ -39,6 +48,47 @@ export async function submitContactForm(prevState: any, formData: FormData) {
     console.error('Error saving message:', error);
     return {
       message: 'Something went wrong. Please try again later.',
+      success: false,
+    };
+  }
+}
+
+
+export async function uploadImage(formData: FormData) {
+  const file = formData.get('image') as File;
+  if (!file) {
+    return {
+      message: 'No image file provided.',
+      success: false,
+    };
+  }
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const results = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream({
+        // Optionally, you can add upload presets, tags, etc.
+        // folder: "portfolio_profiles",
+      }, (error, result) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(result);
+      }).end(buffer);
+    });
+
+    return {
+      message: 'Image uploaded successfully.',
+      success: true,
+      imageUrl: (results as any).secure_url,
+    };
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    return {
+      message: 'Failed to upload image.',
       success: false,
     };
   }

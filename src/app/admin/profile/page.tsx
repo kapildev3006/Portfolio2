@@ -26,6 +26,9 @@ import { useToast } from '@/hooks/use-toast';
 import { portfolioData } from '@/lib/portfolio-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera } from 'lucide-react';
+import React from 'react';
+import { uploadImage } from '@/actions/server-actions';
+import { useRouter } from 'next/navigation';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
@@ -41,6 +44,9 @@ const profileSchema = z.object({
 
 export default function AdminProfilePage() {
   const { toast } = useToast();
+  const router = useRouter();
+  const [isUploading, setIsUploading] = React.useState(false);
+
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -56,6 +62,35 @@ export default function AdminProfilePage() {
       twitter: 'https://twitter.com/your-profile',
     },
   });
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const result = await uploadImage(formData);
+
+    if (result.success && result.imageUrl) {
+      form.setValue('imageUrl', result.imageUrl);
+      toast({
+        title: 'Image Uploaded!',
+        description: 'Your profile picture has been updated.',
+      });
+      // In a real app, you'd likely save this new URL to the database.
+      // For now, we'll just refresh to see the change reflected if it were persisted.
+      router.refresh();
+    } else {
+      toast({
+        title: 'Upload Failed',
+        description: result.message,
+        variant: 'destructive',
+      });
+    }
+    setIsUploading(false);
+  };
 
   const onSubmit = (values: z.infer<typeof profileSchema>) => {
     console.log(values);
@@ -95,19 +130,17 @@ export default function AdminProfilePage() {
                           </AvatarFallback>
                         </Avatar>
                         <div className="relative">
-                          <Button type="button" variant="outline">
+                           <Button type="button" variant="outline" disabled={isUploading}>
                             <Camera className="mr-2 h-4 w-4" />
-                            Change Photo
-                          </Button>
-                           <Input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => {
-                               if(e.target.files?.[0]) {
-                                   const fileReader = new FileReader();
-                                   fileReader.onload = () => {
-                                       field.onChange(fileReader.result as string);
-                                   };
-                                   fileReader.readAsDataURL(e.target.files[0]);
-                               }
-                           }}/>
+                            {isUploading ? 'Uploading...' : 'Change Photo'}
+                           </Button>
+                           <Input 
+                             type="file" 
+                             accept="image/*"
+                             className="absolute inset-0 cursor-pointer opacity-0" 
+                             onChange={handleImageUpload}
+                             disabled={isUploading}
+                           />
                         </div>
                       </div>
                     </FormControl>
