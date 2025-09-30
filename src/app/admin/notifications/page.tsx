@@ -1,5 +1,4 @@
 
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bell, UserPlus, MessageSquare, AlertTriangle, Settings } from 'lucide-react';
@@ -79,7 +78,9 @@ export default function AdminNotificationsPage() {
             </CardTitle>
             <div className="flex items-center gap-2">
                 <Button variant="ghost">Mark all as read</Button>
-                <Button variant="outline">Notification Settings</Button>
+                <Button variant="outline" asChild>
+                  <Link href="/admin/notifications/settings">Notification Settings</Link>
+                </Button>
             </div>
           </div>
         </CardHeader>
