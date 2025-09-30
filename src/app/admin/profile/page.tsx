@@ -31,10 +31,12 @@ import { uploadImage, uploadFile } from '@/actions/server-actions';
 import { useRouter } from 'next/navigation';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
+import { Textarea } from '@/components/ui/textarea';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
   title: z.string().min(5, 'Title is too short'),
+  subtitle: z.string().min(10, 'Subtitle is too short'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   location: z.string().optional(),
@@ -128,6 +130,7 @@ export default function AdminProfilePage() {
     defaultValues: {
       name: portfolioData.hero.name,
       title: portfolioData.hero.title,
+      subtitle: portfolioData.hero.subtitle,
       email: portfolioData.contact.email,
       phone: portfolioData.contact.phone,
       location: portfolioData.contact.location,
@@ -254,6 +257,19 @@ export default function AdminProfilePage() {
                   )}
                 />
               </div>
+                <FormField
+                  control={form.control}
+                  name="subtitle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bio / Subtitle</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="A short bio about yourself..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
             </CardContent>
           </Card>
           
@@ -384,3 +400,5 @@ export default function AdminProfilePage() {
     </div>
   );
 }
+
+    
