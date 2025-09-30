@@ -166,7 +166,6 @@ export default function AdminSettingsPage() {
                 <Input id="email" type="email" defaultValue="admin@example.com" />
               </div>
               <div className="space-y-2">
-                <Label>Password</Label>
                 <Button variant="outline" type="button">Change Password</Button>
               </div>
               <div className="flex items-center justify-between rounded-lg border p-4">
