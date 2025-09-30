@@ -28,12 +28,11 @@ import { Separator } from '../ui/separator';
 const sidebarNavItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutGrid },
   { href: '/admin/projects', label: 'Projects', icon: Briefcase },
-  { href: '/admin/services', label: 'Services', icon: Cog },
   { href: '/admin/about', label: 'About', icon: UserCircle },
-  { href: '/admin/testimonials', label: 'Testimonials', icon: MessageSquare },
   { href: '/admin/stats', label: 'Stats', icon: BarChart2 },
   { href: '/admin/chat', label: 'Chat', icon: MessageSquare },
   { href: '/admin/contacts', label: 'Contacts', icon: Contact },
+  { href: '/admin/profile', label: 'Profile', icon: Cog },
 ];
 
 export default function AdminSidebar() {
