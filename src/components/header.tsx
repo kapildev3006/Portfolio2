@@ -70,7 +70,7 @@ export default function Header() {
     >
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
         <Link href="#home" className="flex items-center gap-2 text-xl font-bold">
-          <span>{portfolioData.hero.name}</span>
+          <span className="text-gradient">{portfolioData.hero.name}</span>
         </Link>
         <nav className="hidden items-center gap-8 md:flex">
           {navItems.map((item) => (
@@ -88,7 +88,12 @@ export default function Header() {
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Button asChild variant="ghost" size="icon">
+              <Link href="/admin/dashboard" aria-label="Admin Dashboard">
+                  <User />
+              </Link>
+          </Button>
           <ThemeToggle />
           <Button
             variant="ghost"
