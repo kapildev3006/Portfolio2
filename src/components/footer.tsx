@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { Github, Instagram, Linkedin, Send } from 'lucide-react';
 import { Button } from './ui/button';

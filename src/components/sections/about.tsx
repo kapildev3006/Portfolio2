@@ -1,3 +1,5 @@
+'use client';
+
 import { portfolioData } from '@/lib/portfolio-data';
 import AnimatedDiv from '@/components/animated-div';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
