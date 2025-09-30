@@ -16,7 +16,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Separator } from '../ui/separator';
-import { staticData } from '@/lib/portfolio-data';
 import {
   Sidebar,
   SidebarContent,
@@ -48,6 +47,11 @@ type SidebarData = {
     imageUrl: string;
 }
 
+const defaultSidebarData: SidebarData = {
+  name: 'Admin',
+  imageUrl: '',
+};
+
 export default function AdminSidebar() {
   const pathname = usePathname();
   const [sidebarData, setSidebarData] = useState<SidebarData | null>(null);
@@ -61,15 +65,15 @@ export default function AdminSidebar() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setSidebarData({
-            name: data.hero?.name || staticData.hero.name,
-            imageUrl: data.hero?.imageUrl || staticData.hero.imageUrl,
+            name: data.hero?.name || defaultSidebarData.name,
+            imageUrl: data.hero?.imageUrl || defaultSidebarData.imageUrl,
           });
         } else {
-           setSidebarData({ name: staticData.hero.name, imageUrl: staticData.hero.imageUrl });
+           setSidebarData(defaultSidebarData);
         }
       } catch (error) {
         console.error("Error fetching sidebar data:", error);
-        setSidebarData({ name: staticData.hero.name, imageUrl: staticData.hero.imageUrl });
+        setSidebarData(defaultSidebarData);
       } finally {
         setLoading(false);
       }

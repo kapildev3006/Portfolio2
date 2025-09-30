@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '../ui/sidebar';
 import Link from 'next/link';
-import { staticData } from '@/lib/portfolio-data';
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -24,6 +23,11 @@ type HeaderData = {
     name: string;
     imageUrl: string;
 }
+
+const defaultHeaderData: HeaderData = {
+  name: 'Admin',
+  imageUrl: '',
+};
 
 export default function AdminHeader() {
   const [headerData, setHeaderData] = useState<HeaderData | null>(null);
@@ -37,15 +41,15 @@ export default function AdminHeader() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setHeaderData({
-            name: data.hero?.name || staticData.hero.name,
-            imageUrl: data.hero?.imageUrl || staticData.hero.imageUrl,
+            name: data.hero?.name || defaultHeaderData.name,
+            imageUrl: data.hero?.imageUrl || defaultHeaderData.imageUrl,
           });
         } else {
-          setHeaderData({ name: staticData.hero.name, imageUrl: staticData.hero.imageUrl });
+          setHeaderData(defaultHeaderData);
         }
       } catch (error) {
         console.error("Error fetching header data:", error);
-        setHeaderData({ name: staticData.hero.name, imageUrl: staticData.hero.imageUrl });
+        setHeaderData(defaultHeaderData);
       } finally {
         setLoading(false);
       }
