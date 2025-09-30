@@ -19,6 +19,7 @@ const messages = [
   { from: 'me', text: 'Thank you so much! I appreciate it.', time: '10:41 AM' },
   { from: 'me', text: 'Is there a project you have in mind?', time: '10:41 AM' },
   { from: 'them', text: 'Yes, I have a startup and need a web application. Can we schedule a call?', time: '10:42 AM' },
+  { from: 'them', text: 'Here is a very long message that might overflow the container if word wrapping is not handled correctly. Let\'s see if this breaks the layout. averylongwordthatshouldbreakandwraptonextline.com', time: '10:43 AM' },
 ];
 
 
@@ -67,7 +68,7 @@ export default function AdminChatPage() {
             <div key={index} className={`flex items-end gap-2 ${msg.from === 'me' ? 'justify-end' : 'justify-start'}`}>
               {msg.from === 'them' && <Avatar className="h-8 w-8"><AvatarFallback>A</AvatarFallback></Avatar>}
               <div className={`max-w-md rounded-lg p-3 ${msg.from === 'me' ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
-                <p>{msg.text}</p>
+                <p className="break-words">{msg.text}</p>
                 <p className={`text-xs mt-1 ${msg.from === 'me' ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>{msg.time}</p>
               </div>
                {msg.from === 'me' && <Avatar className="h-8 w-8"><AvatarFallback>You</AvatarFallback></Avatar>}
