@@ -1,7 +1,6 @@
 
 import type { PortfolioData } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Code, Database, Equal, Rocket, ScreenShare, Wand2 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -20,17 +19,17 @@ export const staticData = {
       {
         title: 'Frontend Development',
         skills: 'React, Next.js, TypeScript, Tailwind CSS',
-        icon: <Code />,
+        icon: null,
       },
       {
         title: 'Backend Development',
         skills: 'Node.js, Express, Python, Flask',
-        icon: <Equal />,
+        icon: null,
       },
       {
         title: 'Database Management',
         skills: 'MySQL, MongoDB, Firebase, PostgreSQL',
-        icon: <Database />,
+        icon: null,
       },
     ],
     experience: [
@@ -39,21 +38,21 @@ export const staticData = {
         company: 'Freelance',
         period: '2023 - Present',
         description: 'Building scalable web applications and providing technical solutions for clients across various industries.',
-        icon: <Rocket />,
+        icon: null,
       },
       {
         role: 'Web Developer',
         company: 'Personal Projects',
         period: '2022 - 2023',
         description: 'Developed multiple full-stack applications including voting systems, healthcare platforms, and e-commerce solutions.',
-        icon: <ScreenShare />,
+        icon: null,
       },
       {
         role: 'Student Developer',
         company: 'University Projects',
         period: '2021 - 2022',
         description: 'Collaborated on various academic projects, gaining foundational knowledge in software development and computer science principles.',
-        icon: <Wand2 />,
+        icon: null,
       }
     ]
   },

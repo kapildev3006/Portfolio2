@@ -1,10 +1,53 @@
 
-'use client';
-
-import { staticData } from '@/lib/portfolio-data';
 import AnimatedDiv from '@/components/animated-div';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import type { SkillCategory, Experience } from '@/lib/types';
+import { Code, Database, Equal, Rocket, ScreenShare, Wand2 } from 'lucide-react';
+
+const aboutData = {
+  subtitle: 'Passionate Full Stack Developer with expertise in modern web technologies.',
+  skills: [
+    {
+      title: 'Frontend Development',
+      skills: 'React, Next.js, TypeScript, Tailwind CSS',
+      icon: <Code />,
+    },
+    {
+      title: 'Backend Development',
+      skills: 'Node.js, Express, Python, Flask',
+      icon: <Equal />,
+    },
+    {
+      title: 'Database Management',
+      skills: 'MySQL, MongoDB, Firebase, PostgreSQL',
+      icon: <Database />,
+    },
+  ],
+  experience: [
+    {
+      role: 'Full Stack Developer',
+      company: 'Freelance',
+      period: '2023 - Present',
+      description: 'Building scalable web applications and providing technical solutions for clients across various industries.',
+      icon: <Rocket />,
+    },
+    {
+      role: 'Web Developer',
+      company: 'Personal Projects',
+      period: '2022 - 2023',
+      description: 'Developed multiple full-stack applications including voting systems, healthcare platforms, and e-commerce solutions.',
+      icon: <ScreenShare />,
+    },
+    {
+      role: 'Student Developer',
+      company: 'University Projects',
+      period: '2021 - 2022',
+      description: 'Collaborated on various academic projects, gaining foundational knowledge in software development and computer science principles.',
+      icon: <Wand2 />,
+    }
+  ]
+};
+
 
 const SkillCard = ({ skill }: { skill: SkillCategory }) => (
   <Card className="bg-secondary/50">
@@ -44,7 +87,7 @@ const JourneyCard = ({ item }: { item: Experience }) => (
 
 
 export default function About() {
-  const { about } = staticData;
+  const { skills, experience, subtitle } = aboutData;
 
   return (
     <section id="about" className="w-full bg-background py-20 md:py-32">
@@ -54,7 +97,7 @@ export default function About() {
             About Me
           </h2>
           <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">
-            {about.subtitle}
+            {subtitle}
           </p>
         </AnimatedDiv>
         
@@ -62,7 +105,7 @@ export default function About() {
           <AnimatedDiv className="space-y-8">
             <h3 className="font-headline text-2xl font-bold text-center md:text-left">My Skills</h3>
             <div className="space-y-6">
-              {about.skills.map((skill, index) => (
+              {skills.map((skill, index) => (
                 <SkillCard key={index} skill={skill} />
               ))}
             </div>
@@ -71,7 +114,7 @@ export default function About() {
           <AnimatedDiv className="space-y-8">
             <h3 className="font-headline text-2xl font-bold text-center md:text-left">My Journey</h3>
             <div className="space-y-6">
-              {about.experience.map((item, index) => (
+              {experience.map((item, index) => (
                 <JourneyCard key={index} item={item} />
               ))}
             </div>

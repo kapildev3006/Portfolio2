@@ -1,6 +1,4 @@
 
-'use client';
-
 import { staticData } from '@/lib/portfolio-data';
 import AnimatedDiv from '@/components/animated-div';
 import ProjectCard from '@/components/project-card';
