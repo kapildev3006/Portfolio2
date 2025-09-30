@@ -2,16 +2,8 @@
 'use client';
 
 import {
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from '@/components/ui/sidebar';
-import {
   BarChart2,
+  Bell,
   Briefcase,
   Cog,
   Contact,
@@ -31,6 +23,7 @@ const sidebarNavItems = [
   { href: '/admin/projects', label: 'Projects', icon: Briefcase },
   { href: '/admin/about', label: 'About', icon: UserCircle },
   { href: '/admin/stats', label: 'Stats', icon: BarChart2 },
+  { href: '/admin/notifications', label: 'Notifications', icon: Bell },
   { href: '/admin/chat', label: 'Chat', icon: MessageSquare },
   { href: '/admin/contacts', label: 'Contacts', icon: Contact },
   { href: '/admin/profile', label: 'Profile', icon: Cog },
