@@ -44,6 +44,14 @@ export type Experience = {
   icon: React.ReactNode;
 }
 
+export type Achievement = {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  icon?: React.ReactNode;
+}
+
 export type PortfolioData = {
   hero: {
     name: string;
@@ -58,6 +66,7 @@ export type PortfolioData = {
     skills: Omit<SkillCategory, 'icon'>[];
     experience: Omit<Experience, 'icon'>[];
   };
+  achievements: Omit<Achievement, 'icon'>[];
   projects: Project[];
   services: Service[];
   testimonials: Testimonial[];

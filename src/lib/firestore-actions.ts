@@ -6,7 +6,7 @@ import { db } from '@/lib/firebase';
 import { doc, setDoc, addDoc, collection, Timestamp, updateDoc, deleteDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import type { SkillCategory, Experience } from '@/lib/types';
+import type { SkillCategory, Experience, Achievement } from '@/lib/types';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
@@ -249,6 +249,54 @@ export async function saveAboutData(data: { skills: Omit<SkillCategory, 'icon'>[
         return {
             success: false,
             message: 'An unexpected error occurred while saving your about page data.',
+        };
+    }
+}
+
+
+const achievementsSchema = z.object({
+  achievements: z.array(z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string(),
+    date: z.string(),
+  })),
+});
+
+export async function saveAchievementsData(data: { achievements: Omit<Achievement, 'icon'>[] }) {
+    try {
+        const validatedData = achievementsSchema.parse(data);
+        const portfolioDocRef = doc(db, 'portfolio/main');
+
+        const dataToSave = {
+            achievements: validatedData.achievements,
+        };
+
+        setDoc(portfolioDocRef, dataToSave, { merge: true }).catch((serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: portfolioDocRef.path,
+                operation: 'update',
+                requestResourceData: dataToSave,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
+
+        return {
+            success: true,
+            message: 'Achievements data updated successfully!',
+        };
+
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return {
+                success: false,
+                message: 'Validation failed: ' + error.errors.map(e => e.message).join(', '),
+            };
+        }
+        console.error("Error saving achievements data: ", error);
+        return {
+            success: false,
+            message: 'An unexpected error occurred while saving your achievements.',
         };
     }
 }

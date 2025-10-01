@@ -2,6 +2,7 @@
 'use client';
 
 import {
+  Award,
   BarChart2,
   Bell,
   Briefcase,
@@ -37,6 +38,7 @@ const sidebarNavItems = [
   { href: '/admin/projects', label: 'Projects', icon: Briefcase },
   { href: '/admin/stats', label: 'Stats', icon: BarChart2 },
   { href: '/admin/about', label: 'About', icon: UserCircle },
+  { href: '/admin/achievements', label: 'Achievements', icon: Award },
   { href: '/admin/notifications', label: 'Notifications', icon: Bell },
   { href: '/admin/chat', label: 'Chat', icon: MessageSquare },
   { href: '/admin/contacts', label: 'Contacts', icon: Contact },

@@ -1,5 +1,5 @@
 
-import type { PortfolioData, SkillCategory, Experience } from '@/lib/types';
+import type { PortfolioData, SkillCategory, Experience, Achievement } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
@@ -66,6 +66,20 @@ export const staticData = {
       }
     ]
   },
+  achievements: [
+    {
+      id: uuidv4(),
+      title: 'First Place Hackathon',
+      description: 'Won first place in the annual university hackathon with a project focused on sustainable tech solutions.',
+      date: 'May 2023',
+    },
+    {
+      id: uuidv4(),
+      title: 'Published Technical Article',
+      description: 'Authored a popular article on advanced React patterns for a well-known tech blog.',
+      date: 'January 2024',
+    },
+  ],
   projects: [
     {
       id: '1',
@@ -142,6 +156,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
             // Ensure skills and experience have IDs
             const skillsWithIds = (dbData.about?.skills || defaultData.about.skills).map((s: Omit<SkillCategory, 'icon'>) => ({ ...s, id: s.id || uuidv4() }));
             const experienceWithIds = (dbData.about?.experience || defaultData.about.experience).map((e: Omit<Experience, 'icon'>) => ({ ...e, id: e.id || uuidv4() }));
+            const achievementsWithIds = (dbData.achievements || defaultData.achievements).map((a: Omit<Achievement, 'icon'>) => ({ ...a, id: a.id || uuidv4() }));
 
             return {
                 hero: {
@@ -157,6 +172,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
                     skills: skillsWithIds,
                     experience: experienceWithIds,
                 },
+                achievements: achievementsWithIds,
                 contact: {
                     email: dbData.contact?.email || defaultData.contact.email,
                     phone: dbData.contact?.phone || defaultData.contact.phone,

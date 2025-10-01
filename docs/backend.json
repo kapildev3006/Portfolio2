@@ -74,6 +74,12 @@
             }
           }
         },
+        "achievements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/entities/achievement"
+          }
+        },
         "contact": {
           "type": "object",
           "properties": {
@@ -167,6 +173,18 @@
         "description": { "type": "string" }
       },
       "required": ["id", "role", "company", "period", "description"]
+    },
+    "achievement": {
+      "title": "Achievement",
+      "description": "A notable achievement or award.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string" }
+      },
+      "required": ["id", "title", "description", "date"]
     }
   },
   "auth": {
