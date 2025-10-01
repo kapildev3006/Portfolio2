@@ -198,6 +198,9 @@ export default function AdminSettingsPage() {
                   )}
                 />
               </CardContent>
+              <CardFooter>
+                 <Button type="submit" disabled={form.formState.isSubmitting}>Save General Settings</Button>
+              </CardFooter>
           </Card>
 
           {/* Theme Customization */}
@@ -277,6 +280,9 @@ export default function AdminSettingsPage() {
                   )}
                 />
               </CardContent>
+              <CardFooter>
+                <Button type="submit" disabled={form.formState.isSubmitting}>Save Theme Settings</Button>
+              </CardFooter>
           </Card>
 
           {/* Account & Security */}
@@ -325,6 +331,9 @@ export default function AdminSettingsPage() {
                   )}
                 />
               </CardContent>
+              <CardFooter>
+                <Button type="submit" disabled={form.formState.isSubmitting}>Save Account Settings</Button>
+              </CardFooter>
           </Card>
 
           {/* Notification Settings Link */}
@@ -342,8 +351,6 @@ export default function AdminSettingsPage() {
                   </Button>
               </CardFooter>
           </Card>
-
-          <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>Save All Settings</Button>
         </form>
       </Form>
     </div>
