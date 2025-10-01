@@ -7,6 +7,7 @@ import { doc, setDoc, addDoc, collection, Timestamp, updateDoc, deleteDoc } from
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { SkillCategory, Experience, Achievement } from '@/lib/types';
+import { contactFormSchema } from '@/lib/types';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
@@ -265,6 +266,31 @@ export async function saveAboutData(data: {
     }
 }
 
+export async function submitContactForm(prevState: any, formData: FormData) {
+  try {
+    const submissionData = {
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      subject: formData.get('subject') as string,
+      message: formData.get('message') as string,
+      isRead: false,
+      createdAt: Timestamp.now(),
+    };
+    await addDoc(collection(db, 'contactSubmissions'), submissionData);
+
+    return {
+      message: 'Thank you for your message! I will get back to you soon.',
+      success: true,
+    };
+  } catch (error) {
+    console.error('Error saving message:', error);
+    return {
+      message: 'Something went wrong. Please try again later.',
+      success: false,
+    };
+  }
+}
 
 export async function updateContactSubmissionStatus(id: string, isRead: boolean): Promise<{ success: boolean; message: string }> {
   try {
@@ -276,6 +302,12 @@ export async function updateContactSubmissionStatus(id: string, isRead: boolean)
     };
   } catch (error) {
     console.error("Error updating contact submission: ", error);
+    const permissionError = new FirestorePermissionError({
+        path: doc(db, 'contactSubmissions', id).path,
+        operation: 'update',
+        requestResourceData: { isRead },
+    });
+    errorEmitter.emit('permission-error', permissionError);
     return {
       success: false,
       message: 'An unexpected error occurred.',
@@ -293,6 +325,11 @@ export async function deleteContactSubmission(id: string): Promise<{ success: bo
     };
   } catch (error) {
     console.error("Error deleting contact submission: ", error);
+     const permissionError = new FirestorePermissionError({
+        path: doc(db, 'contactSubmissions', id).path,
+        operation: 'delete',
+    });
+    errorEmitter.emit('permission-error', permissionError);
     return {
       success: false,
       message: 'An unexpected error occurred.',
