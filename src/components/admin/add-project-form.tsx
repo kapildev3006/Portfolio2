@@ -10,12 +10,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Upload, Loader2 } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
-import { uploadImage, saveProjectData } from '@/actions/server-actions';
+import { uploadImage } from '@/actions/server-actions';
+import { saveProjectData } from '@/lib/firestore-actions';
 import Image from 'next/image';
-import { useActionState } from 'react';
 
 const formSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
@@ -107,12 +107,7 @@ const ImageUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => vo
 
 export default function AddProjectForm({ onClose }: { onClose?: () => void }) {
   const { toast } = useToast();
-  const formRef = React.useRef<HTMLFormElement>(null);
-
-  const [state, formAction, isPending] = useActionState(saveProjectData, {
-    message: '',
-    success: false,
-  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -126,26 +121,28 @@ export default function AddProjectForm({ onClose }: { onClose?: () => void }) {
     },
   });
 
-  useEffect(() => {
-    if (state.message) {
-        toast({
-            title: state.success ? 'Success!' : 'Error',
-            description: state.message,
-            variant: state.success ? 'default' : 'destructive',
-        });
-        if (state.success) {
-            form.reset();
-            onClose?.();
-        }
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
+    const result = await saveProjectData(values);
+    setIsSubmitting(false);
+
+    toast({
+      title: result.success ? 'Success!' : 'Error',
+      description: result.message,
+      variant: result.success ? 'default' : 'destructive',
+    });
+
+    if (result.success) {
+      form.reset();
+      onClose?.();
     }
-  }, [state, toast, form, onClose]);
+  };
 
 
   return (
     <Form {...form}>
       <form
-        ref={formRef}
-        action={formAction}
+        onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-4"
       >
         <FormField
@@ -233,8 +230,8 @@ export default function AddProjectForm({ onClose }: { onClose?: () => void }) {
             />
         </div>
 
-        <Button type="submit" className="w-full" disabled={isPending}>
-          {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
           Add Project
         </Button>
       </form>
