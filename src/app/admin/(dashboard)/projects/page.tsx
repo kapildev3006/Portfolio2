@@ -31,7 +31,7 @@ export default function AdminProjectsPage() {
               Add Project
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Project</DialogTitle>
               <DialogDescription>
