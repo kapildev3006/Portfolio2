@@ -1,8 +1,6 @@
 
 'use client';
 
-import { SidebarProvider } from '@/components/ui/sidebar';
-
 export default function AdminLayout({
   children,
 }: Readonly<{
@@ -10,8 +8,8 @@ export default function AdminLayout({
 }>) {
 
   return (
-      <SidebarProvider defaultOpen={true}>
+      <>
           {children}
-      </SidebarProvider>
+      </>
   );
 }
