@@ -48,20 +48,28 @@ export async function saveProfileData(data: z.infer<typeof profileSchema>) {
             }
         };
 
-        await setDoc(portfolioDocRef, dataToSave, { merge: true });
+        setDoc(portfolioDocRef, dataToSave, { merge: true }).catch((serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: portfolioDocRef.path,
+            operation: 'update',
+            requestResourceData: dataToSave,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
 
         return {
             success: true,
             message: 'Profile updated successfully!',
         };
     } catch (error) {
-        console.error("Error saving profile data: ", error);
         if (error instanceof z.ZodError) {
             return {
                 success: false,
                 message: 'Validation failed: ' + error.errors.map(e => e.message).join(', '),
             };
         }
+        // Fallback for other errors, but permission errors are handled above
+        console.error("Error saving profile data: ", error);
         return {
             success: false,
             message: 'An unexpected error occurred while saving your profile.',
