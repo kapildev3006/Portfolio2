@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import AdminHeader from '@/components/admin/header';
-import { PortfolioDataProvider } from '@/context/PortfolioDataProvider';
 import { SidebarProvider } from '@/components/ui/sidebar';
 
 export default function DashboardLayout({
@@ -34,13 +33,13 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-        <PortfolioDataProvider>
+        <div className="group/sidebar-wrapper flex min-h-dvh w-full">
             <AdminSidebar />
             <main className="flex-1 md:ml-[var(--sidebar-width)] group-data-[collapsible=icon]/sidebar-wrapper:md:ml-[var(--sidebar-width-icon)] transition-all duration-200 ease-linear">
               <AdminHeader />
               {children}
             </main>
-        </PortfolioDataProvider>
+        </div>
     </SidebarProvider>
   );
 }
