@@ -42,19 +42,23 @@ export default function AdminNotificationsPage() {
 
     const promises = unreadSubmissions.map(s => updateContactSubmissionStatus(s.id, true));
     
-    try {
-      await Promise.all(promises);
-      toast({
-        title: "Success",
-        description: "All notifications marked as read.",
+    Promise.all(promises)
+      .then(() => {
+        toast({
+          title: "Success",
+          description: "All notifications marked as read.",
+        });
+      })
+      .catch((error) => {
+        // The error is already being emitted by `updateContactSubmissionStatus`
+        // We just need to show a toast to the user.
+        console.error("One or more updates failed:", error);
+        toast({
+          title: "Error",
+          description: "Could not mark all notifications as read. Please check permissions.",
+          variant: "destructive",
+        });
       });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Could not mark all as read. Please try again.",
-        variant: "destructive",
-      });
-    }
   };
 
   const getIconForCategory = (category: string) => {

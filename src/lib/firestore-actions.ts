@@ -299,27 +299,19 @@ export async function submitContactForm(prevState: any, formData: FormData) {
 }
 
 
-export async function updateContactSubmissionStatus(id: string, isRead: boolean): Promise<{ success: boolean; message: string }> {
-  try {
-    const docRef = doc(db, 'contactSubmissions', id);
-    await updateDoc(docRef, { isRead });
-    return {
-      success: true,
-      message: `Submission marked as ${isRead ? 'read' : 'unread'}.`,
-    };
-  } catch (error) {
-    console.error("Error updating contact submission: ", error);
-    const permissionError = new FirestorePermissionError({
-        path: doc(db, 'contactSubmissions', id).path,
-        operation: 'update',
-        requestResourceData: { isRead },
+export function updateContactSubmissionStatus(id: string, isRead: boolean) {
+  const docRef = doc(db, 'contactSubmissions', id);
+  return updateDoc(docRef, { isRead })
+    .catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'update',
+            requestResourceData: { isRead },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        // Re-throw the error so Promise.all will reject
+        throw serverError;
     });
-    errorEmitter.emit('permission-error', permissionError);
-    return {
-      success: false,
-      message: 'An unexpected error occurred.',
-    };
-  }
 }
 
 export async function deleteContactSubmission(id: string): Promise<{ success: boolean; message: string }> {
