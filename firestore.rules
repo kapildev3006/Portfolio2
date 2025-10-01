@@ -2,80 +2,92 @@
  * @fileoverview Firestore Security Rules for the application.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for user profiles and a public-read, owner-write model for projects.
+ * This ruleset prioritizes user-owned data and public read access for some collections.
+ * Users can only create, update, or delete their own data. Some top-level collections are publicly readable.
  *
  * Data Structure:
- * - /users/{userId}: Stores individual user profiles, accessible only to the user themselves.
- * - /projects/{projectId}: Stores project data, publicly readable but writable only by the creator.
- * - /portfolio/{portfolioId}: Stores portfolio data, publicly readable but writable only by the creator.
+ * - /users/{userId}: Stores individual user profiles. Accessible only by the user.
+ * - /portfolio/{portfolioId}: Stores main portfolio data. Accessible to everyone.
+ * - /projects/{projectId}: Stores individual projects. Accessible to everyone.
  *
  * Key Security Decisions:
- * - Users can only access their own profile data.
- * - Project listing is public.
- * - Only the creator of a project can modify or delete it.
+ * - Users can only manage their own user data.
+ * - Projects can be read by anyone, but only created, updated, or deleted by their owner.
+ * - Portfolios can be read by anyone.
+ *
+ * Denormalization for Authorization:
+ *  - Projects should contain a `ownerId` field to allow for secure owner-only writes.
+ *
+ * Structural Segregation:
+ *  - Publicly readable data is stored in top-level collections (/projects, /portfolio).
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows users to read and write their own profile data.
+     * @description Grants access to user profile information.
      * @path /users/{userId}
-     * @allow (get, create, update, delete) if request.auth.uid == userId
-     * @deny (get) if request.auth.uid != userId
-     * @deny (create) if request.auth.uid != userId
-     * @deny (update) if request.auth.uid != userId
-     * @deny (delete) if request.auth.uid != userId
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) - Allow user to create their own profile.
+     * @allow (get, list, update, delete) - Allow user to read, update, and delete their own profile.
+     * @deny (create) - Deny creating a profile with a different user ID.
+     * @deny (get, list, update, delete) - Deny accessing another user's profile.
+     * @principle Enforces user-ownership.
      */
     match /users/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
       function isOwner(userId) {
         return request.auth.uid == userId;
       }
 
-      allow get: if isOwner(userId);
-      allow list: if false;
+      allow get, list: if isOwner(userId);
       allow create: if isOwner(userId);
       allow update: if isOwner(userId);
       allow delete: if isOwner(userId);
     }
 
     /**
-     * @description Allows anyone to read project data, but only the creator can modify or delete it.
-     * @path /projects/{projectId}
-     * @allow (get, list) if true
-     * @allow (create) if request.auth.uid == request.resource.data.creatorId
-     * @allow (update, delete) if resource.data.creatorId == request.auth.uid
-     * @deny (create) if request.auth.uid != request.resource.data.creatorId
-     * @deny (update) if resource.data.creatorId != request.auth.uid
-     * @deny (delete) if resource.data.creatorId != request.auth.uid
-     * @principle Public read, owner-only writes for projects.
+     * @description Grants public read access to portfolio data, but no writes are allowed.
+     * @path /portfolio/{portfolioId}
+     * @allow (get, list) - Allow anyone to read portfolio data.
+     * @deny (create, update, delete) - Deny anyone from creating, updating, or deleting portfolio data.
+     * @principle Allows public read access with no write access.
      */
-    match /projects/{projectId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if request.auth.uid == request.resource.data.creatorId;
-      allow update: if resource.data.creatorId == request.auth.uid && resource != null;
-      allow delete: if resource.data.creatorId == request.auth.uid && resource != null;
+    match /portfolio/{portfolioId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
     }
 
-        /**
-         * @description Allows anyone to read portfolio data, but only the creator can modify or delete it.
-         * @path /portfolio/{portfolioId}
-         * @allow (get, list) if true
-         * @allow (create) if request.auth.uid == request.resource.data.creatorId
-         * @allow (update, delete) if resource.data.creatorId == request.auth.uid
-         * @deny (create) if request.auth.uid != request.resource.data.creatorId
-         * @deny (update) if resource.data.creatorId != request.auth.uid
-         * @deny (delete) if resource.data.creatorId != request.auth.uid
-         * @principle Public read, owner-only writes for portfolio.
-         */
-        match /portfolio/{portfolioId} {
-          allow get: if true;
-          allow list: if true;
-          allow create: if request.auth.uid == request.resource.data.creatorId;
-          allow update: if resource.data.creatorId == request.auth.uid && resource != null;
-          allow delete: if resource.data.creatorId == request.auth.uid && resource != null;
-        }
+    /**
+     * @description Grants public read access to projects, but restricts writes to the project owner.
+     * @path /projects/{projectId}
+     * @allow (get, list) - Allow anyone to read project data.
+     * @allow (create) - Allow the project owner to create a new project. Requires the `ownerId` field in the request.
+     * @allow (update, delete) - Allow the project owner to update or delete their existing project.
+     * @deny (create) - Deny creating a project with a mismatched `ownerId`.
+     * @deny (update, delete) - Deny updating or deleting a project if the user is not the owner.
+     * @principle Enforces owner-only writes for public-read documents.
+     */
+    match /projects/{projectId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(ownerId) {
+        return isSignedIn() && request.auth.uid == ownerId;
+      }
+
+      function isExistingOwner(ownerId) {
+        return isOwner(ownerId) && resource != null;
+      }
+
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.keys().hasAll(['title', 'description', 'imageUrl', 'tags', 'createdAt']) && request.resource.data.ownerId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.ownerId);
+      allow delete: if isExistingOwner(resource.data.ownerId);
+    }
   }
 }
