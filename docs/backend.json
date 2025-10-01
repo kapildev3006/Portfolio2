@@ -57,6 +57,23 @@
             }
           }
         },
+        "about": {
+          "type": "object",
+          "properties": {
+            "skills": {
+              "type": "array",
+              "items": {
+                "$ref": "#/entities/skill"
+              }
+            },
+            "experience": {
+              "type": "array",
+              "items": {
+                "$ref": "#/entities/experience"
+              }
+            }
+          }
+        },
         "contact": {
           "type": "object",
           "properties": {
@@ -126,6 +143,30 @@
         }
       },
       "required": ["title", "description", "imageUrl", "tags", "createdAt"]
+    },
+    "skill": {
+      "title": "Skill",
+      "description": "A category of skills.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "skills": { "type": "string" }
+      },
+      "required": ["id", "title", "skills"]
+    },
+    "experience": {
+      "title": "Experience",
+      "description": "A professional experience or journey item.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "role": { "type": "string" },
+        "company": { "type": "string" },
+        "period": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "role", "company", "period", "description"]
     }
   },
   "auth": {

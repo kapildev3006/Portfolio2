@@ -1,4 +1,5 @@
 
+
 export type NavItem = {
   name: string;
   href: string;
@@ -28,12 +29,14 @@ export type Testimonial = {
 }
 
 export type SkillCategory = {
+  id: string;
   title: string;
   skills: string;
   icon: React.ReactNode;
 }
 
 export type Experience = {
+  id: string;
   role: string;
   company: string;
   period: string;
@@ -52,8 +55,8 @@ export type PortfolioData = {
   };
   about: {
     subtitle: string;
-    skills: SkillCategory[];
-    experience: Experience[];
+    skills: Omit<SkillCategory, 'icon'>[];
+    experience: Omit<Experience, 'icon'>[];
   };
   projects: Project[];
   services: Service[];

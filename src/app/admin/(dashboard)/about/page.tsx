@@ -20,6 +20,17 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { Experience, SkillCategory } from '@/lib/types';
@@ -30,7 +41,8 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
-
+import { saveAboutData } from '@/lib/firestore-actions';
+import { v4 as uuidv4 } from 'uuid';
 
 // Schemas for form validation
 const skillSchema = z.object({
@@ -48,9 +60,11 @@ const experienceSchema = z.object({
 // Skill Form Component
 const SkillForm = ({
   skill,
+  onSave,
   onClose,
 }: {
   skill?: SkillCategory;
+  onSave: (skill: Omit<SkillCategory, 'icon'>) => void;
   onClose: () => void;
 }) => {
   const { toast } = useToast();
@@ -60,11 +74,12 @@ const SkillForm = ({
   });
 
   const onSubmit = (values: z.infer<typeof skillSchema>) => {
+    const newSkill = { id: skill?.id || uuidv4(), ...values };
+    onSave(newSkill);
     toast({
       title: `Skill ${skill ? 'Updated' : 'Added'}!`,
       description: `The skill "${values.title}" has been saved.`,
     });
-    // In a real app, you would update the state or database here
     onClose();
   };
 
@@ -108,9 +123,11 @@ const SkillForm = ({
 // Experience Form Component
 const ExperienceForm = ({
   experience,
+  onSave,
   onClose,
 }: {
   experience?: Experience;
+  onSave: (experience: Omit<Experience, 'icon'>) => void;
   onClose: () => void;
 }) => {
   const { toast } = useToast();
@@ -120,6 +137,8 @@ const ExperienceForm = ({
   });
 
   const onSubmit = (values: z.infer<typeof experienceSchema>) => {
+    const newExperience = { id: experience?.id || uuidv4(), ...values };
+    onSave(newExperience);
     toast({
       title: `Journey Item ${experience ? 'Updated' : 'Added'}!`,
       description: `The role "${values.role}" at "${values.company}" has been saved.`,
@@ -228,12 +247,70 @@ export default function AdminAboutPage() {
   const { portfolioData, loading } = React.useContext(PortfolioDataContext);
   const [skillDialogOpen, setSkillDialogOpen] = React.useState(false);
   const [experienceDialogOpen, setExperienceDialogOpen] = React.useState(false);
+  const [currentSkills, setCurrentSkills] = React.useState<Omit<SkillCategory, 'icon'>[]>([]);
+  const [currentExperience, setCurrentExperience] = React.useState<Omit<Experience, 'icon'>[]>([]);
+  const { toast } = useToast();
+
+  React.useEffect(() => {
+    if (portfolioData?.about) {
+      setCurrentSkills(portfolioData.about.skills);
+      setCurrentExperience(portfolioData.about.experience);
+    }
+  }, [portfolioData]);
+  
+  const handleSave = async (skills: Omit<SkillCategory, 'icon'>[], experience: Omit<Experience, 'icon'>[]) => {
+    const result = await saveAboutData({ skills, experience });
+    toast({
+      title: result.success ? 'Success!' : 'Error',
+      description: result.message,
+      variant: result.success ? 'default' : 'destructive',
+    });
+  };
+
+  const handleSkillSave = (skill: Omit<SkillCategory, 'icon'>) => {
+    const existingIndex = currentSkills.findIndex(s => s.id === skill.id);
+    let updatedSkills;
+    if (existingIndex > -1) {
+      updatedSkills = [...currentSkills];
+      updatedSkills[existingIndex] = skill;
+    } else {
+      updatedSkills = [...currentSkills, skill];
+    }
+    setCurrentSkills(updatedSkills);
+    handleSave(updatedSkills, currentExperience);
+  };
+
+  const handleSkillDelete = (skillId: string) => {
+    const updatedSkills = currentSkills.filter(s => s.id !== skillId);
+    setCurrentSkills(updatedSkills);
+    handleSave(updatedSkills, currentExperience);
+    toast({ title: 'Skill Deleted' });
+  };
+  
+  const handleExperienceSave = (experience: Omit<Experience, 'icon'>) => {
+    const existingIndex = currentExperience.findIndex(e => e.id === experience.id);
+    let updatedExperience;
+    if (existingIndex > -1) {
+      updatedExperience = [...currentExperience];
+      updatedExperience[existingIndex] = experience;
+    } else {
+      updatedExperience = [...currentExperience, experience];
+    }
+    setCurrentExperience(updatedExperience);
+    handleSave(currentSkills, updatedExperience);
+  };
+
+  const handleExperienceDelete = (experienceId: string) => {
+    const updatedExperience = currentExperience.filter(e => e.id !== experienceId);
+    setCurrentExperience(updatedExperience);
+    handleSave(currentSkills, updatedExperience);
+    toast({ title: 'Journey Item Deleted' });
+  };
+
 
   if (loading || !portfolioData) {
     return <AdminAboutPageSkeleton />;
   }
-
-  const { about } = portfolioData;
 
   return (
     <div className="flex-1 bg-background p-8 text-foreground">
@@ -261,16 +338,16 @@ export default function AdminAboutPage() {
                   <DialogTitle>Add New Skill</DialogTitle>
                   <DialogDescription>Fill out the form to add a new skill category to your portfolio.</DialogDescription>
                 </DialogHeader>
-                <SkillForm onClose={() => setSkillDialogOpen(false)} />
+                <SkillForm onSave={handleSkillSave} onClose={() => setSkillDialogOpen(false)} />
               </DialogContent>
             </Dialog>
           </CardHeader>
           <CardContent className="space-y-4">
-            {about.skills.map((skill, index) => (
-              <Card key={index} className="flex items-center justify-between p-4 bg-secondary/50">
+            {currentSkills.map((skill) => (
+              <Card key={skill.id} className="flex items-center justify-between p-4 bg-secondary/50">
                 <div className="flex items-center gap-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                    {skill.icon || <Wand2 />}
+                    <Wand2 />
                   </div>
                   <div>
                     <p className="font-semibold">{skill.title}</p>
@@ -287,10 +364,29 @@ export default function AdminAboutPage() {
                                <DialogTitle>Edit Skill</DialogTitle>
                                <DialogDescription>Update the details for this skill category.</DialogDescription>
                             </DialogHeader>
-                            <SkillForm skill={skill} onClose={() => {}} />
+                            <SkillForm skill={skill} onSave={handleSkillSave} onClose={() => {
+                              const dialogTrigger = document.querySelector(`[aria-controls="radix-"][aria-expanded="true"]`);
+                              if (dialogTrigger) (dialogTrigger as HTMLElement).click();
+                            }} />
                         </DialogContent>
                    </Dialog>
-                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete the skill "{skill.title}".
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleSkillDelete(skill.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                 </div>
               </Card>
             ))}
@@ -313,17 +409,17 @@ export default function AdminAboutPage() {
                   <DialogTitle>Add New Journey Item</DialogTitle>
                   <DialogDescription>Fill out the form to add a new item to your professional journey.</DialogDescription>
                 </DialogHeader>
-                <ExperienceForm onClose={() => setExperienceDialogOpen(false)} />
+                <ExperienceForm onSave={handleExperienceSave} onClose={() => setExperienceDialogOpen(false)} />
               </DialogContent>
             </Dialog>
           </CardHeader>
           <CardContent className="space-y-4">
-            {about.experience.map((item, index) => (
-              <Card key={index} className="p-4 bg-secondary/50">
+            {currentExperience.map((item) => (
+              <Card key={item.id} className="p-4 bg-secondary/50">
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                        {item.icon || <Wand2 />}
+                        <Wand2 />
                       </div>
                       <div>
                         <p className="font-semibold">{item.role}</p>
@@ -341,10 +437,29 @@ export default function AdminAboutPage() {
                                    <DialogTitle>Edit Journey Item</DialogTitle>
                                    <DialogDescription>Update the details for this journey item.</DialogDescription>
                                 </DialogHeader>
-                                <ExperienceForm experience={item} onClose={() => {}} />
+                                <ExperienceForm experience={item} onSave={handleExperienceSave} onClose={() => {
+                                  const dialogTrigger = document.querySelector(`[aria-controls="radix-"][aria-expanded="true"]`);
+                                  if (dialogTrigger) (dialogTrigger as HTMLElement).click();
+                                }}/>
                             </DialogContent>
                        </Dialog>
-                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete the journey item "{item.role} at {item.company}".
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleExperienceDelete(item.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>

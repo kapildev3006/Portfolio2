@@ -1,10 +1,12 @@
 
-import type { PortfolioData } from '@/lib/types';
+import type { PortfolioData, SkillCategory, Experience } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { v4 as uuidv4 } from 'uuid';
+
 
 const getImage = (id: string) => {
     const image = PlaceHolderImages.find(img => img.id === id);
@@ -19,16 +21,19 @@ export const staticData = {
     subtitle: 'Passionate Full Stack Developer with expertise in modern web technologies.',
     skills: [
       {
+        id: uuidv4(),
         title: 'Frontend Development',
         skills: 'React, Next.js, TypeScript, Tailwind CSS',
         icon: null,
       },
       {
+        id: uuidv4(),
         title: 'Backend Development',
         skills: 'Node.js, Express, Python, Flask',
         icon: null,
       },
       {
+        id: uuidv4(),
         title: 'Database Management',
         skills: 'MySQL, MongoDB, Firebase, PostgreSQL',
         icon: null,
@@ -36,6 +41,7 @@ export const staticData = {
     ],
     experience: [
       {
+        id: uuidv4(),
         role: 'Full Stack Developer',
         company: 'Freelance',
         period: '2023 - Present',
@@ -43,6 +49,7 @@ export const staticData = {
         icon: null,
       },
       {
+        id: uuidv4(),
         role: 'Web Developer',
         company: 'Personal Projects',
         period: '2022 - 2023',
@@ -50,6 +57,7 @@ export const staticData = {
         icon: null,
       },
       {
+        id: uuidv4(),
         role: 'Student Developer',
         company: 'University Projects',
         period: '2021 - 2022',
@@ -131,6 +139,10 @@ export async function getPortfolioData(): Promise<PortfolioData> {
 
         if (docSnap.exists()) {
             const dbData = docSnap.data();
+            // Ensure skills and experience have IDs
+            const skillsWithIds = (dbData.about?.skills || defaultData.about.skills).map((s: Omit<SkillCategory, 'icon'>) => ({ ...s, id: s.id || uuidv4() }));
+            const experienceWithIds = (dbData.about?.experience || defaultData.about.experience).map((e: Omit<Experience, 'icon'>) => ({ ...e, id: e.id || uuidv4() }));
+
             return {
                 hero: {
                     name: dbData.hero?.name || defaultData.hero.name,
@@ -139,6 +151,11 @@ export async function getPortfolioData(): Promise<PortfolioData> {
                     imageUrl: dbData.hero?.imageUrl || defaultData.hero.imageUrl,
                     imageHint: defaultData.hero.imageHint,
                     resumeUrl: dbData.hero?.resumeUrl || defaultData.hero.resumeUrl,
+                },
+                 about: {
+                    subtitle: dbData.about?.subtitle || defaultData.about.subtitle,
+                    skills: skillsWithIds,
+                    experience: experienceWithIds,
                 },
                 contact: {
                     email: dbData.contact?.email || defaultData.contact.email,
@@ -150,7 +167,9 @@ export async function getPortfolioData(): Promise<PortfolioData> {
                     github: dbData.socials?.github || defaultData.socials.github,
                     twitter: dbData.socials?.twitter || defaultData.socials.twitter,
                 },
-                ...staticData,
+                projects: staticData.projects,
+                services: staticData.services,
+                testimonials: staticData.testimonials,
             };
         } else {
             console.log("No such document! Returning default data.");
