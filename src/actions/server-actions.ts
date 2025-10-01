@@ -4,6 +4,7 @@
 import { z } from 'zod';
 import { v2 as cloudinary } from 'cloudinary';
 import { adminDb } from '@/lib/firebase-admin';
+import { Timestamp } from 'firebase-admin/firestore';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -204,4 +205,64 @@ export async function saveProfileData(data: z.infer<typeof profileSchema>) {
             message: 'An unexpected error occurred while saving your profile.',
         };
     }
+}
+
+const projectFormSchema = z.object({
+  title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
+  description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
+  techstack: z.string().min(1, { message: 'Please add at least one technology.' }),
+  liveUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
+  sourceUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
+  imageUrl: z.string().url({ message: 'Please upload an image.' }).min(1, 'Please upload an image.'),
+});
+
+
+export async function saveProjectData(prevState: any, formData: FormData) {
+  if (!adminDb) {
+    return {
+      success: false,
+      message: "Database connection not configured.",
+    };
+  }
+
+  const validatedFields = projectFormSchema.safeParse({
+    title: formData.get('title'),
+    description: formData.get('description'),
+    techstack: formData.get('techstack'),
+    liveUrl: formData.get('liveUrl'),
+    sourceUrl: formData.get('sourceUrl'),
+    imageUrl: formData.get('imageUrl'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: 'Invalid form data: ' + validatedFields.error.errors.map(e => e.message).join(', '),
+      success: false,
+    };
+  }
+
+  try {
+    const dataToSave = {
+      ...validatedFields.data,
+      tags: validatedFields.data.techstack.split(',').map(tag => tag.trim()),
+      createdAt: Timestamp.now(),
+    };
+    
+    // Remove techstack as we've converted it to tags
+    delete (dataToSave as any).techstack;
+
+    await adminDb.collection('projects').add(dataToSave);
+    
+    return {
+      message: `Project "${validatedFields.data.title}" has been successfully created.`,
+      success: true,
+    };
+
+  } catch (error) {
+    console.error("Error saving project data: ", error);
+    return {
+      message: 'An unexpected error occurred while saving the project.',
+      success: false,
+    };
+  }
 }

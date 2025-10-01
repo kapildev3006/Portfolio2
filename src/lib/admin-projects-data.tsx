@@ -2,6 +2,9 @@
 import { ShoppingCart } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+// This file can be removed or repurposed. It is no longer used to display projects.
+// Live project data is now fetched from Firestore.
+
 export type AdminProject = {
   id: string;
   title: string;

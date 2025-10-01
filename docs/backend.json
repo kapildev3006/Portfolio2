@@ -90,6 +90,42 @@
           }
         }
       }
+    },
+    "project": {
+      "title": "Project",
+      "description": "Represents a portfolio project.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "imageUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "liveUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "sourceUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["title", "description", "imageUrl", "tags", "createdAt"]
     }
   },
   "auth": {
@@ -109,6 +145,12 @@
         "$ref": "#/entities/user"
       },
       "description": "Stores user profile information."
+    },
+    "/projects/{projectId}": {
+      "schema": {
+        "$ref": "#/entities/project"
+      },
+      "description": "Stores individual portfolio projects."
     }
   }
 }

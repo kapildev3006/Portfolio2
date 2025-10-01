@@ -9,12 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, Plus, Upload } from 'lucide-react';
-import React from 'react';
+import { Plus, Upload, Loader2 } from 'lucide-react';
+import React, { useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
-import { uploadImage } from '@/actions/server-actions';
+import { uploadImage, saveProjectData } from '@/actions/server-actions';
 import Image from 'next/image';
+import { useActionState } from 'react';
 
 const formSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
@@ -84,13 +85,18 @@ const ImageUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => vo
                  <Image src={currentUrl} alt="Project image preview" fill className="object-cover rounded-lg" />
             ) : (
                 <>
-                    <Upload className="w-10 h-10 mb-2" />
                     {isUploading ? (
-                    <p>Uploading...</p>
-                    ) : isDragActive ? (
-                    <p>Drop the image here...</p>
+                      <Loader2 className="w-10 h-10 mb-2 animate-spin" />
                     ) : (
-                    <p>Drag 'n' drop an image, or click to select</p>
+                      <Upload className="w-10 h-10 mb-2" />
+                    )}
+
+                    {isUploading ? (
+                      <p>Uploading...</p>
+                    ) : isDragActive ? (
+                      <p>Drop the image here...</p>
+                    ) : (
+                      <p>Drag 'n' drop an image, or click to select</p>
                     )}
                 </>
             )}
@@ -99,8 +105,14 @@ const ImageUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => vo
 };
 
 
-export default function AddProjectForm() {
+export default function AddProjectForm({ onClose }: { onClose?: () => void }) {
   const { toast } = useToast();
+  const formRef = React.useRef<HTMLFormElement>(null);
+
+  const [state, formAction, isPending] = useActionState(saveProjectData, {
+    message: '',
+    success: false,
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -114,19 +126,28 @@ export default function AddProjectForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Here you would typically handle form submission, e.g., send data to an API
-    console.log(values);
-    toast({
-      title: 'Project Added!',
-      description: `Project "${values.title}" has been successfully created.`,
-    });
-    // You might want to close the dialog here
-  }
+  useEffect(() => {
+    if (state.message) {
+        toast({
+            title: state.success ? 'Success!' : 'Error',
+            description: state.message,
+            variant: state.success ? 'default' : 'destructive',
+        });
+        if (state.success) {
+            form.reset();
+            onClose?.();
+        }
+    }
+  }, [state, toast, form, onClose]);
+
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        ref={formRef}
+        action={formAction}
+        className="space-y-4"
+      >
         <FormField
           control={form.control}
           name="title"
@@ -178,6 +199,7 @@ export default function AddProjectForm() {
                         currentUrl={field.value}
                     />
                 </FormControl>
+                 <Input type="hidden" {...field} />
                 <FormMessage />
             </FormItem>
             )}
@@ -211,8 +233,8 @@ export default function AddProjectForm() {
             />
         </div>
 
-        <Button type="submit" className="w-full">
-          <Plus className="mr-2 h-4 w-4" />
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
           Add Project
         </Button>
       </form>
