@@ -3,6 +3,8 @@ import type { PortfolioData } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const getImage = (id: string) => {
     const image = PlaceHolderImages.find(img => img.id === id);
@@ -123,8 +125,8 @@ const defaultData: PortfolioData = {
 };
 
 export async function getPortfolioData(): Promise<PortfolioData> {
+    const portfolioDocRef = doc(db, 'portfolio', 'main');
     try {
-        const portfolioDocRef = doc(db, 'portfolio', 'main');
         const docSnap = await getDoc(portfolioDocRef);
 
         if (docSnap.exists()) {
@@ -155,7 +157,15 @@ export async function getPortfolioData(): Promise<PortfolioData> {
             return defaultData;
         }
     } catch (error) {
-        console.error("Error fetching portfolio data: ", error);
+        if ((error as any).code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: portfolioDocRef.path,
+                operation: 'get',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        } else {
+            console.error("Error fetching portfolio data: ", error);
+        }
         return defaultData;
     }
 }
