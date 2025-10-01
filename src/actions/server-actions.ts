@@ -221,7 +221,7 @@ export async function saveProjectData(prevState: any, formData: FormData) {
   if (!adminDb) {
     return {
       success: false,
-      message: "Database connection not configured.",
+      message: "Database connection not configured. Please set the FIREBASE_SERVICE_ACCOUNT_KEY environment variable on your server.",
     };
   }
 
