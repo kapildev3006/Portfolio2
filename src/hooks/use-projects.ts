@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase';
 import type { Project as ProjectType } from '@/lib/types';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
+import useAuth from './use-auth';
 
 export interface Project extends ProjectType {
     id: string;
@@ -14,11 +15,26 @@ export interface Project extends ProjectType {
 }
 
 export default function useProjects() {
+  const { user, loading: authLoading } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    if (authLoading) {
+      // Wait for authentication to resolve
+      return;
+    }
+
+    if (!user) {
+      // If no user is logged in, do not attempt to fetch projects.
+      // This prevents permission errors for unauthenticated users.
+      setLoading(false);
+      setProjects([]);
+      return;
+    }
+
+    setLoading(true);
     const q = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
 
     const unsubscribe = onSnapshot(
@@ -44,7 +60,7 @@ export default function useProjects() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [user, authLoading]);
 
   return { projects, loading, error };
 }
