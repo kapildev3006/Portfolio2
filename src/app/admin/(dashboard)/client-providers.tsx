@@ -2,7 +2,6 @@
 'use client';
 
 import AdminHeader from '@/components/admin/header';
-import AdminSidebar from '@/components/admin/sidebar';
 import useAuth from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -29,7 +28,6 @@ export default function ClientProviders({ children }: { children: ReactNode }) {
 
   return (
     <PortfolioDataProvider>
-      <AdminSidebar />
       <div className="flex flex-1 flex-col">
         <AdminHeader />
         <div className="flex-1 overflow-y-auto">{children}</div>
