@@ -7,6 +7,7 @@ import useAuth from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
+import { PortfolioDataProvider } from '@/context/PortfolioDataProvider';
 
 export default function AdminLayout({
   children,
@@ -31,9 +32,11 @@ export default function AdminLayout({
   }
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <AdminSidebar />
-      <main className="flex-1">{children}</main>
-    </SidebarProvider>
+    <PortfolioDataProvider>
+      <SidebarProvider defaultOpen={true}>
+        <AdminSidebar />
+        <main className="flex-1">{children}</main>
+      </SidebarProvider>
+    </PortfolioDataProvider>
   );
 }

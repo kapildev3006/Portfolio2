@@ -25,14 +25,14 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, Upload } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { uploadImage, uploadFile, saveProfileData } from '@/actions/server-actions';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
+
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
@@ -187,7 +187,7 @@ function ProfileFormSkeleton() {
 export default function AdminProfilePage() {
   const { toast } = useToast();
   const [isUploading, setIsUploading] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const { portfolioData, loading: isLoading } = useContext(PortfolioDataContext);
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -207,39 +207,22 @@ export default function AdminProfilePage() {
   });
 
   useEffect(() => {
-    async function fetchProfileData() {
-      try {
-        const docRef = doc(db, 'portfolio', 'main');
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          form.reset({
-            name: data.hero?.name || '',
-            title: data.hero?.title || '',
-            subtitle: data.hero?.subtitle || '',
-            imageUrl: data.hero?.imageUrl || '',
-            resumeUrl: data.hero?.resumeUrl || '',
-            email: data.contact?.email || '',
-            phone: data.contact?.phone || '',
-            location: data.contact?.location || '',
-            linkedin: data.socials?.linkedin || '',
-            github: data.socials?.github || '',
-            twitter: data.socials?.twitter || '',
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching profile data:", error);
-        toast({
-          title: 'Error',
-          description: 'Could not fetch profile data.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
+    if (portfolioData) {
+      form.reset({
+        name: portfolioData.hero?.name || '',
+        title: portfolioData.hero?.title || '',
+        subtitle: portfolioData.hero?.subtitle || '',
+        imageUrl: portfolioData.hero?.imageUrl || '',
+        resumeUrl: portfolioData.hero?.resumeUrl || '',
+        email: portfolioData.contact?.email || '',
+        phone: portfolioData.contact?.phone || '',
+        location: portfolioData.contact?.location || '',
+        linkedin: portfolioData.socials?.linkedin || '',
+        github: portfolioData.socials?.github || '',
+        twitter: portfolioData.socials?.twitter || '',
+      });
     }
-    fetchProfileData();
-  }, [form, toast]);
+  }, [portfolioData, form]);
 
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -511,5 +494,3 @@ export default function AdminProfilePage() {
     </div>
   );
 }
-
-    

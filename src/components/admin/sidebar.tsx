@@ -25,10 +25,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { useContext } from 'react';
 import { Skeleton } from '../ui/skeleton';
+import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
+
 
 const sidebarNavItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutGrid },
@@ -42,46 +42,14 @@ const sidebarNavItems = [
   { href: '/admin/settings', label: 'Settings', icon: Cog },
 ];
 
-type SidebarData = {
-    name: string;
-    imageUrl: string;
-}
-
-const defaultSidebarData: SidebarData = {
-  name: 'Admin',
-  imageUrl: '',
-};
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const [sidebarData, setSidebarData] = useState<SidebarData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { portfolioData, loading } = useContext(PortfolioDataContext);
 
-  useEffect(() => {
-    async function fetchSidebarData() {
-      try {
-        const docRef = doc(db, 'portfolio', 'main');
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setSidebarData({
-            name: data.hero?.name || defaultSidebarData.name,
-            imageUrl: data.hero?.imageUrl || defaultSidebarData.imageUrl,
-          });
-        } else {
-           setSidebarData(defaultSidebarData);
-        }
-      } catch (error) {
-        console.error("Error fetching sidebar data:", error);
-        setSidebarData(defaultSidebarData);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchSidebarData();
-  }, []);
-
-  const fallback = sidebarData?.name ? sidebarData.name.substring(0, 2).toUpperCase() : "AD";
+  const name = portfolioData?.hero?.name || 'Admin';
+  const imageUrl = portfolioData?.hero?.imageUrl || '';
+  const fallback = name ? name.substring(0, 2).toUpperCase() : "AD";
 
   return (
     <Sidebar>
@@ -91,7 +59,7 @@ export default function AdminSidebar() {
              <Skeleton className="h-12 w-12 rounded-full" />
           ) : (
             <Avatar className="h-12 w-12">
-                <AvatarImage src={sidebarData?.imageUrl} alt={sidebarData?.name} />
+                <AvatarImage src={imageUrl} alt={name} />
                 <AvatarFallback>{fallback}</AvatarFallback>
             </Avatar>
           )}
@@ -100,7 +68,7 @@ export default function AdminSidebar() {
               {loading ? (
                 <Skeleton className="h-4 w-24 mt-1" />
               ) : (
-                <span className="text-sm text-muted-foreground/80">{sidebarData?.name}</span>
+                <span className="text-sm text-muted-foreground/80">{name}</span>
               )}
           </div>
         </div>

@@ -17,10 +17,9 @@ import {
   Cell,
 } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import React, { useEffect, useState } from 'react';
-import { getPortfolioData } from '@/lib/portfolio-data';
-import type { PortfolioData } from '@/lib/types';
+import React, { useContext } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'];
 
@@ -71,17 +70,9 @@ function StatsPageSkeleton() {
 
 
 export default function AdminStatsPage() {
-    const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+    const { portfolioData, loading } = useContext(PortfolioDataContext);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const data = await getPortfolioData();
-            setPortfolioData(data);
-        };
-        fetchData();
-    }, []);
-
-    if (!portfolioData) {
+    if (loading || !portfolioData) {
         return <StatsPageSkeleton />;
     }
 
@@ -191,16 +182,17 @@ export default function AdminStatsPage() {
             <ChartContainer config={chartConfig} className="h-[350px] w-full">
               <RechartsBarChart
                 data={projectTagData}
+                layout="vertical"
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis />
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <YAxis dataKey="name" type="category" tick={{ fontSize: 12 }} />
+                <XAxis type="number" />
                 <Tooltip
                   cursor={{ fill: 'hsl(var(--muted))' }}
                   content={<ChartTooltipContent indicator="dot" />}
                 />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
               </RechartsBarChart>
             </ChartContainer>
           </CardContent>

@@ -22,14 +22,15 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import type { Experience, SkillCategory, PortfolioData } from '@/lib/types';
+import type { Experience, SkillCategory } from '@/lib/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Edit, Plus, Trash2, Wand2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { getPortfolioData } from '@/lib/portfolio-data';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
+
 
 // Schemas for form validation
 const skillSchema = z.object({
@@ -224,19 +225,11 @@ function AdminAboutPageSkeleton() {
 
 
 export default function AdminAboutPage() {
-  const [portfolioData, setPortfolioData] = React.useState<PortfolioData | null>(null);
+  const { portfolioData, loading } = React.useContext(PortfolioDataContext);
   const [skillDialogOpen, setSkillDialogOpen] = React.useState(false);
   const [experienceDialogOpen, setExperienceDialogOpen] = React.useState(false);
 
-  React.useEffect(() => {
-    const fetchData = async () => {
-      const data = await getPortfolioData();
-      setPortfolioData(data);
-    };
-    fetchData();
-  }, []);
-
-  if (!portfolioData) {
+  if (loading || !portfolioData) {
     return <AdminAboutPageSkeleton />;
   }
 

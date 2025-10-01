@@ -14,58 +14,26 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '../ui/sidebar';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
+import { useContext } from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
 
-type HeaderData = {
-    name: string;
-    imageUrl: string;
-}
-
-const defaultHeaderData: HeaderData = {
-  name: 'Admin',
-  imageUrl: '',
-};
 
 export default function AdminHeader() {
-  const [headerData, setHeaderData] = useState<HeaderData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { portfolioData, loading } = useContext(PortfolioDataContext);
   const router = useRouter();
 
-  useEffect(() => {
-    async function fetchHeaderData() {
-      try {
-        const docRef = doc(db, 'portfolio', 'main');
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setHeaderData({
-            name: data.hero?.name || defaultHeaderData.name,
-            imageUrl: data.hero?.imageUrl || defaultHeaderData.imageUrl,
-          });
-        } else {
-          setHeaderData(defaultHeaderData);
-        }
-      } catch (error) {
-        console.error("Error fetching header data:", error);
-        setHeaderData(defaultHeaderData);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchHeaderData();
-  }, []);
-  
   const handleLogout = async () => {
     await signOut(auth);
     router.push('/admin/login');
   };
 
-  const fallback = headerData?.name ? headerData.name.substring(0, 2).toUpperCase() : 'AD';
+  const name = portfolioData?.hero?.name || 'Admin';
+  const imageUrl = portfolioData?.hero?.imageUrl || '';
+  const fallback = name ? name.substring(0, 2).toUpperCase() : 'AD';
 
   return (
     <header className="flex h-20 items-center justify-between border-b border-sidebar-border bg-card px-8">
@@ -80,7 +48,7 @@ export default function AdminHeader() {
             ) : (
                 <>
                     <h2 className="text-lg font-semibold">Welcome back!</h2>
-                    <p className="text-sm text-muted-foreground">{headerData?.name}</p>
+                    <p className="text-sm text-muted-foreground">{name}</p>
                 </>
             )}
         </div>
@@ -100,7 +68,7 @@ export default function AdminHeader() {
                     <Skeleton className="h-9 w-9 rounded-full" />
                 ) : (
                     <Avatar className="h-9 w-9">
-                        <AvatarImage src={headerData?.imageUrl} alt={headerData?.name} />
+                        <AvatarImage src={imageUrl} alt={name} />
                         <AvatarFallback>{fallback}</AvatarFallback>
                     </Avatar>
                 )}
@@ -108,7 +76,7 @@ export default function AdminHeader() {
                   {loading ? (
                       <Skeleton className="h-4 w-20" />
                   ) : (
-                      <p className="text-sm font-medium">{headerData?.name}</p>
+                      <p className="text-sm font-medium">{name}</p>
                   )}
                </div>
               <ChevronDown className="ml-auto h-4 w-4 text-muted-foreground opacity-50" />
