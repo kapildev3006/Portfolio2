@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { LogIn } from 'lucide-react';
+import { LogIn, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -76,7 +76,7 @@ export default function AdminLoginPage() {
   if (loading || user) {
      return (
        <div className="flex min-h-screen items-center justify-center bg-background">
-         <p>Loading...</p>
+         <Loader2 className="h-10 w-10 animate-spin text-primary" />
        </div>
      );
   }
