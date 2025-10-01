@@ -30,7 +30,8 @@ export default function useProjects() {
         setLoading(false);
       },
       (err) => {
-        console.error("Error fetching projects:", err);
+        // No longer logging the generic error to the console.
+        // The framework will catch and display a detailed contextual error.
         setError(err);
         setLoading(false);
       }
