@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Bell, ChevronDown, LogOut } from 'lucide-react';
@@ -13,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { SidebarTrigger, useSidebar } from '../ui/sidebar';
+import { useSidebar } from '../ui/sidebar';
 import Link from 'next/link';
 import { useContext } from 'react';
 import { Skeleton } from '../ui/skeleton';
@@ -40,7 +39,6 @@ export default function AdminHeader() {
   return (
     <header className="flex h-20 items-center justify-between border-b border-sidebar-border bg-card px-8">
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="md:hidden" />
         <div className="hidden md:block">
             {loading ? (
                 <div className="space-y-2">
@@ -49,7 +47,6 @@ export default function AdminHeader() {
                 </div>
             ) : (
                  <div className="flex items-center gap-2">
-                    <SidebarTrigger />
                     <div>
                       <h2 className="text-lg font-semibold">Welcome back!</h2>
                       <p className="text-sm text-muted-foreground">{name}</p>
