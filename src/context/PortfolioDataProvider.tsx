@@ -4,7 +4,6 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
 import type { PortfolioData } from '@/lib/types';
 import { getPortfolioData } from '@/lib/portfolio-data';
-import { Loader2 } from 'lucide-react';
 
 interface PortfolioContextType {
   portfolioData: PortfolioData | null;
@@ -33,14 +32,6 @@ export function PortfolioDataProvider({ children }: { children: ReactNode }) {
     }
     fetchData();
   }, []);
-
-  if (loading) {
-     return (
-       <div className="flex min-h-screen items-center justify-center bg-background">
-         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-       </div>
-     );
-  }
 
   return (
     <PortfolioDataContext.Provider value={{ portfolioData, loading }}>

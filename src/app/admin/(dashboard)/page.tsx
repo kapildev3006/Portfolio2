@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Briefcase, UserCircle, Cog } from 'lucide-react';
 import Link from 'next/link';
@@ -36,11 +36,7 @@ function DashboardSkeleton() {
 export default function AdminDashboardPage() {
   const { portfolioData, loading } = useContext(PortfolioDataContext);
 
-  if (loading || !portfolioData) {
-      return <DashboardSkeleton />;
-  }
-
-  const { hero } = portfolioData;
+  const heroName = portfolioData?.hero?.name || 'Admin';
 
   const quickLinks = [
     {
@@ -66,8 +62,12 @@ export default function AdminDashboardPage() {
   return (
     <div className="flex-1 bg-background p-8 text-foreground">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold">Welcome, {hero.name}!</h1>
-        <p className="text-muted-foreground">Here's a quick overview of your admin panel.</p>
+        <h1 className="text-4xl font-bold">
+            {loading ? <Skeleton className="h-10 w-1/2" /> : `Welcome, ${heroName}!`}
+        </h1>
+        <p className="text-muted-foreground">
+            {loading ? <Skeleton className="h-4 w-1/3 mt-2" /> : "Here's a quick overview of your admin panel."}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -80,14 +80,14 @@ export default function AdminDashboardPage() {
             <CardContent>
               <p className="text-muted-foreground">{link.description}</p>
             </CardContent>
-            <CardContent>
+            <CardFooter>
               <Button asChild variant="outline">
                 <Link href={link.href}>
                   Go to {link.title.split(' ')[1]}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-            </CardContent>
+            </CardFooter>
           </Card>
         ))}
       </div>
