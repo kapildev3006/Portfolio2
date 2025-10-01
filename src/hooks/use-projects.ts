@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Project as ProjectType } from '@/lib/types';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 export interface Project extends ProjectType {
     id: string;
@@ -30,8 +32,12 @@ export default function useProjects() {
         setLoading(false);
       },
       (err) => {
-        // No longer logging the generic error to the console.
-        // The framework will catch and display a detailed contextual error.
+        const permissionError = new FirestorePermissionError({
+          path: 'projects',
+          operation: 'list',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+
         setError(err);
         setLoading(false);
       }

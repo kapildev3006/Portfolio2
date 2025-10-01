@@ -4,6 +4,8 @@
 import { z } from 'zod';
 import { db } from '@/lib/firebase';
 import { doc, setDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
@@ -77,7 +79,7 @@ const projectFormSchema = z.object({
 });
 
 
-export async function saveProjectData(data: z.infer<typeof projectFormSchema>) {
+export async function saveProjectData(data: z.infer<typeof projectFormSchema>): Promise<{success: boolean, message: string}> {
   try {
     const validatedData = projectFormSchema.parse(data);
 
@@ -90,21 +92,32 @@ export async function saveProjectData(data: z.infer<typeof projectFormSchema>) {
     // Remove techstack as we've converted it to tags
     delete (dataToSave as any).techstack;
 
-    await addDoc(collection(db, 'projects'), dataToSave);
+    const collectionRef = collection(db, 'projects');
     
+    addDoc(collectionRef, dataToSave)
+      .catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: collectionRef.path,
+          operation: 'create',
+          requestResourceData: dataToSave,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
+
     return {
       message: `Project "${validatedData.title}" has been successfully created.`,
       success: true,
     };
 
   } catch (error) {
-    console.error("Error saving project data: ", error);
      if (error instanceof z.ZodError) {
         return {
             success: false,
             message: 'Validation failed: ' + error.errors.map(e => e.message).join(', '),
         };
     }
+    // This will likely not be hit for permission errors anymore, but is kept for other unexpected issues.
+    console.error("Error saving project data: ", error);
     return {
       message: 'An unexpected error occurred while saving the project.',
       success: false,

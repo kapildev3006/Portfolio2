@@ -4,6 +4,7 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
 import type { PortfolioData } from '@/lib/types';
 import { getPortfolioData } from '@/lib/portfolio-data';
+import FirebaseErrorListener from '@/components/FirebaseErrorListener';
 
 interface PortfolioContextType {
   portfolioData: PortfolioData | null;
@@ -35,6 +36,7 @@ export function PortfolioDataProvider({ children }: { children: ReactNode }) {
 
   return (
     <PortfolioDataContext.Provider value={{ portfolioData, loading }}>
+      {process.env.NODE_ENV === 'development' && <FirebaseErrorListener />}
       {children}
     </PortfolioDataContext.Provider>
   );
