@@ -9,10 +9,11 @@ import { contactFormSchema } from '@/lib/types';
 
 
 export async function submitContactForm(prevState: any, formData: FormData) {
+  const phoneValue = formData.get('phone');
   const validatedFields = contactFormSchema.safeParse({
     name: formData.get('name'),
     email: formData.get('email'),
-    phone: formData.get('phone'),
+    phone: phoneValue === null ? undefined : phoneValue, // Handle null case for optional field
     subject: formData.get('subject'),
     message: formData.get('message'),
   });
