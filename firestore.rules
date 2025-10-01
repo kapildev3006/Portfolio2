@@ -1,76 +1,99 @@
 /**
- * @file Firestore Security Rules
- * @description This ruleset enforces a strict user-ownership model for portfolios and projects.
+ * @fileoverview Firestore Security Rules for the application.
+ *
+ * Core Philosophy:
+ * This ruleset prioritizes security by enforcing strict access control.
+ * - Users can only read or modify their own user documents.
+ * - Portfolio data is publicly readable, but only administrators can modify it.
+ * - Portfolio projects are publicly readable, but only administrators can create, update, or delete them.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profile information, accessible only to the user.
- * - /portfolio/{portfolioId}: Stores portfolio data, accessible only to the user.
- * - /projects/{projectId}: Stores project data, accessible only to the user.
+ * - /users/{userId}: Stores user profile information, accessible only to the user themselves.
+ * - /portfolio/main: Stores the main portfolio data, publicly readable.  This is a single document.
+ * - /projects/{projectId}: Stores portfolio projects, publicly readable.
  *
  * Key Security Decisions:
- * - Users can only read and write their own user documents.
- * - Users can only read and write their own portfolio documents.
- * - Users can only create, read, update, and delete their own project documents.
+ * - Listing of users is explicitly denied.
+ * - Portfolio and project data is publicly readable to allow for easy display.
+ *
+ * Denormalization for Authorization:
+ *  - No denormalization is required at this stage.  The assumption is that `portfolio/main` is a single publicly accessible document.  If it were instead user-specific, an `ownerId` field would need to be added.
+ *
+ * Structural Segregation:
+ * - Public content (portfolio, projects) is stored in top-level collections, separate from private user data.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows users to read and write their own user documents.
+     * @description Checks if the user is signed in.
+     * @return {boolean} True if the user is signed in, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the request is made by the owner of the user document.
+     * @param {string} userId The user ID to compare against the request's authentication UID.
+     * @return {boolean} True if the request is made by the owner, false otherwise.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the request is made by the owner of the user document, and that the resource exists
+     * @param {string} userId The user ID to compare against the request's authentication UID.
+     * @return {boolean} True if the request is made by the owner, false otherwise.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Rules for user documents.
      * @path /users/{userId}
-     * @allow (get, create, update, delete) if request.auth.uid == userId
-     * @deny (get, create, update, delete) if request.auth.uid != userId
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) Signed-in user creates their own document.
+     * @allow (get, update, delete) Signed-in user accesses their own document.
+     * @deny (create) Signed-in user attempts to create a document with a mismatched userId.
+     * @deny (get, update, delete) Signed-in user attempts to access another user's document.
+     * @deny (list) Any user attempts to list all user documents.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.uid == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.uid == resource.data.uid;
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Allows users to read and write their own portfolio documents.
-     * @path /portfolio/{portfolioId}
-     * @allow (get, create, update, delete) if request.auth.uid == portfolioId
-     * @deny (get, create, update, delete) if request.auth.uid != portfolioId
-     * @principle Enforces document ownership for all operations.
+     * @description Rules for the main portfolio document.
+     * @path /portfolio/main
+     * @allow (get, list) Any user can read the portfolio data.
+     * @deny (create, update, delete) No one can create, update, or delete the portfolio data (admin role missing).
+     * @principle Public read, owner-only writes (currently disabled due to missing owner/admin concept).
      */
     match /portfolio/{portfolioId} {
-      function isOwner(portfolioId) {
-        return request.auth != null && request.auth.uid == portfolioId;
-      }
-        allow get: if isOwner(portfolioId);
-        allow list: if false;
-        allow create: if isOwner(portfolioId);
-        allow update: if isOwner(portfolioId);
-        allow delete: if isOwner(portfolioId);
+      allow get: if true;
+      allow list: if true;
+      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field and admin role added.
     }
 
     /**
-     * @description Allows users to create, read, update, and delete their own project documents.
+     * @description Rules for portfolio projects.
      * @path /projects/{projectId}
-     * @allow (create) if request.auth != null
-     * @allow (get, list, update, delete) if request.auth != null
-     * @deny (create, get, list, update, delete) if request.auth == null
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) Any user can read the project data.
+     * @deny (create, update, delete) No one can create, update, or delete projects (admin role missing).
+     * @principle Public read, owner-only writes (currently disabled due to missing owner/admin concept).
      */
     match /projects/{projectId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && resource != null;
-      allow delete: if isSignedIn() && resource != null;
+      allow get: if true;
+      allow list: if true;
+      allow create, update, delete: if false;  // TODO: Add owner validation once the schema is updated with an ownership field and admin role added.
     }
   }
 }
