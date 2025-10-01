@@ -1,18 +1,93 @@
-
+/**
+ * @fileoverview Firestore Security Rules for the application.
+ *
+ * Core Philosophy:
+ * This ruleset prioritizes user-owned data and public read access for some collections.
+ * Users can only create, update, or delete their own data. Some top-level collections are publicly readable.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores individual user profiles. Accessible only by the user.
+ * - /portfolio/{portfolioId}: Stores main portfolio data. Accessible to everyone.
+ * - /projects/{projectId}: Stores individual projects. Accessible to everyone.
+ *
+ * Key Security Decisions:
+ * - Users can only manage their own user data.
+ * - Projects can be read by anyone, but only created, updated, or deleted by their owner.
+ * - Portfolios can be read by anyone.
+ *
+ * Denormalization for Authorization:
+ *  - Projects should contain a `ownerId` field to allow for secure owner-only writes.
+ *
+ * Structural Segregation:
+ *  - Publicly readable data is stored in top-level collections (/projects, /portfolio).
+ */
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Allow public read access to the main portfolio document
-    match /portfolio/main {
-      allow read: if true;
-      allow write: if request.auth != null; // Only authenticated users can write
+    /**
+     * @description Grants access to user profile information.
+     * @path /users/{userId}
+     * @allow (create) - Allow user to create their own profile.
+     * @allow (get, list, update, delete) - Allow user to read, update, and delete their own profile.
+     * @deny (create) - Deny creating a profile with a different user ID.
+     * @deny (get, list, update, delete) - Deny accessing another user's profile.
+     * @principle Enforces user-ownership.
+     */
+    match /users/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
     }
 
-    // Users can only read and write their own data
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    /**
+     * @description Grants public read access to portfolio data, but no writes are allowed.
+     * @path /portfolio/{portfolioId}
+     * @allow (get, list) - Allow anyone to read portfolio data.
+     * @deny (create, update, delete) - Deny anyone from creating, updating, or deleting portfolio data.
+     * @principle Allows public read access with no write access.
+     */
+    match /portfolio/{portfolioId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+
+    /**
+     * @description Grants public read access to projects, but restricts writes to the project owner.
+     * @path /projects/{projectId}
+     * @allow (get, list) - Allow anyone to read project data.
+     * @allow (create) - Allow the project owner to create a new project. Requires the `ownerId` field in the request.
+     * @allow (update, delete) - Allow the project owner to update or delete their existing project.
+     * @deny (create) - Deny creating a project with a mismatched `ownerId`.
+     * @deny (update, delete) - Deny updating or deleting a project if the user is not the owner.
+     * @principle Enforces owner-only writes for public-read documents.
+     */
+    match /projects/{projectId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(ownerId) {
+        return isSignedIn() && request.auth.uid == ownerId;
+      }
+
+      function isExistingOwner(ownerId) {
+        return isOwner(ownerId) && resource != null;
+      }
+
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.keys().hasAll(['title', 'description', 'imageUrl', 'tags', 'createdAt']) && request.resource.data.ownerId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.ownerId);
+      allow delete: if isExistingOwner(resource.data.ownerId);
     }
   }
 }
