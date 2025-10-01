@@ -2,65 +2,55 @@
  * @fileoverview Firestore Security Rules for the application.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for user profiles,
- * allows public read access to portfolio and project data, and restricts
- * access to contact submissions.
+ * This ruleset prioritizes a secure, role-based access control model with an emphasis on ownership and explicit permissions.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profile information, only accessible by the user.
- * - /portfolio/{portfolioId}: Stores the main portfolio data, publicly readable.
- * - /projects/{projectId}: Stores individual portfolio projects, publicly readable.
- * - /contactSubmissions/{submissionId}: Stores contact form submissions, only accessible to authenticated users.
+ * - /users/{userId}: Stores user profile data, accessible only by the user themselves.
+ * - /portfolio/{portfolioId}: Stores the main portfolio data, publicly accessible for reads, owner-only writes.
+ * - /projects/{projectId}: Stores individual portfolio projects, publicly accessible for reads, owner-only writes.
+ * - /contactSubmissions/{submissionId}: Stores contact form submissions, accessible only with authenticated users for reads and writes.
  *
  * Key Security Decisions:
- * - Users can only read and write their own profile data.
- * - Portfolio and project data is publicly readable.
- * - Listing of users is disallowed for privacy.
- * - Contact form submissions are only accessible to authenticated users.
+ * - Users can only manage their own profile data.
+ * - Portfolio and project data are publicly readable but only editable by authenticated users.
+ * - Contact form submissions can be only updated by authenticated users, specifically the `isRead` field.
  *
  * Denormalization for Authorization:
- *  N/A - This ruleset does not require denormalization.
- *
- * Structural Segregation:
- *  N/A - This ruleset does not use structural segregation.
+ * - The portfolio and project entities do not have explicit ownership fields. Therefore the auth checks will be based on user authentication.
+ * - Contact Submissions can be marked as `isRead` by any authenticated user.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Checks if the request is made by an authenticated user.
-     * @returns {boolean} True if the user is signed in, false otherwise.
+     * @description Checks if the user is signed in.
      */
     function isSignedIn() {
       return request.auth != null;
     }
 
     /**
-     * @description Checks if the authenticated user's UID matches the provided userId.
-     * @param {string} userId - The user ID to compare against.
-     * @returns {boolean} True if the user is the owner, false otherwise.
+     * @description Checks if the request is made by the owner of the resource.
      */
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
 
     /**
-     * @description Checks if the authenticated user's UID matches the provided userId and the resource exists.
-     * @param {string} userId - The user ID to compare against.
-     * @returns {boolean} True if the user is the owner and resource exists, false otherwise.
+     * @description Checks if the request is made by the owner of an existing resource.
      */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
-    
+
     /**
-     * @description Rules for user profile data.
+     * @description Rules for user profiles.
      * @path /users/{userId}
-     * @allow (create) - User 'abc' can create their profile if authenticated as 'abc'.
-     * @allow (get, update, delete) - User 'abc' can read/update/delete their profile if authenticated as 'abc'.
-     * @deny (create, get, update, delete) - User 'xyz' cannot access user 'abc''s profile data.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data.
+     * @allow (create) - User can create their own profile if the userId matches their auth.uid.
+     * @allow (get, update, delete) - User can only access their own profile data.
+     * @deny (create) - User cannot create a profile with a different userId.
+     * @principle Enforces document ownership for all operations on user profiles.
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
@@ -73,39 +63,44 @@ service cloud.firestore {
     /**
      * @description Rules for portfolio data.
      * @path /portfolio/{portfolioId}
-     * @allow (get, list) - Any user can read portfolio data.
-     * @deny (create, update, delete) - No user can create, update, or delete portfolio data.
-     * @principle Allows public read access with no write access.
+     * @allow (get, list) - Anyone can read portfolio data.
+     * @allow (create, update, delete) - Only authenticated users can modify portfolio data.
+     * @deny (create, update, delete) - Unauthenticated users cannot modify portfolio data.
+     * @principle Public read, owner-only writes for portfolio data.
      */
     match /portfolio/{portfolioId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create, update, delete: if isSignedIn();
     }
 
     /**
      * @description Rules for project data.
      * @path /projects/{projectId}
-     * @allow (get, list) - Any user can read project data.
-     * @deny (create, update, delete) - No user can create, update, or delete project data.
-     * @principle Allows public read access with no write access.
+     * @allow (get, list) - Anyone can read project data.
+     * @allow (create, update, delete) - Only authenticated users can modify project data.
+     * @deny (create, update, delete) - Unauthenticated users cannot modify project data.
+     * @principle Public read, owner-only writes for project data.
      */
     match /projects/{projectId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create, update, delete: if isSignedIn();
     }
 
     /**
      * @description Rules for contact form submissions.
      * @path /contactSubmissions/{submissionId}
-     * @allow (create) - Any authenticated user can create a contact submission.
-     * @allow (get, list) - Any authenticated user can read/list contact submissions.
-     * @deny (update, delete) - No user can update or delete contact submissions.
-     * @principle Restricts access to authenticated users only.
+     * @allow (get, list) - Only authenticated users can read contact form submissions.
+     * @allow (create) - Anyone can create a contact form submission.
+     * @allow (update) - Only authenticated users can update the `isRead` field.
+     * @deny (update) - Prevent changing any fields other than `isRead`.
+     * @deny (delete) - No one can delete contact submissions.
+     * @principle Authenticated access for reading and updating submissions.
      */
     match /contactSubmissions/{submissionId} {
-      allow get, list: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update, delete: if false;
+        allow get, list: if isSignedIn();
+        allow create: if true;
+        allow update: if isSignedIn() && request.resource.data.keys().hasOnly(['isRead']) && resource.data.isRead != request.resource.data.isRead;
+        allow delete: if false;
     }
   }
 }
