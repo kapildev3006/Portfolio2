@@ -1,10 +1,9 @@
-
 'use client';
 
 import AnimatedDiv from '@/components/animated-div';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import type { SkillCategory, Experience, Achievement, PortfolioData } from '@/lib/types';
-import { Award, Code, Database, Equal, Rocket, ScreenShare, Wand2 } from 'lucide-react';
+import type { SkillCategory, Experience, PortfolioData } from '@/lib/types';
+import { Rocket, Wand2 } from 'lucide-react';
 import { getPortfolioData } from '@/lib/portfolio-data';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '../ui/skeleton';
@@ -45,23 +44,6 @@ const JourneyCard = ({ item }: { item: Omit<Experience, 'icon'> }) => (
   </Card>
 );
 
-const AchievementCard = ({ achievement }: { achievement: Omit<Achievement, 'icon'> }) => (
-    <Card className="bg-secondary/50 transform transition-transform duration-300 hover:scale-105">
-      <CardHeader className="flex flex-row items-start gap-4 space-y-0 p-6 pb-2">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Award />
-        </div>
-        <div className="flex-1">
-          <CardTitle className="text-lg font-bold">{achievement.title}</CardTitle>
-          <p className="text-sm text-muted-foreground">{achievement.date}</p>
-        </div>
-      </CardHeader>
-      <CardContent className="p-6 pt-0">
-        <p className="text-sm text-muted-foreground">{achievement.description}</p>
-      </CardContent>
-    </Card>
-);
-
 function AboutPageSkeleton() {
     return (
         <div className="container mx-auto px-4 md:px-6">
@@ -69,7 +51,7 @@ function AboutPageSkeleton() {
                 <Skeleton className="h-12 w-1/3 mx-auto" />
                 <Skeleton className="h-6 w-2/3 mx-auto mt-4" />
             </AnimatedDiv>
-            <div className="grid grid-cols-1 gap-16 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
                 <div className="space-y-8">
                     <Skeleton className="h-8 w-1/2 mx-auto md:mx-0" />
                     <div className="space-y-6">
@@ -78,13 +60,6 @@ function AboutPageSkeleton() {
                     </div>
                 </div>
                 <div className="space-y-8">
-                    <Skeleton className="h-8 w-1/2 mx-auto md:mx-0" />
-                    <div className="space-y-6">
-                        <Skeleton className="h-32 w-full" />
-                        <Skeleton className="h-32 w-full" />
-                    </div>
-                </div>
-                 <div className="space-y-8">
                     <Skeleton className="h-8 w-1/2 mx-auto md:mx-0" />
                     <div className="space-y-6">
                         <Skeleton className="h-32 w-full" />
@@ -116,7 +91,7 @@ export default function About() {
       )
   }
 
-  const { about, achievements } = portfolioData;
+  const { about } = portfolioData;
 
   return (
     <section id="about" className="w-full bg-background py-20 md:py-32">
@@ -130,7 +105,7 @@ export default function About() {
           </p>
         </AnimatedDiv>
         
-        <div className="grid grid-cols-1 gap-16 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
           <AnimatedDiv className="space-y-8">
             <h3 className="font-headline text-2xl font-bold text-center lg:text-left">My Skills</h3>
             <div className="space-y-6">
@@ -145,15 +120,6 @@ export default function About() {
             <div className="space-y-6">
               {about.experience.map((item, index) => (
                 <JourneyCard key={index} item={item} />
-              ))}
-            </div>
-          </AnimatedDiv>
-
-          <AnimatedDiv className="space-y-8">
-            <h3 className="font-headline text-2xl font-bold text-center lg:text-left">Achievements</h3>
-             <div className="space-y-6">
-              {achievements.map((item, index) => (
-                <AchievementCard key={index} achievement={item} />
               ))}
             </div>
           </AnimatedDiv>
