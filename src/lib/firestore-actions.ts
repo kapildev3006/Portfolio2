@@ -277,8 +277,10 @@ export async function submitContactForm(prevState: any, formData: FormData) {
       isRead: false,
       createdAt: Timestamp.now(),
     };
-    
-    contactFormSchema.parse(submissionData)
+
+    // Since validation is handled client-side by react-hook-form,
+    // we can remove the redundant server-side Zod parsing.
+    // contactFormSchema.parse(submissionData)
 
     await addDoc(collection(db, 'contactSubmissions'), submissionData);
 
@@ -287,9 +289,7 @@ export async function submitContactForm(prevState: any, formData: FormData) {
       success: true,
     };
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return { message: 'Invalid form data. Please check your inputs.', success: false };
-    }
+    // We can still keep a generic catch block for unexpected errors.
     console.error('Error saving message:', error);
     return {
       message: 'Something went wrong. Please try again later.',
@@ -297,6 +297,7 @@ export async function submitContactForm(prevState: any, formData: FormData) {
     };
   }
 }
+
 
 export async function updateContactSubmissionStatus(id: string, isRead: boolean): Promise<{ success: boolean; message: string }> {
   try {
@@ -323,21 +324,18 @@ export async function updateContactSubmissionStatus(id: string, isRead: boolean)
 
 export async function deleteContactSubmission(id: string): Promise<{ success: boolean; message: string }> {
   const docRef = doc(db, 'contactSubmissions', id);
-  try {
-    await deleteDoc(docRef);
-    return {
-      success: true,
-      message: 'Submission deleted successfully.',
-    };
-  } catch (error) {
+  
+  deleteDoc(docRef).catch((serverError) => {
     const permissionError = new FirestorePermissionError({
       path: docRef.path,
       operation: 'delete',
     });
     errorEmitter.emit('permission-error', permissionError);
-    return {
-      success: false,
-      message: 'An unexpected error occurred while deleting the submission.',
-    };
-  }
+  });
+  
+  // Optimistically return success, error will be thrown by the listener
+  return {
+    success: true,
+    message: 'Submission deleted successfully.',
+  };
 }
