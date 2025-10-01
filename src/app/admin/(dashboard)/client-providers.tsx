@@ -6,7 +6,6 @@ import useAuth from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect } from 'react';
-import { PortfolioDataProvider } from '@/context/PortfolioDataProvider';
 
 export default function ClientProviders({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -27,11 +26,9 @@ export default function ClientProviders({ children }: { children: ReactNode }) {
   }
 
   return (
-    <PortfolioDataProvider>
-      <div className="flex flex-1 flex-col">
-        <AdminHeader />
-        <div className="flex-1 overflow-y-auto">{children}</div>
-      </div>
-    </PortfolioDataProvider>
+    <div className="flex flex-1 flex-col">
+      <AdminHeader />
+      <div className="flex-1 overflow-y-auto">{children}</div>
+    </div>
   );
 }
