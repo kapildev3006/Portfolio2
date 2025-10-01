@@ -1,6 +1,4 @@
 
-'use client';
-
 import type { PortfolioData, SkillCategory, Experience, Achievement, Project } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { doc, getDoc, getDocs, collection, query, orderBy } from 'firebase/firestore';
