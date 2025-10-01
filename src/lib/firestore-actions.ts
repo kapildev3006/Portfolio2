@@ -271,12 +271,15 @@ export async function submitContactForm(prevState: any, formData: FormData) {
     const submissionData = {
       name: formData.get('name') as string,
       email: formData.get('email') as string,
-      phone: formData.get('phone') as string,
+      phone: (formData.get('phone') as string) || undefined,
       subject: formData.get('subject') as string,
       message: formData.get('message') as string,
       isRead: false,
       createdAt: Timestamp.now(),
     };
+    
+    contactFormSchema.parse(submissionData)
+
     await addDoc(collection(db, 'contactSubmissions'), submissionData);
 
     return {
@@ -284,6 +287,9 @@ export async function submitContactForm(prevState: any, formData: FormData) {
       success: true,
     };
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { message: 'Invalid form data. Please check your inputs.', success: false };
+    }
     console.error('Error saving message:', error);
     return {
       message: 'Something went wrong. Please try again later.',
@@ -316,23 +322,22 @@ export async function updateContactSubmissionStatus(id: string, isRead: boolean)
 }
 
 export async function deleteContactSubmission(id: string): Promise<{ success: boolean; message: string }> {
+  const docRef = doc(db, 'contactSubmissions', id);
   try {
-    const docRef = doc(db, 'contactSubmissions', id);
     await deleteDoc(docRef);
     return {
       success: true,
       message: 'Submission deleted successfully.',
     };
   } catch (error) {
-    console.error("Error deleting contact submission: ", error);
-     const permissionError = new FirestorePermissionError({
-        path: doc(db, 'contactSubmissions', id).path,
-        operation: 'delete',
+    const permissionError = new FirestorePermissionError({
+      path: docRef.path,
+      operation: 'delete',
     });
     errorEmitter.emit('permission-error', permissionError);
     return {
       success: false,
-      message: 'An unexpected error occurred.',
+      message: 'An unexpected error occurred while deleting the submission.',
     };
   }
 }
