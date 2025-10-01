@@ -36,16 +36,19 @@ function HeroSkeleton() {
 
 export default function Hero() {
   const [data, setData] = useState<PortfolioData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
       const portfolioData = await getPortfolioData();
       setData(portfolioData);
+      setLoading(false);
     }
     fetchData();
   }, []);
 
-  if (!data) {
+  if (loading || !data) {
     return <HeroSkeleton />;
   }
 
@@ -96,7 +99,7 @@ export default function Hero() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="icon">
-              <Link href="mailto:someone@example.com" aria-label="Email">
+              <Link href={`mailto:${data.contact.email}`} aria-label="Email">
                 <Mail />
               </Link>
             </Button>

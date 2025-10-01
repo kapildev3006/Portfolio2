@@ -158,13 +158,15 @@ export async function getPortfolioData(): Promise<PortfolioData> {
             const experienceWithIds = (dbData.about?.experience || defaultData.about.experience).map((e: Omit<Experience, 'icon'>) => ({ ...e, id: e.id || uuidv4() }));
             const achievementsWithIds = (dbData.achievements || defaultData.achievements).map((a: Omit<Achievement, 'icon'>) => ({ ...a, id: a.id || uuidv4() }));
 
+            const heroImage = getImage('hero-image');
+
             return {
                 hero: {
                     name: dbData.hero?.name || defaultData.hero.name,
                     title: dbData.hero?.title || defaultData.hero.title,
                     subtitle: dbData.hero?.subtitle || defaultData.hero.subtitle,
-                    imageUrl: dbData.hero?.imageUrl || defaultData.hero.imageUrl,
-                    imageHint: dbData.hero?.imageHint || defaultData.hero.imageHint,
+                    imageUrl: dbData.hero?.imageUrl || heroImage.imageUrl,
+                    imageHint: dbData.hero?.imageHint || heroImage.imageHint,
                     resumeUrl: dbData.hero?.resumeUrl || defaultData.hero.resumeUrl,
                 },
                  about: {
