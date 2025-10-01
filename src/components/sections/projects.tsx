@@ -1,10 +1,42 @@
 
-import { staticData } from '@/lib/portfolio-data';
+'use client';
+
+import { useEffect, useState } from 'react';
 import AnimatedDiv from '@/components/animated-div';
 import ProjectCard from '@/components/project-card';
+import { getPortfolioData } from '@/lib/portfolio-data';
+import { Skeleton } from '../ui/skeleton';
+import type { Project } from '@/lib/types';
+
+function ProjectsSkeleton() {
+    return (
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-2">
+            {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex flex-col gap-4 rounded-lg border bg-card p-4">
+                    <Skeleton className="aspect-video w-full" />
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                </div>
+            ))}
+        </div>
+    );
+}
 
 export default function Projects() {
-  const { projects } = staticData;
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      const data = await getPortfolioData();
+      setProjects(data.projects);
+      setLoading(false);
+    }
+    fetchData();
+  }, []);
+
 
   return (
     <section id="projects" className="w-full bg-background py-20 md:py-32">
@@ -17,16 +49,20 @@ export default function Projects() {
             Here are some of the projects I've worked on.
           </p>
         </AnimatedDiv>
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-2">
-          {projects.map((project, index) => (
-            <AnimatedDiv
-              key={project.id}
-              transition={{ delay: index * 0.1, duration: 0.6, ease: 'easeOut' }}
-            >
-              <ProjectCard project={project} />
-            </AnimatedDiv>
-          ))}
-        </div>
+        {loading ? (
+            <ProjectsSkeleton />
+        ) : (
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-2">
+            {projects.map((project, index) => (
+                <AnimatedDiv
+                key={project.id}
+                transition={{ delay: index * 0.1, duration: 0.6, ease: 'easeOut' }}
+                >
+                <ProjectCard project={project} />
+                </AnimatedDiv>
+            ))}
+            </div>
+        )}
       </div>
     </section>
   );
