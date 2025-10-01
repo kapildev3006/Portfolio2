@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -23,6 +24,11 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react';
 import Link from 'next/link';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useRouter } from 'next/navigation';
+import useAuth from '@/hooks/use-auth';
+import { useEffect } from 'react';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -31,6 +37,8 @@ const loginSchema = z.object({
 
 export default function AdminLoginPage() {
   const { toast } = useToast();
+  const router = useRouter();
+  const { user, loading } = useAuth();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -40,17 +48,38 @@ export default function AdminLoginPage() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    // TODO: Implement actual Firebase authentication
-    console.log('Login attempt with:', values);
-    toast({
-      title: 'Login Submitted',
-      description: 'Authentication logic to be implemented.',
-    });
-    // For now, redirect to dashboard on any submission.
-    // In a real app, this would happen only on successful auth.
-    window.location.href = '/admin';
+  useEffect(() => {
+    if (user) {
+      router.push('/admin');
+    }
+  }, [user, router]);
+
+
+  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      toast({
+        title: 'Login Successful',
+        description: "Welcome back! Redirecting you to the dashboard.",
+      });
+      router.push('/admin');
+    } catch (error: any) {
+      console.error('Login failed:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: error.message || 'Invalid email or password. Please try again.',
+      });
+    }
   };
+  
+  if (loading || user) {
+     return (
+       <div className="flex min-h-screen items-center justify-center bg-background">
+         <p>Loading...</p>
+       </div>
+     );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">

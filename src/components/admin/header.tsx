@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bell, ChevronDown } from 'lucide-react';
+import { Bell, ChevronDown, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -16,8 +16,10 @@ import { SidebarTrigger } from '../ui/sidebar';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '../ui/skeleton';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 type HeaderData = {
     name: string;
@@ -32,6 +34,7 @@ const defaultHeaderData: HeaderData = {
 export default function AdminHeader() {
   const [headerData, setHeaderData] = useState<HeaderData | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchHeaderData() {
@@ -57,6 +60,11 @@ export default function AdminHeader() {
     fetchHeaderData();
   }, []);
   
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/admin/login');
+  };
+
   const fallback = headerData?.name ? headerData.name.substring(0, 2).toUpperCase() : 'AD';
 
   return (
@@ -116,7 +124,10 @@ export default function AdminHeader() {
               <Link href="/admin/settings">Settings</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
