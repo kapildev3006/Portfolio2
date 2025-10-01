@@ -164,7 +164,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
                     title: dbData.hero?.title || defaultData.hero.title,
                     subtitle: dbData.hero?.subtitle || defaultData.hero.subtitle,
                     imageUrl: dbData.hero?.imageUrl || defaultData.hero.imageUrl,
-                    imageHint: defaultData.hero.imageHint,
+                    imageHint: dbData.hero?.imageHint || defaultData.hero.imageHint,
                     resumeUrl: dbData.hero?.resumeUrl || defaultData.hero.resumeUrl,
                 },
                  about: {
