@@ -65,9 +65,9 @@ export default function AdminDashboardPage() {
         <h1 className="text-4xl font-bold">
             {loading ? <Skeleton className="h-10 w-1/2" /> : `Welcome, ${heroName}!`}
         </h1>
-        <p className="text-muted-foreground">
+        <div className="text-muted-foreground">
             {loading ? <Skeleton className="h-4 w-1/3 mt-2" /> : "Here's a quick overview of your admin panel."}
-        </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
