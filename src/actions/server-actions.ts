@@ -4,13 +4,6 @@
 import { z } from 'zod';
 import { v2 as cloudinary } from 'cloudinary';
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-
 const formSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
@@ -62,6 +55,12 @@ export async function uploadImage(formData: FormData) {
       success: false,
     };
   }
+  
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
 
   try {
     const arrayBuffer = await file.arrayBuffer();
@@ -102,6 +101,12 @@ export async function uploadFile(formData: FormData) {
       success: false,
     };
   }
+  
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
 
   // Optional: Add file type/size validation here
 
