@@ -74,6 +74,8 @@ export default function AdminLoginPage() {
   };
   
   if (loading || user) {
+     // While checking for user session, render a spinner, but this happens after initial render.
+     // Or, if user is found, this prevents flicker before redirect.
      return (
        <div className="flex min-h-screen items-center justify-center bg-background">
          <Loader2 className="h-10 w-10 animate-spin text-primary" />
