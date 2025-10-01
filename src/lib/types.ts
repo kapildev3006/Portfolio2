@@ -73,6 +73,17 @@ export type ContactSubmission = {
   phone?: string;
 }
 
+export type Settings = {
+  siteTitle: string;
+  tagline: string;
+  maintenanceMode: boolean;
+  theme: 'light' | 'dark';
+  primaryColor: string;
+  fontFamily: string;
+  adminEmail: string;
+  twoFactorAuth: boolean;
+}
+
 export type PortfolioData = {
   hero: {
     name: string;
@@ -100,7 +111,8 @@ export type PortfolioData = {
     linkedin: string;
     github: string;
     twitter: string;
-  }
+  },
+  settings?: Settings;
 };
 
 export type ContactFormData = {

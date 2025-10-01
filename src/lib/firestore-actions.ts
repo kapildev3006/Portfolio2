@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { z } from 'zod';
@@ -282,7 +283,14 @@ export async function submitContactForm(prevState: any, formData: FormData) {
     // we can remove the redundant server-side Zod parsing.
     // contactFormSchema.parse(submissionData)
 
-    await addDoc(collection(db, 'contactSubmissions'), submissionData);
+    addDoc(collection(db, 'contactSubmissions'), submissionData).catch(serverError => {
+       const permissionError = new FirestorePermissionError({
+          path: 'contactSubmissions',
+          operation: 'create',
+          requestResourceData: submissionData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
 
     return {
       message: 'Thank you for your message! I will get back to you soon.',
@@ -330,4 +338,57 @@ export async function deleteContactSubmission(id: string): Promise<{ success: bo
     success: true,
     message: 'Submission deleted successfully.',
   };
+}
+
+const settingsSchema = z.object({
+  siteTitle: z.string().min(1, "Site title is required"),
+  tagline: z.string().optional(),
+  maintenanceMode: z.boolean(),
+  theme: z.enum(['light', 'dark']),
+  primaryColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid color").optional(),
+  fontFamily: z.string().optional(),
+  adminEmail: z.string().email("Invalid email").optional(),
+  twoFactorAuth: z.boolean(),
+});
+
+export async function saveSettingsData(data: z.infer<typeof settingsSchema>) {
+    try {
+        const validatedData = settingsSchema.parse(data);
+        const portfolioDocRef = doc(db, 'portfolio/main');
+
+        const dataToSave = {
+            settings: validatedData,
+            // Also update hero name if site title changed
+            hero: {
+                name: validatedData.siteTitle
+            }
+        };
+
+        setDoc(portfolioDocRef, dataToSave, { merge: true }).catch((serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: portfolioDocRef.path,
+                operation: 'update',
+                requestResourceData: dataToSave,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
+
+        return {
+            success: true,
+            message: 'Settings updated successfully!',
+        };
+
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return {
+                success: false,
+                message: 'Validation failed: ' + error.errors.map(e => e.message).join(', '),
+            };
+        }
+        console.error("Error saving settings data: ", error);
+        return {
+            success: false,
+            message: 'An unexpected error occurred while saving your settings.',
+        };
+    }
 }

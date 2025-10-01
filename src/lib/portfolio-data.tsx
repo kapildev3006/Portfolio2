@@ -1,4 +1,5 @@
 
+
 import type { PortfolioData, SkillCategory, Experience, Achievement, Project } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { doc, getDoc, getDocs, collection, query, orderBy } from 'firebase/firestore';
@@ -119,7 +120,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
 
             return {
                 hero: {
-                    name: dbData.hero?.name || defaultData.hero.name,
+                    name: dbData.settings?.siteTitle || dbData.hero?.name || defaultData.hero.name,
                     title: dbData.hero?.title || defaultData.hero.title,
                     subtitle: dbData.hero?.subtitle || defaultData.hero.subtitle,
                     imageUrl: dbData.hero?.imageUrl || heroImage.imageUrl,
@@ -145,6 +146,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
                 projects: projects,
                 services: defaultData.services,
                 testimonials: defaultData.testimonials,
+                settings: dbData.settings,
             };
         } else {
             console.log("No such document! Returning default data.");

@@ -111,6 +111,19 @@
               "format": "uri"
             }
           }
+        },
+        "settings": {
+            "type": "object",
+            "properties": {
+                "siteTitle": { "type": "string" },
+                "tagline": { "type": "string" },
+                "maintenanceMode": { "type": "boolean" },
+                "theme": { "type": "string", "enum": ["light", "dark"] },
+                "primaryColor": { "type": "string" },
+                "fontFamily": { "type": "string" },
+                "adminEmail": { "type": "string", "format": "email" },
+                "twoFactorAuth": { "type": "boolean" }
+            }
         }
       }
     },
