@@ -182,17 +182,17 @@ export default function AdminStatsPage() {
             <ChartContainer config={chartConfig} className="h-[350px] w-full">
               <RechartsBarChart
                 data={projectTagData}
-                layout="vertical"
+                layout="horizontal"
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <YAxis dataKey="name" type="category" tick={{ fontSize: 12 }} />
-                <XAxis type="number" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" type="category" tick={{ fontSize: 12 }} />
+                <YAxis type="number" />
                 <Tooltip
                   cursor={{ fill: 'hsl(var(--muted))' }}
                   content={<ChartTooltipContent indicator="dot" />}
                 />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
               </RechartsBarChart>
             </ChartContainer>
           </CardContent>

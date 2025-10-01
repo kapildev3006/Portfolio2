@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -24,6 +25,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar
 } from '@/components/ui/sidebar';
 import { useContext } from 'react';
 import { Skeleton } from '../ui/skeleton';
@@ -31,7 +33,7 @@ import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
 
 
 const sidebarNavItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutGrid },
+  { href: '/admin/profile', label: 'Dashboard', icon: LayoutGrid },
   { href: '/admin/projects', label: 'Projects', icon: Briefcase },
   { href: '/admin/about', label: 'About', icon: UserCircle },
   { href: '/admin/stats', label: 'Stats', icon: BarChart2 },
@@ -46,6 +48,7 @@ const sidebarNavItems = [
 export default function AdminSidebar() {
   const pathname = usePathname();
   const { portfolioData, loading } = useContext(PortfolioDataContext);
+  const { state } = useSidebar();
 
   const name = portfolioData?.hero?.name || 'Admin';
   const imageUrl = portfolioData?.hero?.imageUrl || '';
@@ -63,14 +66,16 @@ export default function AdminSidebar() {
                 <AvatarFallback>{fallback}</AvatarFallback>
             </Avatar>
           )}
-          <div className="flex flex-col">
-              <span className="text-lg font-bold text-sidebar-foreground">Admin Panel</span>
-              {loading ? (
-                <Skeleton className="h-4 w-24 mt-1" />
-              ) : (
-                <span className="text-sm text-muted-foreground/80">{name}</span>
-              )}
-          </div>
+          {state === 'expanded' && (
+            <div className="flex flex-col">
+                <span className="text-lg font-bold text-sidebar-foreground">Admin Panel</span>
+                {loading ? (
+                  <Skeleton className="h-4 w-24 mt-1" />
+                ) : (
+                  <span className="text-sm text-muted-foreground/80">{name}</span>
+                )}
+            </div>
+          )}
         </div>
       </SidebarHeader>
 
@@ -84,10 +89,11 @@ export default function AdminSidebar() {
                 <SidebarMenuButton
                   isActive={pathname === item.href}
                   className="group rounded-lg text-sidebar-foreground/80 transition-colors hover:bg-primary/10 hover:text-sidebar-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                  tooltip={state === 'collapsed' ? item.label : undefined}
                 >
                   <div className="absolute left-0 h-6 w-1 rounded-r-full bg-transparent transition-all group-hover:bg-primary/80 data-[active=true]:bg-primary"></div>
                   <item.icon className="h-5 w-5" />
-                  <span className="font-medium">{item.label}</span>
+                  {state === 'expanded' && <span className="font-medium">{item.label}</span>}
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -101,9 +107,12 @@ export default function AdminSidebar() {
         <SidebarMenu>
             <SidebarMenuItem>
               <Link href="/">
-                <SidebarMenuButton className="rounded-lg text-sidebar-foreground/80 transition-colors hover:bg-primary/10 hover:text-sidebar-foreground">
+                <SidebarMenuButton 
+                  className="rounded-lg text-sidebar-foreground/80 transition-colors hover:bg-primary/10 hover:text-sidebar-foreground"
+                  tooltip={state === 'collapsed' ? 'Back to Website' : undefined}
+                >
                   <Home />
-                  <span className="font-medium">Back to Website</span>
+                  {state === 'expanded' && <span className="font-medium">Back to Website</span>}
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Bell, ChevronDown, LogOut } from 'lucide-react';
@@ -12,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { SidebarTrigger } from '../ui/sidebar';
+import { SidebarTrigger, useSidebar } from '../ui/sidebar';
 import Link from 'next/link';
 import { useContext } from 'react';
 import { Skeleton } from '../ui/skeleton';
@@ -25,6 +26,7 @@ import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
 export default function AdminHeader() {
   const { portfolioData, loading } = useContext(PortfolioDataContext);
   const router = useRouter();
+  const { state } = useSidebar();
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -46,10 +48,13 @@ export default function AdminHeader() {
                     <Skeleton className="h-4 w-24" />
                 </div>
             ) : (
-                <>
-                    <h2 className="text-lg font-semibold">Welcome back!</h2>
-                    <p className="text-sm text-muted-foreground">{name}</p>
-                </>
+                 <div className="flex items-center gap-2">
+                    <SidebarTrigger />
+                    <div>
+                      <h2 className="text-lg font-semibold">Welcome back!</h2>
+                      <p className="text-sm text-muted-foreground">{name}</p>
+                    </div>
+                </div>
             )}
         </div>
       </div>

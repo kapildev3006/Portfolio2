@@ -2,12 +2,10 @@
 'use client';
 
 import { SidebarProvider } from '@/components/ui/sidebar';
-import AdminSidebar from '@/components/admin/sidebar';
 import useAuth from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { PortfolioDataProvider } from '@/context/PortfolioDataProvider';
 
 export default function AdminLayout({
   children,
@@ -32,11 +30,8 @@ export default function AdminLayout({
   }
 
   return (
-    <PortfolioDataProvider>
-      <SidebarProvider defaultOpen={true}>
-        <AdminSidebar />
-        <main className="flex-1">{children}</main>
-      </SidebarProvider>
-    </PortfolioDataProvider>
+    <SidebarProvider defaultOpen={true}>
+        {children}
+    </SidebarProvider>
   );
 }

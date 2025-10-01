@@ -49,10 +49,10 @@ export default function AdminLoginPage() {
   });
 
   useEffect(() => {
-    if (user) {
+    if (!loading && user) {
       router.push('/admin');
     }
-  }, [user, router]);
+  }, [user, loading, router]);
 
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
@@ -128,7 +128,7 @@ export default function AdminLoginPage() {
                 )}
               />
               <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                <LogIn className="mr-2 h-4 w-4" />
+                {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
                 Sign In
               </Button>
             </form>
