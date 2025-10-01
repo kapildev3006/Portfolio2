@@ -264,3 +264,38 @@ export async function saveAboutData(data: {
         };
     }
 }
+
+
+export async function updateContactSubmissionStatus(id: string, isRead: boolean): Promise<{ success: boolean; message: string }> {
+  try {
+    const docRef = doc(db, 'contactSubmissions', id);
+    await updateDoc(docRef, { isRead });
+    return {
+      success: true,
+      message: `Submission marked as ${isRead ? 'read' : 'unread'}.`,
+    };
+  } catch (error) {
+    console.error("Error updating contact submission: ", error);
+    return {
+      success: false,
+      message: 'An unexpected error occurred.',
+    };
+  }
+}
+
+export async function deleteContactSubmission(id: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const docRef = doc(db, 'contactSubmissions', id);
+    await deleteDoc(docRef);
+    return {
+      success: true,
+      message: 'Submission deleted successfully.',
+    };
+  } catch (error) {
+    console.error("Error deleting contact submission: ", error);
+    return {
+      success: false,
+      message: 'An unexpected error occurred.',
+    };
+  }
+}

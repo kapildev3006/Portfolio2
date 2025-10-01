@@ -185,6 +185,21 @@
         "date": { "type": "string" }
       },
       "required": ["id", "title", "description", "date"]
+    },
+    "contactSubmission": {
+      "title": "Contact Form Submission",
+      "description": "Represents a message submitted through the contact form.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isRead": { "type": "boolean" }
+      },
+      "required": ["name", "email", "subject", "message", "createdAt", "isRead"]
     }
   },
   "auth": {
@@ -210,6 +225,12 @@
         "$ref": "#/entities/project"
       },
       "description": "Stores individual portfolio projects."
+    },
+    "/contactSubmissions/{submissionId}": {
+        "schema": {
+            "$ref": "#/entities/contactSubmission"
+        },
+        "description": "Stores contact form submissions from visitors."
     }
   }
 }

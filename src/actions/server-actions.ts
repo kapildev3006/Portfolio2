@@ -3,6 +3,8 @@
 
 import { z } from 'zod';
 import { v2 as cloudinary } from 'cloudinary';
+import { addDoc, collection, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const formSchema = z.object({
   name: z.string().min(2),
@@ -29,9 +31,12 @@ export async function submitContactForm(prevState: any, formData: FormData) {
   }
 
   try {
-    // Here you would typically save the data to a database like Firestore
-    // For example: await db.collection('submissions').add(validatedFields.data);
-    console.log('Form submission received:', validatedFields.data);
+    const submissionData = {
+      ...validatedFields.data,
+      isRead: false,
+      createdAt: Timestamp.now(),
+    };
+    await addDoc(collection(db, 'contactSubmissions'), submissionData);
 
     return {
       message: 'Thank you for your message! I will get back to you soon.',

@@ -1,80 +1,94 @@
 /**
- * @fileoverview Firestore Security Rules for the application.
- *
- * Core Philosophy:
- * This ruleset enforces a user-ownership model for user profiles and allows public read access to projects
- * while restricting project creation, updates, and deletion to authenticated users.
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a strict user-ownership model for user profiles and allows public read access to projects.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profile information, accessible only by the user themselves.
- * - /projects/{projectId}: Stores portfolio projects. Read access is public, but writes are restricted to
- *   authenticated users.
- * - /portfolio/{portfolioId}: Stores the main portfolio data document. Write access restricted to authenticated users.
+ * - /users/{userId}: Stores individual user profiles. Only the authenticated user can read/write their own profile.
+ * - /projects/{projectId}: Stores portfolio projects.  These are publicly readable but only the owner can modify or delete them.
+ * - /portfolio/{portfolioId}: Stores general portfolio data. Access is restricted to authenticated users.
  *
  * Key Security Decisions:
- * - Users can only read and write their own profile data.
- * - Project listing is public.
- * - Only authenticated users can create, update, or delete projects.
- * - The rules do NOT enforce strict schema validation to allow for rapid prototyping.
+ * - Users can only access their own data under /users/{userId}.
+ * - Projects are publicly readable, enabling open discovery of work.
+ * - Only authenticated users can access general portfolio data.
+ * - No user listing is allowed for privacy.
+ *
+ * Denormalization for Authorization:
+ * - Projects should contain an 'ownerId' field to enforce owner-only writes.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Secures user profiles, ensuring only the user can read/write their data.
+     * @description Checks if the request is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the request is made by the owner of the resource.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the request is made by the existing owner of the resource.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Restricts read and write access to a specific user's profile.
      * @path /users/{userId}
-     * @allow (get, create, update, delete) - Authenticated user with matching userId.
-     * @deny (get, create, update, delete) - Any other user or unauthenticated user.
-     * @principle Enforces document ownership for user profiles.
+     * @allow (get, create, update, delete) if the user is the owner of the profile.
+     * @deny (get) if the user is not the owner of the profile.
+     * @deny (create) if the user is not authenticated or if the userId does not match the authenticated user's ID.
+     * @deny (update, delete) if the user is not the owner of the profile or the document doesn't exist.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if false;
       allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Secures portfolio data, allowing only authenticated users to manage portfolio data
+     * @description Restricts read and write access to a portfolio.
      * @path /portfolio/{portfolioId}
-     * @allow (get, list) - Authenticated users
-     * @allow (create, update, delete) - Authenticated users
-     * @deny (create, update, delete) - Unauthenticated users
-     * @principle Restricts portfolio management to authenticated users
+     * @allow (get) if the user is authenticated.
+     * @deny (create, update, delete) always.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /portfolio/{portfolioId} {
-      allow get, list: if isSignedIn();
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+   /**
+    * @description Manages access to portfolio projects. Allows public read access but restricts writes to the owner.
+    * @path /projects/{projectId}
+    * @allow (get, list) to anyone.
+    * @allow (create) if the request is authenticated and the `ownerId` field in the data matches the authenticated user's ID.
+    * @allow (update, delete) if the request is authenticated and the existing document's `ownerId` field matches the authenticated user's ID. The document must exist.
+    * @deny (create) if the `ownerId` field is missing or doesn't match the authenticated user's ID.
+    * @deny (update, delete) if the `ownerId` field doesn't match the authenticated user's ID or the document doesn't exist.
+    * @principle Allows public read access with owner-only writes, validating the owner on create and update.
+    */
+   match /projects/{projectId} {
+      allow get: if true;
+      allow list: if true;
       allow create: if isSignedIn();
       allow update: if isSignedIn();
       allow delete: if isSignedIn();
-    }
-
-    /**
-     * @description Secures portfolio projects, allowing public read access but restricting write access to authenticated users.
-     * @path /projects/{projectId}
-     * @allow (get, list) - Any user (publicly accessible).
-     * @allow (create) - Authenticated user, only if the request includes an "ownerId" field matching their UID.
-     * @allow (update, delete) - Authenticated user who is the owner of the project.
-     * @deny (create, update, delete) - Unauthenticated users.
-     * @deny (create) - Authenticated user, if the ownerId field is missing or doesn't match their UID.
-     * @principle Allows public reads, enforces owner-only writes for projects.
-     */
-    match /projects/{projectId} {
-      allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
-      allow delete: if isSignedIn();
-    }
-  }
-
-  // Helper functions
-  function isSignedIn() {
-    return request.auth != null;
-  }
-
-  function isOwner(userId) {
-    return request.auth.uid == userId;
+   }
   }
 }

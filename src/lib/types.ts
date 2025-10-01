@@ -52,6 +52,17 @@ export type Achievement = {
   icon?: React.ReactNode;
 }
 
+export type ContactSubmission = {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  createdAt: any; // Using `any` for Firebase Timestamp flexibility
+  isRead: boolean;
+  phone?: string;
+}
+
 export type PortfolioData = {
   hero: {
     name: string;
