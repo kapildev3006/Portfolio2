@@ -9,15 +9,16 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Upload, Loader2 } from 'lucide-react';
-import React, { useState } from 'react';
+import { Edit, Plus, Upload, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
 import { uploadImage } from '@/actions/server-actions';
-import { saveProjectData } from '@/lib/firestore-actions';
+import { saveProjectData, updateProjectData } from '@/lib/firestore-actions';
 import Image from 'next/image';
+import type { Project as ProjectType } from '@/hooks/use-projects';
 
-const formSchema = z.object({
+const projectFormSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
   description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
   techstack: z.string().min(1, { message: 'Please add at least one technology.' }),
@@ -105,12 +106,13 @@ const ImageUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => vo
 };
 
 
-export default function AddProjectForm({ onClose }: { onClose?: () => void }) {
+export default function ProjectForm({ project, onClose }: { project?: ProjectType; onClose?: () => void }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isEditMode = !!project;
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof projectFormSchema>>({
+    resolver: zodResolver(projectFormSchema),
     defaultValues: {
       title: '',
       description: '',
@@ -121,9 +123,29 @@ export default function AddProjectForm({ onClose }: { onClose?: () => void }) {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  useEffect(() => {
+    if (isEditMode && project) {
+      form.reset({
+        title: project.title,
+        description: project.description,
+        techstack: project.tags.join(', '),
+        liveUrl: project.liveUrl,
+        sourceUrl: project.sourceUrl,
+        imageUrl: project.imageUrl,
+      });
+    }
+  }, [isEditMode, project, form]);
+
+  const onSubmit = async (values: z.infer<typeof projectFormSchema>) => {
     setIsSubmitting(true);
-    const result = await saveProjectData(values);
+    
+    let result;
+    if (isEditMode && project) {
+      result = await updateProjectData(project.id, values);
+    } else {
+      result = await saveProjectData(values);
+    }
+
     setIsSubmitting(false);
 
     toast({
@@ -231,8 +253,10 @@ export default function AddProjectForm({ onClose }: { onClose?: () => void }) {
         </div>
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
-          Add Project
+          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 
+            isEditMode ? <Edit className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />
+          }
+          {isEditMode ? 'Update Project' : 'Add Project'}
         </Button>
       </form>
     </Form>

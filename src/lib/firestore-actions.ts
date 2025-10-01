@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { db } from '@/lib/firebase';
-import { doc, setDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
+import { doc, setDoc, addDoc, collection, Timestamp, updateDoc, deleteDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -89,7 +89,6 @@ export async function saveProjectData(data: z.infer<typeof projectFormSchema>): 
       createdAt: Timestamp.now(),
     };
     
-    // Remove techstack as we've converted it to tags
     delete (dataToSave as any).techstack;
 
     const collectionRef = collection(db, 'projects');
@@ -116,10 +115,76 @@ export async function saveProjectData(data: z.infer<typeof projectFormSchema>): 
             message: 'Validation failed: ' + error.errors.map(e => e.message).join(', '),
         };
     }
-    // This will likely not be hit for permission errors anymore, but is kept for other unexpected issues.
     console.error("Error saving project data: ", error);
     return {
       message: 'An unexpected error occurred while saving the project.',
+      success: false,
+    };
+  }
+}
+
+export async function updateProjectData(id: string, data: z.infer<typeof projectFormSchema>): Promise<{success: boolean, message: string}> {
+  try {
+    const validatedData = projectFormSchema.parse(data);
+    
+    const dataToUpdate = {
+      ...validatedData,
+      tags: validatedData.techstack.split(',').map(tag => tag.trim()),
+    };
+    delete (dataToUpdate as any).techstack;
+
+    const docRef = doc(db, 'projects', id);
+    
+    updateDoc(docRef, dataToUpdate)
+      .catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'update',
+          requestResourceData: dataToUpdate,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
+
+    return {
+      message: `Project "${validatedData.title}" has been successfully updated.`,
+      success: true,
+    };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return {
+          success: false,
+          message: 'Validation failed: ' + error.errors.map(e => e.message).join(', '),
+      };
+    }
+    console.error("Error updating project data: ", error);
+    return {
+      message: 'An unexpected error occurred while updating the project.',
+      success: false,
+    };
+  }
+}
+
+export async function deleteProject(id: string): Promise<{success: boolean, message: string}> {
+  try {
+    const docRef = doc(db, 'projects', id);
+    
+    deleteDoc(docRef)
+      .catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
+
+    return {
+      message: 'Project has been successfully deleted.',
+      success: true,
+    };
+  } catch (error) {
+    console.error("Error deleting project: ", error);
+    return {
+      message: 'An unexpected error occurred while deleting the project.',
       success: false,
     };
   }

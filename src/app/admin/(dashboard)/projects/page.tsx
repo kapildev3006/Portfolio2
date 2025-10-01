@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import AddProjectForm from '@/components/admin/add-project-form';
+import ProjectForm from '@/components/admin/add-project-form';
 import useProjects from '@/hooks/use-projects';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
@@ -61,7 +61,7 @@ export default function AdminProjectsPage() {
                 Fill in the details below to add a new project.
               </DialogDescription>
             </DialogHeader>
-            <AddProjectForm onClose={() => setDialogOpen(false)} />
+            <ProjectForm onClose={() => setDialogOpen(false)} />
           </DialogContent>
         </Dialog>
       </div>
