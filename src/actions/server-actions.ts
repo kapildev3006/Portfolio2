@@ -5,17 +5,11 @@ import { z } from 'zod';
 import { v2 as cloudinary } from 'cloudinary';
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { contactFormSchema } from '@/lib/types';
 
-const formSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  subject: z.string().min(5),
-  message: z.string().min(10),
-});
 
 export async function submitContactForm(prevState: any, formData: FormData) {
-  const validatedFields = formSchema.safeParse({
+  const validatedFields = contactFormSchema.safeParse({
     name: formData.get('name'),
     email: formData.get('email'),
     phone: formData.get('phone'),

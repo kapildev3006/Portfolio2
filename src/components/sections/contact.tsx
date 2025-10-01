@@ -17,14 +17,7 @@ import AnimatedDiv from '../animated-div';
 import type { PortfolioData } from '@/lib/types';
 import { getPortfolioData } from '@/lib/portfolio-data';
 import { Skeleton } from '../ui/skeleton';
-
-const formSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
-  email: z.string().email({ message: 'Please enter a valid email.' }),
-  phone: z.string().optional(),
-  subject: z.string().min(5, { message: 'Subject must be at least 5 characters.' }),
-  message: z.string().min(10, { message: 'Message must be at least 10 characters.' }),
-});
+import { contactFormSchema } from '@/lib/types';
 
 type ContactInfoCardProps = {
   icon: React.ReactNode;
@@ -68,8 +61,8 @@ export default function Contact() {
     success: false,
   });
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof contactFormSchema>>({
+    resolver: zodResolver(contactFormSchema),
     defaultValues: {
       name: '',
       email: '',
