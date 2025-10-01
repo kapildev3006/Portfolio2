@@ -33,9 +33,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import type { Experience, SkillCategory } from '@/lib/types';
+import type { Experience, SkillCategory, Achievement } from '@/lib/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Edit, Plus, Trash2, Wand2 } from 'lucide-react';
+import { Edit, Plus, Trash2, Wand2, Award, Rocket } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
@@ -57,13 +57,19 @@ const experienceSchema = z.object({
   description: z.string().min(10, 'Description is too short'),
 });
 
+const achievementSchema = z.object({
+  title: z.string().min(2, 'Title is too short'),
+  description: z.string().min(10, 'Description is too short'),
+  date: z.string().min(4, 'Date is too short'),
+});
+
 // Skill Form Component
 const SkillForm = ({
   skill,
   onSave,
   onClose,
 }: {
-  skill?: SkillCategory;
+  skill?: Omit<SkillCategory, 'icon'>;
   onSave: (skill: Omit<SkillCategory, 'icon'>) => void;
   onClose: () => void;
 }) => {
@@ -126,7 +132,7 @@ const ExperienceForm = ({
   onSave,
   onClose,
 }: {
-  experience?: Experience;
+  experience?: Omit<Experience, 'icon'>;
   onSave: (experience: Omit<Experience, 'icon'>) => void;
   onClose: () => void;
 }) => {
@@ -209,6 +215,82 @@ const ExperienceForm = ({
   );
 };
 
+const AchievementForm = ({
+  achievement,
+  onSave,
+  onClose,
+}: {
+  achievement?: Omit<Achievement, 'icon'>;
+  onSave: (achievement: Omit<Achievement, 'icon'>) => void;
+  onClose: () => void;
+}) => {
+  const { toast } = useToast();
+  const form = useForm<z.infer<typeof achievementSchema>>({
+    resolver: zodResolver(achievementSchema),
+    defaultValues: achievement || { title: '', description: '', date: '' },
+  });
+
+  const onSubmit = (values: z.infer<typeof achievementSchema>) => {
+    const newAchievement = { id: achievement?.id || uuidv4(), ...values };
+    onSave(newAchievement);
+    toast({
+      title: `Achievement ${achievement ? 'Updated' : 'Added'}!`,
+      description: `The achievement "${values.title}" has been saved.`,
+    });
+    onClose();
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., Hackathon Winner" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Describe the achievement." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="date"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Date</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., May 2024" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" className="w-full">
+          {achievement ? 'Update Achievement' : 'Add Achievement'}
+        </Button>
+      </form>
+    </Form>
+  );
+};
+
+
 function AdminAboutPageSkeleton() {
   return (
     <div className="flex-1 bg-background p-8 text-foreground">
@@ -216,13 +298,12 @@ function AdminAboutPageSkeleton() {
         <Skeleton className="h-10 w-1/2" />
         <Skeleton className="h-4 w-1/3 mt-2" />
       </div>
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <Skeleton className="h-8 w-1/3" />
           </CardHeader>
           <CardContent className="space-y-4">
-            <Skeleton className="h-20 w-full" />
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-20 w-full" />
           </CardContent>
@@ -233,6 +314,14 @@ function AdminAboutPageSkeleton() {
           </CardHeader>
           <CardContent className="space-y-4">
             <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </CardContent>
+        </Card>
+         <Card>
+          <CardHeader>
+            <Skeleton className="h-8 w-1/3" />
+          </CardHeader>
+          <CardContent className="space-y-4">
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
           </CardContent>
@@ -247,19 +336,28 @@ export default function AdminAboutPage() {
   const { portfolioData, loading } = React.useContext(PortfolioDataContext);
   const [skillDialogOpen, setSkillDialogOpen] = React.useState(false);
   const [experienceDialogOpen, setExperienceDialogOpen] = React.useState(false);
+  const [achievementDialogOpen, setAchievementDialogOpen] = React.useState(false);
+
   const [currentSkills, setCurrentSkills] = React.useState<Omit<SkillCategory, 'icon'>[]>([]);
   const [currentExperience, setCurrentExperience] = React.useState<Omit<Experience, 'icon'>[]>([]);
+  const [currentAchievements, setCurrentAchievements] = React.useState<Omit<Achievement, 'icon'>[]>([]);
+  
   const { toast } = useToast();
 
   React.useEffect(() => {
-    if (portfolioData?.about) {
+    if (portfolioData) {
       setCurrentSkills(portfolioData.about.skills);
       setCurrentExperience(portfolioData.about.experience);
+      setCurrentAchievements(portfolioData.achievements);
     }
   }, [portfolioData]);
   
-  const handleSave = async (skills: Omit<SkillCategory, 'icon'>[], experience: Omit<Experience, 'icon'>[]) => {
-    const result = await saveAboutData({ skills, experience });
+  const handleSave = async (
+      skills: Omit<SkillCategory, 'icon'>[], 
+      experience: Omit<Experience, 'icon'>[],
+      achievements: Omit<Achievement, 'icon'>[]
+    ) => {
+    const result = await saveAboutData({ skills, experience, achievements });
     toast({
       title: result.success ? 'Success!' : 'Error',
       description: result.message,
@@ -277,13 +375,13 @@ export default function AdminAboutPage() {
       updatedSkills = [...currentSkills, skill];
     }
     setCurrentSkills(updatedSkills);
-    handleSave(updatedSkills, currentExperience);
+    handleSave(updatedSkills, currentExperience, currentAchievements);
   };
 
   const handleSkillDelete = (skillId: string) => {
     const updatedSkills = currentSkills.filter(s => s.id !== skillId);
     setCurrentSkills(updatedSkills);
-    handleSave(updatedSkills, currentExperience);
+    handleSave(updatedSkills, currentExperience, currentAchievements);
     toast({ title: 'Skill Deleted' });
   };
   
@@ -297,16 +395,35 @@ export default function AdminAboutPage() {
       updatedExperience = [...currentExperience, experience];
     }
     setCurrentExperience(updatedExperience);
-    handleSave(currentSkills, updatedExperience);
+    handleSave(currentSkills, updatedExperience, currentAchievements);
   };
 
   const handleExperienceDelete = (experienceId: string) => {
     const updatedExperience = currentExperience.filter(e => e.id !== experienceId);
     setCurrentExperience(updatedExperience);
-    handleSave(currentSkills, updatedExperience);
+    handleSave(currentSkills, updatedExperience, currentAchievements);
     toast({ title: 'Journey Item Deleted' });
   };
 
+  const handleAchievementSave = (achievement: Omit<Achievement, 'icon'>) => {
+    const existingIndex = currentAchievements.findIndex(a => a.id === achievement.id);
+    let updatedAchievements;
+    if (existingIndex > -1) {
+      updatedAchievements = [...currentAchievements];
+      updatedAchievements[existingIndex] = achievement;
+    } else {
+      updatedAchievements = [...currentAchievements, achievement];
+    }
+    setCurrentAchievements(updatedAchievements);
+    handleSave(currentSkills, currentExperience, updatedAchievements);
+  };
+
+  const handleAchievementDelete = (achievementId: string) => {
+    const updatedAchievements = currentAchievements.filter(a => a.id !== achievementId);
+    setCurrentAchievements(updatedAchievements);
+    handleSave(currentSkills, currentExperience, updatedAchievements);
+    toast({ title: 'Achievement Deleted' });
+  };
 
   if (loading || !portfolioData) {
     return <AdminAboutPageSkeleton />;
@@ -317,11 +434,11 @@ export default function AdminAboutPage() {
       <div className="mb-8">
         <h1 className="text-4xl font-bold">Manage About Page</h1>
         <p className="text-muted-foreground">
-          Update your skills and professional journey.
+          Update your skills, professional journey, and achievements.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Manage Skills */}
         <Card className="bg-card">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -331,12 +448,12 @@ export default function AdminAboutPage() {
             </div>
             <Dialog open={skillDialogOpen} onOpenChange={setSkillDialogOpen}>
               <DialogTrigger asChild>
-                <Button><Plus className="mr-2 h-4 w-4" />Add Skill</Button>
+                <Button><Plus className="mr-2 h-4 w-4" />Add</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add New Skill</DialogTitle>
-                  <DialogDescription>Fill out the form to add a new skill category to your portfolio.</DialogDescription>
+                  <DialogDescription>Fill out the form to add a new skill category.</DialogDescription>
                 </DialogHeader>
                 <SkillForm onSave={handleSkillSave} onClose={() => setSkillDialogOpen(false)} />
               </DialogContent>
@@ -402,7 +519,7 @@ export default function AdminAboutPage() {
             </div>
              <Dialog open={experienceDialogOpen} onOpenChange={setExperienceDialogOpen}>
               <DialogTrigger asChild>
-                <Button><Plus className="mr-2 h-4 w-4" />Add Journey</Button>
+                <Button><Plus className="mr-2 h-4 w-4" />Add</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -419,7 +536,7 @@ export default function AdminAboutPage() {
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                        <Wand2 />
+                        <Rocket />
                       </div>
                       <div>
                         <p className="font-semibold">{item.role}</p>
@@ -457,6 +574,80 @@ export default function AdminAboutPage() {
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction onClick={() => handleExperienceDelete(item.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+              </Card>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Manage Achievements */}
+        <Card className="bg-card">
+          <CardHeader className="flex flex-row items-center justify-between">
+             <div>
+              <CardTitle>Manage Achievements</CardTitle>
+              <CardDescription>Update your accomplishments.</CardDescription>
+            </div>
+             <Dialog open={achievementDialogOpen} onOpenChange={setAchievementDialogOpen}>
+              <DialogTrigger asChild>
+                <Button><Plus className="mr-2 h-4 w-4" />Add</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Achievement</DialogTitle>
+                  <DialogDescription>Fill out the form to add a new achievement.</DialogDescription>
+                </DialogHeader>
+                <AchievementForm onSave={handleAchievementSave} onClose={() => setAchievementDialogOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {currentAchievements.map((item) => (
+              <Card key={item.id} className="p-4 bg-secondary/50">
+                <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                        <Award />
+                      </div>
+                      <div>
+                        <p className="font-semibold">{item.title}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{item.date}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <Dialog>
+                            <DialogTrigger asChild>
+                               <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                   <DialogTitle>Edit Achievement</DialogTitle>
+                                   <DialogDescription>Update the details for this achievement.</DialogDescription>
+                                </DialogHeader>
+                                <AchievementForm achievement={item} onSave={handleAchievementSave} onClose={() => {
+                                  const dialogTrigger = document.querySelector(`[aria-controls="radix-"][aria-expanded="true"]`);
+                                  if (dialogTrigger) (dialogTrigger as HTMLElement).click();
+                                }}/>
+                            </DialogContent>
+                       </Dialog>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete the achievement "{item.title}".
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleAchievementDelete(item.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>

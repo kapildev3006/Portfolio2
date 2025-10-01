@@ -1,59 +1,19 @@
 
+'use client';
+
 import AnimatedDiv from '@/components/animated-div';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import type { SkillCategory, Experience } from '@/lib/types';
-import { Code, Database, Equal, Rocket, ScreenShare, Wand2 } from 'lucide-react';
+import type { SkillCategory, Experience, Achievement, PortfolioData } from '@/lib/types';
+import { Award, Code, Database, Equal, Rocket, ScreenShare, Wand2 } from 'lucide-react';
+import { getPortfolioData } from '@/lib/portfolio-data';
+import { useEffect, useState } from 'react';
+import { Skeleton } from '../ui/skeleton';
 
-const aboutData = {
-  subtitle: 'Passionate Full Stack Developer with expertise in modern web technologies.',
-  skills: [
-    {
-      title: 'Frontend Development',
-      skills: 'React, Next.js, TypeScript, Tailwind CSS',
-      icon: <Code />,
-    },
-    {
-      title: 'Backend Development',
-      skills: 'Node.js, Express, Python, Flask',
-      icon: <Equal />,
-    },
-    {
-      title: 'Database Management',
-      skills: 'MySQL, MongoDB, Firebase, PostgreSQL',
-      icon: <Database />,
-    },
-  ],
-  experience: [
-    {
-      role: 'Full Stack Developer',
-      company: 'Freelance',
-      period: '2023 - Present',
-      description: 'Building scalable web applications and providing technical solutions for clients across various industries.',
-      icon: <Rocket />,
-    },
-    {
-      role: 'Web Developer',
-      company: 'Personal Projects',
-      period: '2022 - 2023',
-      description: 'Developed multiple full-stack applications including voting systems, healthcare platforms, and e-commerce solutions.',
-      icon: <ScreenShare />,
-    },
-    {
-      role: 'Student Developer',
-      company: 'University Projects',
-      period: '2021 - 2022',
-      description: 'Collaborated on various academic projects, gaining foundational knowledge in software development and computer science principles.',
-      icon: <Wand2 />,
-    }
-  ]
-};
-
-
-const SkillCard = ({ skill }: { skill: SkillCategory }) => (
+const SkillCard = ({ skill }: { skill: Omit<SkillCategory, 'icon'> }) => (
   <Card className="bg-secondary/50">
     <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-6">
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-        {skill.icon}
+        <Wand2 />
       </div>
       <CardTitle className="text-lg font-bold">{skill.title}</CardTitle>
     </CardHeader>
@@ -63,13 +23,13 @@ const SkillCard = ({ skill }: { skill: SkillCategory }) => (
   </Card>
 );
 
-const JourneyCard = ({ item }: { item: Experience }) => (
+const JourneyCard = ({ item }: { item: Omit<Experience, 'icon'> }) => (
   <Card className="bg-secondary/50">
     <CardHeader className="space-y-0 p-6 pb-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            {item.icon}
+            <Rocket />
           </div>
           <div>
             <CardTitle className="text-lg font-bold">{item.role}</CardTitle>
@@ -85,9 +45,78 @@ const JourneyCard = ({ item }: { item: Experience }) => (
   </Card>
 );
 
+const AchievementCard = ({ achievement }: { achievement: Omit<Achievement, 'icon'> }) => (
+    <Card className="bg-secondary/50 transform transition-transform duration-300 hover:scale-105">
+      <CardHeader className="flex flex-row items-start gap-4 space-y-0 p-6 pb-2">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <Award />
+        </div>
+        <div className="flex-1">
+          <CardTitle className="text-lg font-bold">{achievement.title}</CardTitle>
+          <p className="text-sm text-muted-foreground">{achievement.date}</p>
+        </div>
+      </CardHeader>
+      <CardContent className="p-6 pt-0">
+        <p className="text-sm text-muted-foreground">{achievement.description}</p>
+      </CardContent>
+    </Card>
+);
+
+function AboutPageSkeleton() {
+    return (
+        <div className="container mx-auto px-4 md:px-6">
+            <AnimatedDiv className="mb-12 text-center">
+                <Skeleton className="h-12 w-1/3 mx-auto" />
+                <Skeleton className="h-6 w-2/3 mx-auto mt-4" />
+            </AnimatedDiv>
+            <div className="grid grid-cols-1 gap-16 lg:grid-cols-3">
+                <div className="space-y-8">
+                    <Skeleton className="h-8 w-1/2 mx-auto md:mx-0" />
+                    <div className="space-y-6">
+                        <Skeleton className="h-32 w-full" />
+                        <Skeleton className="h-32 w-full" />
+                    </div>
+                </div>
+                <div className="space-y-8">
+                    <Skeleton className="h-8 w-1/2 mx-auto md:mx-0" />
+                    <div className="space-y-6">
+                        <Skeleton className="h-32 w-full" />
+                        <Skeleton className="h-32 w-full" />
+                    </div>
+                </div>
+                 <div className="space-y-8">
+                    <Skeleton className="h-8 w-1/2 mx-auto md:mx-0" />
+                    <div className="space-y-6">
+                        <Skeleton className="h-32 w-full" />
+                        <Skeleton className="h-32 w-full" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 
 export default function About() {
-  const { skills, experience, subtitle } = aboutData;
+  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      const data = await getPortfolioData();
+      setPortfolioData(data);
+    }
+    fetchData();
+  }, []);
+
+  if (!portfolioData) {
+      return (
+        <section id="about" className="w-full bg-background py-20 md:py-32">
+            <AboutPageSkeleton />
+        </section>
+      )
+  }
+
+  const { about, achievements } = portfolioData;
 
   return (
     <section id="about" className="w-full bg-background py-20 md:py-32">
@@ -97,25 +126,34 @@ export default function About() {
             About Me
           </h2>
           <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">
-            {subtitle}
+            {about.subtitle}
           </p>
         </AnimatedDiv>
         
-        <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-16 lg:grid-cols-3">
           <AnimatedDiv className="space-y-8">
-            <h3 className="font-headline text-2xl font-bold text-center md:text-left">My Skills</h3>
+            <h3 className="font-headline text-2xl font-bold text-center lg:text-left">My Skills</h3>
             <div className="space-y-6">
-              {skills.map((skill, index) => (
+              {about.skills.map((skill, index) => (
                 <SkillCard key={index} skill={skill} />
               ))}
             </div>
           </AnimatedDiv>
           
           <AnimatedDiv className="space-y-8">
-            <h3 className="font-headline text-2xl font-bold text-center md:text-left">My Journey</h3>
+            <h3 className="font-headline text-2xl font-bold text-center lg:text-left">My Journey</h3>
             <div className="space-y-6">
-              {experience.map((item, index) => (
+              {about.experience.map((item, index) => (
                 <JourneyCard key={index} item={item} />
+              ))}
+            </div>
+          </AnimatedDiv>
+
+          <AnimatedDiv className="space-y-8">
+            <h3 className="font-headline text-2xl font-bold text-center lg:text-left">Achievements</h3>
+             <div className="space-y-6">
+              {achievements.map((item, index) => (
+                <AchievementCard key={index} achievement={item} />
               ))}
             </div>
           </AnimatedDiv>

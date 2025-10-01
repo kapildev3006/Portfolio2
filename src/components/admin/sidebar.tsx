@@ -2,16 +2,7 @@
 'use client';
 
 import {
-  Award,
-  BarChart2,
-  Bell,
-  Briefcase,
-  Cog,
-  Contact,
   Home,
-  LayoutGrid,
-  MessageSquare,
-  UserCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -30,20 +21,7 @@ import {
 import { useContext } from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
-
-
-const sidebarNavItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutGrid },
-  { href: '/admin/profile', label: 'Profile', icon: UserCircle },
-  { href: '/admin/projects', label: 'Projects', icon: Briefcase },
-  { href: '/admin/stats', label: 'Stats', icon: BarChart2 },
-  { href: '/admin/about', label: 'About', icon: UserCircle },
-  { href: '/admin/achievements', label: 'Achievements', icon: Award },
-  { href: '/admin/notifications', label: 'Notifications', icon: Bell },
-  { href: '/admin/chat', label: 'Chat', icon: MessageSquare },
-  { href: '/admin/contacts', label: 'Contacts', icon: Contact },
-  { href: '/admin/settings', label: 'Settings', icon: Cog },
-];
+import { sidebarNavItems } from '@/app/admin/(dashboard)/admin-nav-items';
 
 
 export default function AdminSidebar() {
@@ -88,7 +66,7 @@ export default function AdminSidebar() {
             <SidebarMenuItem key={item.href}>
               <Link href={item.href}>
                 <SidebarMenuButton
-                  isActive={pathname === item.href}
+                  isActive={pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))}
                   className="group rounded-lg text-sidebar-foreground/80 transition-colors hover:bg-primary/10 hover:text-sidebar-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                   tooltip={state === 'collapsed' ? item.label : undefined}
                 >
