@@ -9,25 +9,13 @@ import { contactFormSchema } from '@/lib/types';
 
 
 export async function submitContactForm(prevState: any, formData: FormData) {
-  const phoneValue = formData.get('phone');
-  const validatedFields = contactFormSchema.safeParse({
-    name: formData.get('name'),
-    email: formData.get('email'),
-    phone: phoneValue === null ? undefined : phoneValue, // Handle null case for optional field
-    subject: formData.get('subject'),
-    message: formData.get('message'),
-  });
-
-  if (!validatedFields.success) {
-    return {
-      message: 'Invalid form data. Please check your inputs.',
-      success: false,
-    };
-  }
-
   try {
     const submissionData = {
-      ...validatedFields.data,
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      subject: formData.get('subject') as string,
+      message: formData.get('message') as string,
       isRead: false,
       createdAt: Timestamp.now(),
     };
