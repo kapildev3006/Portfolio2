@@ -17,16 +17,16 @@ export default function useContactSubmissions() {
 
   useEffect(() => {
     if (authLoading) {
+      setLoading(true);
       return;
     }
 
     if (!user) {
-      setLoading(false);
       setSubmissions([]);
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
     const q = query(collection(db, 'contactSubmissions'), orderBy('createdAt', 'desc'));
 
     const unsubscribe = onSnapshot(
@@ -38,6 +38,7 @@ export default function useContactSubmissions() {
         });
         setSubmissions(submissionsData);
         setLoading(false);
+        setError(null);
       },
       (err) => {
         const permissionError = new FirestorePermissionError({
