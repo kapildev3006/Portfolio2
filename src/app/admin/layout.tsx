@@ -2,7 +2,6 @@
 'use client';
 
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { PortfolioDataProvider } from '@/context/PortfolioDataProvider';
 
 export default function AdminLayout({
   children,
@@ -11,10 +10,8 @@ export default function AdminLayout({
 }>) {
 
   return (
-    <PortfolioDataProvider>
       <SidebarProvider defaultOpen={true}>
           {children}
       </SidebarProvider>
-    </PortfolioDataProvider>
   );
 }
