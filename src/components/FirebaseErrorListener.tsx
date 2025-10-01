@@ -14,11 +14,6 @@ export default function FirebaseErrorListener() {
 
   useEffect(() => {
     const handleError = (error: FirestorePermissionError) => {
-      console.error(
-        'A Firestore permission error occurred. This will be thrown to the Next.js error overlay for debugging.',
-        error.context
-      );
-
       // We throw the error here to make it visible in the Next.js development error overlay.
       // This provides a better debugging experience than just logging to the console.
       throw error;
