@@ -188,7 +188,7 @@ function ProfileFormSkeleton() {
 export default function AdminProfilePage() {
   const { toast } = useToast();
   const [isUploading, setIsUploading] = React.useState(false);
-  const { portfolioData, loading: isLoading } = useContext(PortfolioDataContext);
+  const { portfolioData, loading: isLoading, refreshPortfolioData } = useContext(PortfolioDataContext);
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -260,6 +260,10 @@ export default function AdminProfilePage() {
       description: result.message,
       variant: result.success ? 'default' : 'destructive',
     });
+
+    if (result.success) {
+      await refreshPortfolioData();
+    }
   };
   
   if (isLoading) {
