@@ -8,7 +8,7 @@ import { doc, setDoc, addDoc, collection, Timestamp, updateDoc, deleteDoc } from
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { SkillCategory, Experience, Achievement } from '@/lib/types';
-import { contactFormSchema } from '@/lib/types';
+import { contactFormSchema, projectStatusEnum } from '@/lib/types';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
@@ -86,6 +86,7 @@ const projectFormSchema = z.object({
   liveUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
   sourceUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
   imageUrl: z.string().url({ message: 'Please upload an image.' }).min(1, 'Please upload an image.'),
+  status: projectStatusEnum,
 });
 
 

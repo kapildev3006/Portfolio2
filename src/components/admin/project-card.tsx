@@ -29,10 +29,29 @@ import ProjectForm from '@/components/admin/add-project-form';
 import { useState } from 'react';
 import { deleteProject } from '@/lib/firestore-actions';
 import { useToast } from '@/hooks/use-toast';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 type AdminProjectCardProps = {
   project: ProjectType;
 };
+
+const statusBadgeVariants = cva(
+  "capitalize border-transparent",
+  {
+    variants: {
+      status: {
+        planning: "bg-yellow-500/20 text-yellow-500",
+        'in-progress': "bg-blue-500/20 text-blue-500",
+        completed: "bg-green-500/20 text-green-500",
+        review: "bg-purple-500/20 text-purple-500",
+      },
+    },
+    defaultVariants: {
+      status: "planning",
+    },
+  }
+)
 
 export default function AdminProjectCard({ project }: AdminProjectCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -64,6 +83,9 @@ export default function AdminProjectCard({ project }: AdminProjectCardProps) {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover"
           />
+           <Badge className={cn(statusBadgeVariants({ status: project.status }), "absolute top-2 right-2")}>
+            {project.status.replace('-', ' ')}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col p-6">

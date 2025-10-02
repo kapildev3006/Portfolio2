@@ -17,9 +17,10 @@ import {
 } from "@/components/ui/dialog"
 import ProjectForm from '@/components/admin/add-project-form';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useState, useContext } from 'react';
+import { useState, useContext, useMemo } from 'react';
 import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
-import type { Project } from '@/lib/types';
+import type { Project, ProjectStatus } from '@/lib/types';
+import { projectStatusEnum } from '@/lib/types';
 
 const ProjectSkeleton = () => (
   <Card className="flex h-full transform flex-col overflow-hidden bg-card">
@@ -40,9 +41,23 @@ const ProjectSkeleton = () => (
 export default function AdminProjectsPage() {
   const { portfolioData, loading } = useContext(PortfolioDataContext);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   
   const error = null; 
   const projects = portfolioData?.projects || [];
+
+  const filteredProjects = useMemo(() => {
+    return projects.filter(project => {
+        const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                              project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                              project.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+        
+        const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
+
+        return matchesSearch && matchesStatus;
+    });
+  }, [projects, searchTerm, statusFilter]);
 
   return (
     <div className="flex-1 bg-background p-8 text-foreground">
@@ -74,17 +89,24 @@ export default function AdminProjectsPage() {
         <div className="flex items-center gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input placeholder="Search projects..." className="pl-10" />
+            <Input 
+              placeholder="Search projects..." 
+              className="pl-10" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All" />
+              <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="planning">Planning</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
+              {projectStatusEnum.options.map(status => (
+                <SelectItem key={status} value={status} className="capitalize">
+                  {status.replace('-', ' ')}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <div className="flex items-center gap-1 rounded-md bg-secondary p-1">
@@ -108,12 +130,12 @@ export default function AdminProjectsPage() {
         </div>
       )}
 
-      { !loading && projects.length === 0 && !error && (
+      { !loading && filteredProjects.length === 0 && !error && (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
             <FolderOpen className="h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 text-lg font-semibold">No Projects Found</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-                Get started by adding your first project.
+                Your search or filter criteria did not match any projects. Try adjusting your search.
             </p>
         </div>
       )}
@@ -126,7 +148,7 @@ export default function AdminProjectsPage() {
             <ProjectSkeleton />
           </>
         ) : (
-          projects.map((project: Project) => (
+          filteredProjects.map((project: Project) => (
             <AdminProjectCard key={project.id} project={project} />
           ))
         )}

@@ -32,6 +32,25 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { format, formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { cva } from 'class-variance-authority';
+
+const statusBadgeVariants = cva(
+  "capitalize border-transparent",
+  {
+    variants: {
+      status: {
+        planning: "bg-yellow-500/20 text-yellow-500",
+        'in-progress': "bg-blue-500/20 text-blue-500",
+        completed: "bg-green-500/20 text-green-500",
+        review: "bg-purple-500/20 text-purple-500",
+      },
+    },
+    defaultVariants: {
+      status: "planning",
+    },
+  }
+)
 
 function DashboardSkeleton() {
   return (
@@ -189,8 +208,8 @@ export default function AdminDashboardPage() {
                             </p>
                         </div>
                         <div className="text-right">
-                           <Badge variant={'secondary'} className={"bg-blue-500/20 text-blue-400 border-blue-500/30"}>
-                               In Progress
+                           <Badge variant={'secondary'} className={cn(statusBadgeVariants({ status: project.status }))}>
+                               {project.status.replace('-', ' ')}
                            </Badge>
                            <p className="text-sm text-muted-foreground mt-1">{project.createdAt ? format(project.createdAt.toDate(), 'dd/MM/yyyy') : 'N/A'}</p>
                         </div>

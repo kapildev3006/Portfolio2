@@ -162,9 +162,14 @@
         "createdAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "status": {
+            "type": "string",
+            "description": "The current status of the project.",
+            "enum": ["planning", "in-progress", "completed", "review"]
         }
       },
-      "required": ["title", "description", "imageUrl", "tags", "createdAt"]
+      "required": ["title", "description", "imageUrl", "tags", "createdAt", "status"]
     },
     "skill": {
       "title": "Skill",

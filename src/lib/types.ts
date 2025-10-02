@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export const contactFormSchema = z.object({
@@ -9,6 +8,9 @@ export const contactFormSchema = z.object({
   subject: z.string().min(5, { message: 'Subject must be at least 5 characters.' }),
   message: z.string().min(10, { message: 'Message must be at least 10 characters.' }),
 });
+
+export const projectStatusEnum = z.enum(['planning', 'in-progress', 'completed', 'review']);
+export type ProjectStatus = z.infer<typeof projectStatusEnum>;
 
 export type NavItem = {
   name: string;
@@ -25,6 +27,7 @@ export type Project = {
   liveUrl?: string;
   sourceUrl?: string;
   createdAt?: any; // Using `any` for Firebase Timestamp flexibility
+  status: ProjectStatus;
 };
 
 export type Service = {

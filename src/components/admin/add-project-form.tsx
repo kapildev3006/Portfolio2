@@ -16,7 +16,9 @@ import { cn } from '@/lib/utils';
 import { uploadImage } from '@/actions/server-actions';
 import { saveProjectData, updateProjectData } from '@/lib/firestore-actions';
 import Image from 'next/image';
-import type { Project as ProjectType } from '@/hooks/use-projects';
+import type { Project as ProjectType, ProjectStatus } from '@/lib/types';
+import { projectStatusEnum } from '@/lib/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const projectFormSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
@@ -25,6 +27,7 @@ const projectFormSchema = z.object({
   liveUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
   sourceUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
   imageUrl: z.string().url({ message: 'Please upload an image.' }).min(1, 'Please upload an image.'),
+  status: projectStatusEnum,
 });
 
 const ImageUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => void; currentUrl?: string }) => {
@@ -120,6 +123,7 @@ export default function ProjectForm({ project, onClose }: { project?: ProjectTyp
       liveUrl: '',
       sourceUrl: '',
       imageUrl: '',
+      status: 'planning',
     },
   });
 
@@ -132,6 +136,7 @@ export default function ProjectForm({ project, onClose }: { project?: ProjectTyp
         liveUrl: project.liveUrl,
         sourceUrl: project.sourceUrl,
         imageUrl: project.imageUrl,
+        status: project.status,
       });
     }
   }, [isEditMode, project, form]);
@@ -167,19 +172,45 @@ export default function ProjectForm({ project, onClose }: { project?: ProjectTyp
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-4"
       >
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Project Title</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., Project Zenith" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Project Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., Project Zenith" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {projectStatusEnum.options.map(status => (
+                      <SelectItem key={status} value={status} className="capitalize">
+                        {status.replace('-', ' ')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <FormField
           control={form.control}
           name="description"
