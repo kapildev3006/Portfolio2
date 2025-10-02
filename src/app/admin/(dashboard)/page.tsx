@@ -34,6 +34,7 @@ import { Progress } from '@/components/ui/progress';
 import { format, formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { cva } from 'class-variance-authority';
+import type { ProjectStatus } from '@/lib/types';
 
 const statusBadgeVariants = cva(
   "capitalize border-transparent",
@@ -208,8 +209,8 @@ export default function AdminDashboardPage() {
                             </p>
                         </div>
                         <div className="text-right">
-                           <Badge variant={'secondary'} className={cn(statusBadgeVariants({ status: project.status }))}>
-                               {project.status.replace('-', ' ')}
+                           <Badge variant={'secondary'} className={cn(statusBadgeVariants({ status: project.status || 'planning' as ProjectStatus }))}>
+                               {project.status ? project.status.replace('-', ' ') : 'Planning'}
                            </Badge>
                            <p className="text-sm text-muted-foreground mt-1">{project.createdAt ? format(project.createdAt.toDate(), 'dd/MM/yyyy') : 'N/A'}</p>
                         </div>
