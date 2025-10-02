@@ -1,12 +1,11 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useContext } from 'react';
 import AnimatedDiv from '@/components/animated-div';
 import ProjectCard from '@/components/project-card';
-import { getPortfolioData } from '@/lib/portfolio-data';
 import { Skeleton } from '../ui/skeleton';
-import type { Project } from '@/lib/types';
+import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
 
 function ProjectsSkeleton() {
     return (
@@ -24,19 +23,8 @@ function ProjectsSkeleton() {
 }
 
 export default function Projects() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      const data = await getPortfolioData();
-      setProjects(data.projects);
-      setLoading(false);
-    }
-    fetchData();
-  }, []);
-
+  const { portfolioData, loading } = useContext(PortfolioDataContext);
+  const projects = portfolioData?.projects || [];
 
   return (
     <section id="projects" className="w-full bg-background py-20 md:py-32">

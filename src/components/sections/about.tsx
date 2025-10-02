@@ -1,12 +1,13 @@
+
 'use client';
 
 import AnimatedDiv from '@/components/animated-div';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import type { SkillCategory, Experience, PortfolioData } from '@/lib/types';
+import type { SkillCategory, Experience } from '@/lib/types';
 import { Rocket, Wand2 } from 'lucide-react';
-import { getPortfolioData } from '@/lib/portfolio-data';
-import { useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { Skeleton } from '../ui/skeleton';
+import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
 
 const SkillCard = ({ skill }: { skill: Omit<SkillCategory, 'icon'> }) => (
   <Card className="bg-secondary/50">
@@ -73,17 +74,9 @@ function AboutPageSkeleton() {
 
 
 export default function About() {
-  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+  const { portfolioData, loading } = useContext(PortfolioDataContext);
 
-  useEffect(() => {
-    async function fetchData() {
-      const data = await getPortfolioData();
-      setPortfolioData(data);
-    }
-    fetchData();
-  }, []);
-
-  if (!portfolioData) {
+  if (loading || !portfolioData) {
       return (
         <section id="about" className="w-full bg-background py-20 md:py-32">
             <AboutPageSkeleton />

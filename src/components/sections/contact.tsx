@@ -4,7 +4,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useActionState, useEffect, useRef, useState } from 'react';
+import { useActionState, useEffect, useRef, useContext } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,10 +14,9 @@ import { submitContactForm } from '@/actions/server-actions';
 import { Github, Linkedin, Mail, MapPin, Phone, Send, Twitter } from 'lucide-react';
 import Link from 'next/link';
 import AnimatedDiv from '../animated-div';
-import type { PortfolioData } from '@/lib/types';
-import { getPortfolioData } from '@/lib/portfolio-data';
 import { Skeleton } from '../ui/skeleton';
 import { contactFormSchema } from '@/lib/types';
+import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
 
 type ContactInfoCardProps = {
   icon: React.ReactNode;
@@ -46,15 +45,7 @@ const ContactInfoCard = ({ icon, label, value, href }: ContactInfoCardProps) => 
 export default function Contact() {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
-
-  useEffect(() => {
-    async function fetchData() {
-      const data = await getPortfolioData();
-      setPortfolioData(data);
-    }
-    fetchData();
-  }, []);
+  const { portfolioData, loading } = useContext(PortfolioDataContext);
 
   const [state, formAction] = useActionState(submitContactForm, {
     message: '',

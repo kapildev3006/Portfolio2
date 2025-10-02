@@ -4,12 +4,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Download, Github, Linkedin, Mail } from 'lucide-react';
-import type { PortfolioData } from '@/lib/types';
 import AnimatedDiv from '@/components/animated-div';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
-import { getPortfolioData } from '@/lib/portfolio-data';
+import { useContext } from 'react';
 import { Skeleton } from '../ui/skeleton';
+import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
 
 function HeroSkeleton() {
   return (
@@ -35,18 +34,7 @@ function HeroSkeleton() {
 
 
 export default function Hero() {
-  const [data, setData] = useState<PortfolioData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      const portfolioData = await getPortfolioData();
-      setData(portfolioData);
-      setLoading(false);
-    }
-    fetchData();
-  }, []);
+  const { portfolioData: data, loading } = useContext(PortfolioDataContext);
 
   if (loading || !data) {
     return <HeroSkeleton />;

@@ -7,9 +7,9 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Separator } from './ui/separator';
 import type { PortfolioData } from '@/lib/types';
-import { useEffect, useState } from 'react';
-import { getPortfolioData } from '@/lib/portfolio-data';
+import { useContext } from 'react';
 import { Skeleton } from './ui/skeleton';
+import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
 
 const quickLinks = [
   { name: 'Home', href: '/' },
@@ -62,17 +62,9 @@ function FooterSkeleton() {
 }
 
 export default function Footer() {
-  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+  const { portfolioData, loading } = useContext(PortfolioDataContext);
 
-  useEffect(() => {
-    async function fetchData() {
-      const data = await getPortfolioData();
-      setPortfolioData(data);
-    }
-    fetchData();
-  }, []);
-
-  if (!portfolioData) {
+  if (loading || !portfolioData) {
     return (
       <footer className="w-full border-t border-border/20 bg-background/50 text-muted-foreground">
         <FooterSkeleton />

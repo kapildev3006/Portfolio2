@@ -1,15 +1,15 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useContext } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, User } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import type { NavItem, PortfolioData } from '@/lib/types';
+import type { NavItem } from '@/lib/types';
 import { ThemeToggle } from './theme-toggle';
-import { getPortfolioData } from '@/lib/portfolio-data';
+import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
 
 const navItems: NavItem[] = [
   { name: 'Home', href: '/' },
@@ -21,15 +21,7 @@ const navItems: NavItem[] = [
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
-  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
-
-  useEffect(() => {
-    async function fetchData() {
-      const data = await getPortfolioData();
-      setPortfolioData(data);
-    }
-    fetchData();
-  }, []);
+  const { portfolioData } = useContext(PortfolioDataContext);
 
   return (
     <header
