@@ -8,6 +8,7 @@ import useAuth from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
+import { PortfolioDataProvider } from '@/context/PortfolioDataProvider';
 
 export default function DashboardLayout({
   children,
@@ -32,13 +33,15 @@ export default function DashboardLayout({
   }
 
   return (
-    <SidebarProvider>
-      <div className="group/sidebar-wrapper flex min-h-dvh w-full bg-muted/40">
-        <AdminSidebar />
-        <ClientProviders>
-          {children}
-        </ClientProviders>
-      </div>
-    </SidebarProvider>
+    <PortfolioDataProvider>
+      <SidebarProvider>
+        <div className="group/sidebar-wrapper flex min-h-dvh w-full bg-muted/40">
+          <AdminSidebar />
+          <ClientProviders>
+            {children}
+          </ClientProviders>
+        </div>
+      </SidebarProvider>
+    </PortfolioDataProvider>
   );
 }

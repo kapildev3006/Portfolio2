@@ -28,82 +28,73 @@ export function PortfolioDataProvider({ children }: { children: ReactNode }) {
 
   const fetchBaseData = useCallback(async () => {
     try {
-      setLoading(true);
       const data = await getPortfolioData();
-      setPortfolioData(data);
+      return data;
     } catch (error) {
-      console.error("Failed to refresh portfolio data:", error);
-    } finally {
-        // We will let the project listener set loading to false
+      console.error("Failed to fetch base portfolio data:", error);
+      return null;
     }
   }, []);
 
   useEffect(() => {
-    // This effect runs when auth state changes.
     if (authLoading) {
       setLoading(true);
-      return; // Wait until auth state is resolved
+      return; // Wait until auth state is resolved.
     }
-
-    // Unauthenticated user flow
-    if (!user) {
-      const fetchPublicData = async () => {
-        setLoading(true);
-        const baseData = await getPortfolioData();
-        const projectsQuery = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
-        const unsubscribe = onSnapshot(projectsQuery, (snapshot) => {
-            const projectsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
-            setPortfolioData({
-                ...baseData,
-                projects: projectsData
-            });
-            setLoading(false);
-        }, (err) => {
-             console.error("Error fetching public project data:", err);
-             setPortfolioData(baseData as PortfolioData); // Set base data even on error
-             setLoading(false);
-        });
-        return unsubscribe;
-      };
-      const unsubscribePromise = fetchPublicData();
-      return () => {
-        unsubscribePromise.then(unsub => unsub());
-      };
-    }
-
-    // Authenticated user flow
-    let unsubscribeProjects: () => void = () => {};
-
-    const fetchAdminData = async () => {
-        setLoading(true);
-        const baseData = await getPortfolioData();
-
-        // Base data is ready, now listen for projects
-        const projectsQuery = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
-        unsubscribeProjects = onSnapshot(projectsQuery, (snapshot) => {
-            const projectsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
-            setPortfolioData({
-                ...baseData,
-                projects: projectsData
-            });
-            setLoading(false); // Data is ready, stop loading
-        }, (err) => {
-            console.error("Error fetching projects snapshot:", err);
-            setPortfolioData(baseData as PortfolioData); // Set base data even on error
-            setLoading(false);
-        });
-    }
-
-    fetchAdminData();
     
+    // This provider now only fetches data if a user is authenticated.
+    // Public pages should rely on a simpler data fetching mechanism if needed,
+    // or be wrapped in this provider on a page-by-page basis.
+    if (!user) {
+        setLoading(false); // Not an admin, stop loading.
+        return;
+    }
+
+    // User is authenticated, proceed with fetching all data.
+    setLoading(true);
+    const projectsQuery = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
+
+    const unsubscribeProjects = onSnapshot(projectsQuery, async (snapshot) => {
+        const baseData = await fetchBaseData();
+        if (!baseData) {
+            setLoading(false);
+            return;
+        }
+
+        const projectsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+        
+        setPortfolioData({
+            ...baseData,
+            projects: projectsData,
+        });
+
+        setLoading(false);
+    }, (err) => {
+        console.error("Error fetching projects snapshot:", err);
+        setLoading(false);
+    });
+
     return () => {
       unsubscribeProjects();
     };
-  }, [user, authLoading]);
+  }, [user, authLoading, fetchBaseData]);
 
   const refreshPortfolioData = useCallback(async () => {
-    await fetchBaseData();
-  }, [fetchBaseData]);
+    if (user) {
+        setLoading(true);
+        const baseData = await fetchBaseData();
+        if (baseData) {
+            // This assumes projects are still being listened to by the snapshot listener.
+            // We just merge the refreshed base data.
+            setPortfolioData(currentData => ({
+                ...(currentData || {}),
+                ...baseData,
+                projects: currentData?.projects || []
+            } as PortfolioData));
+        }
+        setLoading(false);
+    }
+  }, [fetchBaseData, user]);
 
 
   return (
