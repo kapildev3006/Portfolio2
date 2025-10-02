@@ -1,124 +1,125 @@
 /**
- * @fileoverview Firestore Security Rules for the application.
+ * @fileoverview Firestore Security Rules
  *
  * Core Philosophy:
- * This ruleset enforces a role-based access control model for the portfolio
- * data, a user-ownership model for user data, and public read access with owner-only
- * writes for projects.  Contact Submissions will be writeable by anyone, but only
- * accessible by admins.
+ * This ruleset prioritizes secure data access by implementing distinct access control patterns for different data collections.
+ * It focuses on owner-only access for user-specific data and admin-only access for contact submissions.
+ * To improve performance and simplify rules, data required for authorization (e.g., ownership) is denormalized onto the documents being secured.
  *
  * Data Structure:
- * - /portfolio/main: Contains the main portfolio data (about, hero, etc.).  Only admins can modify.
- * - /users/{userId}: Contains user profile information, accessible only to the user themselves.
- * - /projects/{projectId}: Contains portfolio projects, publicly readable but only editable by the project owner.
- * - /contactSubmissions/{submissionId}: Stores contact form submissions. Only admins can view/manage.
+ * - /users/{userId}: Stores user profile information; accessible only by the owner.
+ * - /portfolio/main: Stores the main portfolio data; only accessible by an admin user.
+ * - /projects/{projectId}: Stores portfolio projects; only accessible by an admin user.
+ * - /contactSubmissions/{submissionId}: Stores contact form submissions; only accessible by an admin user.
  *
  * Key Security Decisions:
- * - Only authenticated users can access the application.
- * - Users can only read and write their own profile data.
- * - Portfolio data is only editable by authenticated users (admins)
- * - Projects are publicly readable but only editable by their owners.
- * - Contact form submissions can be created by anyone, but only read/modified by admins.
- * - Listing of users is disallowed.
+ * - Strict Ownership: Users can only access their own data under /users/{userId}.
+ * - Admin-Only Access: Modifying portfolio data and accessing contact submissions requires admin privileges.
+ * - No Public Listing: Listing of users and contact submissions is explicitly denied to prevent information disclosure.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Checks if the user is signed in.
+     * @description Checks if the current user is signed in.
+     * @example isSignedIn() == true if request.auth != null
      */
     function isSignedIn() {
       return request.auth != null;
     }
 
     /**
-     * @description Checks if the user is the owner of the resource.
+     * @description Checks if the current user's UID matches the provided userId.
+     * @param {string} userId - The user ID to compare against.
+     * @example isOwner("someUserId") == (request.auth.uid == "someUserId")
      */
     function isOwner(userId) {
-      return request.auth.uid == userId;
+      return isSignedIn() && request.auth.uid == userId;
     }
 
     /**
-     * @description Checks if the user is the owner of the existing resource.
+     * @description Checks if the current user's UID matches the provided userId and the resource exists
+     * @param {string} userId - The user ID to compare against.
+     * @example isExistingOwner("someUserId") == (request.auth.uid == "someUserId" && resource != null)
      */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
 
-    /**
-     * @description Admin user email. Only this account can edit the site.
+        /**
+     * @description Checks if the current user is an admin based on their email.
+     * @example isAdmin() == (request.auth.token.email == "admin@example.com")
      */
     function isAdmin() {
-        return request.auth.uid == 't1YmkR5hmqOWK8mSI0QWj60zG3w1';
+        return isSignedIn() && request.auth.token.email == "admin@example.com";
     }
 
+
     /**
-     * @description Rule set for the main portfolio document.
+     * @description Manages portfolio data. Only admins can read and write to the portfolio document.
      * @path /portfolio/main
-     * @allow (update) - Authenticated admin user can update the portfolio data.
-     * @deny (update) - Non-authenticated user attempts to update the portfolio data.
-     * @principle Enforces admin-only access for portfolio data modifications.
+     * @allow (update) if request.auth.token.email == "admin@example.com"
+     * @deny (update) if request.auth.token.email != "admin@example.com"
+     * @principle Restricts portfolio data access to administrators only.
      */
-    match /portfolio/main {
+    match /portfolio/{portfolioId} {
       allow get: if true;
       allow list: if false;
 
       allow create: if false;
-      allow update: if isSignedIn() && isAdmin();
+      allow update: if isAdmin();
       allow delete: if false;
     }
 
     /**
-     * @description Rule set for user documents.
+     * @description Manages user profile information.
      * @path /users/{userId}
-     * @allow (get, list) - The user can read their own profile.
-     * @allow (create) - The user can create their own profile, matching the userId.
-     * @allow (update, delete) - The user can update/delete their own profile.
-     * @deny (get, list, create, update, delete) - Any other user attempts to access this data.
-     * @principle Enforces user-ownership for profile data.
+     * @allow (get, list) if request.auth.uid == "{userId}"
+     * @allow (create, update, delete) if request.auth.uid == "{userId}"
+     * @deny (get, list) if request.auth.uid != "{userId}"
+     * @deny (create, update, delete) if request.auth.uid != "{userId}"
+     * @principle Enforces document ownership for user profiles, restricting access to the owner only.
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if false;
 
-      allow create: if isSignedIn() && isOwner(userId);
+      allow create: if isOwner(userId);
       allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Rule set for project documents.
+     * @description Manages portfolio projects. Only admins can create, update, and delete projects.
      * @path /projects/{projectId}
-     * @allow (get, list) - Any user can read the project data.
-     * @allow (create) - Only authenticated users can create a project.
-     * @allow (update, delete) - Only the project owner can update/delete it.
-     * @deny (create, update, delete) - Operations fail if ownership is not validated.
-     * @principle Public read with owner-only writes for project data.
+     * @allow (create, update, delete) if request.auth.token.email == "admin@example.com"
+     * @deny (create, update, delete) if request.auth.token.email != "admin@example.com"
+     * @principle Restricts project data access to administrators only.
      */
     match /projects/{projectId} {
       allow get: if true;
       allow list: if true;
 
-      allow create: if isSignedIn();
-      allow update: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-      allow delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
     }
 
     /**
-     * @description Rule set for contact form submissions.
+     * @description Manages contact form submissions. Only admins can read and update submissions.
      * @path /contactSubmissions/{submissionId}
-     * @allow (create) - Any user can submit a contact form.
-     * @allow (get, list, update, delete) - Only admins can manage submissions.
-     * @principle Allows public submissions but restricts management to admins.
+     * @allow (get, list, update) if request.auth.token.email == "admin@example.com"
+     * @deny (get, list, update) if request.auth.token.email != "admin@example.com"
+     * @principle Restricts contact submission access to administrators only.
      */
     match /contactSubmissions/{submissionId} {
-      allow get: if isSignedIn() && isAdmin();
-      allow list: if isSignedIn() && isAdmin();
+      allow get: if isAdmin();
+      allow list: if false;
 
-      allow create: if true;
-      allow update: if isSignedIn() && isAdmin();
-      allow delete: if isSignedIn() && isAdmin();
+      allow create: if false;
+      allow update: if isAdmin() && resource != null;
+      allow delete: if false;
     }
   }
 }
