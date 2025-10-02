@@ -2,13 +2,12 @@
 'use client';
 
 import { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import type { PortfolioData } from '@/lib/types';
+import type { PortfolioData, Project } from '@/lib/types';
 import { getPortfolioData } from '@/lib/portfolio-data';
 import FirebaseErrorListener from '@/components/FirebaseErrorListener';
 import { onSnapshot, collection, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import useAuth from '@/hooks/use-auth';
-import type { Project } from '@/lib/types';
 
 interface PortfolioContextType {
   portfolioData: PortfolioData | null;
@@ -28,63 +27,69 @@ export function PortfolioDataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchBaseData = useCallback(async () => {
-    setLoading(true);
+    // This function will now only be responsible for the 'main' document.
+    // The loading state will be managed by the useEffect that also handles projects.
     try {
-      // getPortfolioData now only fetches the 'main' doc, not projects
       const data = await getPortfolioData();
-      setPortfolioData(data);
+      // Set the base data, but ensure projects is an empty array initially.
+      // The project listener will populate this.
+      setPortfolioData({ ...data, projects: [] });
     } catch (error) {
-      console.error("Failed to fetch portfolio data:", error);
-    } finally {
-      // We don't stop loading here, because we still need projects
+      console.error("Failed to fetch base portfolio data:", error);
+      setPortfolioData(prev => prev || { projects: [] } as any); // Ensure portfolioData is not null
     }
   }, []);
 
   useEffect(() => {
-    fetchBaseData();
-  }, [fetchBaseData]);
+    // This effect now controls the entire loading cycle.
+    setLoading(true);
 
-  useEffect(() => {
+    // Fetch the base 'main' portfolio document first.
+    fetchBaseData();
+
+    // If auth is still loading, wait.
     if (authLoading) {
-      setLoading(true);
       return;
     }
     
-    // Public data doesn't need auth, but project list in admin does for now
-    // This can be simplified if projects become public for the main site
+    // If there's no user, there's no need to listen for projects in the admin context.
+    // We can stop loading.
     if (!user) {
         setLoading(false);
         return;
     }
 
+    // Now, set up the real-time listener for projects.
     const q = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const unsubscribe = onSnapshot(q, 
+      (querySnapshot) => {
         const projectsData: Project[] = [];
         querySnapshot.forEach((doc) => {
           projectsData.push({ id: doc.id, ...(doc.data() as Omit<Project, 'id'>) });
         });
         
-        setPortfolioData(prevData => {
-            if (!prevData) return null;
-            return {
-                ...prevData,
-                projects: projectsData,
-            }
-        });
+        // Merge the new projects list with the existing portfolio data.
+        setPortfolioData(prevData => ({
+            ...(prevData as PortfolioData), // We assume base data is fetched
+            projects: projectsData,
+        }));
+
+        // Critical: stop loading after the first successful fetch (or if it's empty).
         setLoading(false);
       },
       (err) => {
         console.error("Error fetching projects snapshot:", err);
+        // Also stop loading on error.
         setLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, [user, authLoading]);
-
+  }, [user, authLoading, fetchBaseData]);
 
   const refreshPortfolioData = async () => {
+    // This can just re-fetch the base data. The projects listener is real-time.
     await fetchBaseData();
   };
 

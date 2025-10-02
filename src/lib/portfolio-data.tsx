@@ -50,17 +50,7 @@ const defaultData: PortfolioData = {
     ]
   },
   achievements: [],
-  projects: [
-    {
-      id: '1',
-      title: 'Project Zenith',
-      description: 'A comprehensive web application for project management, designed to streamline team collaboration and workflow efficiency.',
-      tags: ['React', 'Next.js', 'Tailwind CSS', 'Firebase'],
-      ...getImage('project-1'),
-      liveUrl: '#',
-      sourceUrl: '#',
-    },
-  ],
+  projects: [], // Projects will be fetched from the provider
   services: [
     { name: 'Web Development' },
     { name: 'Mobile Apps' },
@@ -80,7 +70,7 @@ const defaultData: PortfolioData = {
 };
 
 // This function will NO LONGER fetch projects. Projects are now streamed in PortfolioDataProvider.
-export async function getPortfolioData(): Promise<PortfolioData> {
+export async function getPortfolioData(): Promise<Omit<PortfolioData, 'projects'>> {
     const portfolioDocRef = doc(db, 'portfolio', 'main');
     try {
         const docSnap = await getDoc(portfolioDocRef);
@@ -119,15 +109,13 @@ export async function getPortfolioData(): Promise<PortfolioData> {
                     github: dbData.socials?.github || defaultData.socials.github,
                     twitter: dbData.socials?.twitter || defaultData.socials.twitter,
                 },
-                // Return default/empty projects. The real data is streamed by the provider.
-                projects: defaultData.projects, 
                 services: defaultData.services,
                 testimonials: defaultData.testimonials,
                 settings: dbData.settings,
             };
         } else {
             console.log("No such document! Returning default data.");
-            return defaultData;
+            return (({ projects, ...rest }) => rest)(defaultData);
         }
     } catch (error) {
         if ((error as any).code === 'permission-denied') {
@@ -139,6 +127,6 @@ export async function getPortfolioData(): Promise<PortfolioData> {
         } else {
             console.error("Error fetching portfolio data: ", error);
         }
-        return defaultData;
+        return (({ projects, ...rest }) => rest)(defaultData);
     }
 }

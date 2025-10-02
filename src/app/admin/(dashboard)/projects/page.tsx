@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LayoutGrid, List, Plus, Search, WifiOff } from 'lucide-react';
+import { LayoutGrid, List, Plus, Search, WifiOff, FolderOpen } from 'lucide-react';
 import AdminProjectCard from '@/components/admin/project-card';
 import {
   Dialog,
@@ -41,7 +41,6 @@ export default function AdminProjectsPage() {
   const { portfolioData, loading } = useContext(PortfolioDataContext);
   const [dialogOpen, setDialogOpen] = useState(false);
   
-  // For now, no error state is passed from the new provider, so we can consider it null
   const error = null; 
   const projects = portfolioData?.projects || [];
 
@@ -105,6 +104,16 @@ export default function AdminProjectsPage() {
             <h3 className="mt-4 text-lg font-semibold">Could not fetch projects</h3>
             <p className="mt-1 text-sm text-muted-foreground">
                 There was an error loading your projects. Please check your connection and try again.
+            </p>
+        </div>
+      )}
+
+      { !loading && projects.length === 0 && !error && (
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
+            <FolderOpen className="h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-semibold">No Projects Found</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+                Get started by adding your first project.
             </p>
         </div>
       )}
