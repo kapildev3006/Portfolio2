@@ -21,6 +21,7 @@ import { useState, useContext, useMemo } from 'react';
 import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
 import type { Project, ProjectStatus } from '@/lib/types';
 import { projectStatusEnum } from '@/lib/types';
+import AdminProjectList from '@/components/admin/project-list-item';
 
 const ProjectSkeleton = () => (
   <Card className="flex h-full transform flex-col overflow-hidden bg-card">
@@ -38,11 +39,28 @@ const ProjectSkeleton = () => (
   </Card>
 );
 
+const ProjectListSkeleton = () => (
+    <tbody>
+        {[...Array(3)].map((_, i) => (
+            <tr key={i} className="border-b">
+                <td className="p-4"><Skeleton className="h-10 w-10 rounded-lg" /></td>
+                <td className="p-4"><Skeleton className="h-5 w-32" /></td>
+                <td className="p-4"><Skeleton className="h-5 w-16" /></td>
+                <td className="p-4"><Skeleton className="h-5 w-24" /></td>
+                <td className="p-4"><div className="flex gap-2"><Skeleton className="h-5 w-16" /><Skeleton className="h-5 w-16" /></div></td>
+                <td className="p-4 text-right"><div className="flex justify-end gap-2"><Skeleton className="h-8 w-8" /><Skeleton className="h-8 w-8" /></div></td>
+            </tr>
+        ))}
+    </tbody>
+);
+
+
 export default function AdminProjectsPage() {
   const { portfolioData, loading } = useContext(PortfolioDataContext);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   const error = null; 
   const projects = portfolioData?.projects || [];
@@ -110,11 +128,11 @@ export default function AdminProjectsPage() {
             </SelectContent>
           </Select>
           <div className="flex items-center gap-1 rounded-md bg-secondary p-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8 data-[active=true]:bg-primary data-[active=true]:text-primary-foreground" data-active="true">
-              <LayoutGrid className="h-5 w-5" />
+            <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => setViewMode('grid')}>
+                <LayoutGrid className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" data-active="false">
-              <List className="h-5 w-5" />
+            <Button variant={viewMode === 'list' ? 'default' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => setViewMode('list')}>
+                <List className="h-5 w-5" />
             </Button>
           </div>
         </div>
@@ -140,19 +158,43 @@ export default function AdminProjectsPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-        {loading ? (
-          <>
-            <ProjectSkeleton />
-            <ProjectSkeleton />
-            <ProjectSkeleton />
-          </>
-        ) : (
-          filteredProjects.map((project: Project) => (
-            <AdminProjectCard key={project.id} project={project} />
-          ))
-        )}
-      </div>
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+          {loading ? (
+            <>
+              <ProjectSkeleton />
+              <ProjectSkeleton />
+              <ProjectSkeleton />
+            </>
+          ) : (
+            filteredProjects.map((project: Project) => (
+              <AdminProjectCard key={project.id} project={project} />
+            ))
+          )}
+        </div>
+      ) : (
+         <Card>
+            <table className="w-full text-sm">
+                <thead>
+                    <tr className="border-b">
+                        <th className="p-4 text-left font-semibold text-muted-foreground">Image</th>
+                        <th className="p-4 text-left font-semibold text-muted-foreground">Title</th>
+                        <th className="p-4 text-left font-semibold text-muted-foreground">Status</th>
+                        <th className="p-4 text-left font-semibold text-muted-foreground">Date</th>
+                        <th className="p-4 text-left font-semibold text-muted-foreground">Tags</th>
+                        <th className="p-4 text-right font-semibold text-muted-foreground">Actions</th>
+                    </tr>
+                </thead>
+                {loading ? <ProjectListSkeleton /> : (
+                    <tbody>
+                        {filteredProjects.map((project) => (
+                            <AdminProjectList key={project.id} project={project} />
+                        ))}
+                    </tbody>
+                )}
+            </table>
+         </Card>
+      )}
     </div>
   );
 }
