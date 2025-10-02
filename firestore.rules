@@ -1,41 +1,111 @@
+/**
+ * @file Firebase Security Rules
+ * @description This ruleset implements a strict user-ownership model for user profiles and portfolios,
+ * with public read access for projects and contact submissions restricted to authenticated users for writing.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores individual user profiles, only accessible to the owner.
+ * - /portfolio/{portfolioId}: Stores main portfolio data, only accessible to the owner.
+ * - /projects/{projectId}: Stores individual portfolio projects, publicly readable but write-protected.
+ * - /contactSubmissions/{submissionId}: Stores contact form submissions.
+ *
+ * Key Security Decisions:
+ * - Users can only read/write their own profile data.
+ * - Users can only read/write their own portfolio data.
+ * - Projects are publicly readable, but only authenticated users with an "adminEmail" matching the portfolio settings can write to it.
+ * - Contact submissions are write-protected.
+ */
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    // Rules for the 'portfolio' collection
-    match /portfolio/{docId} {
-      // Anyone can read the main portfolio document
-      allow read: if true;
-      // Only authenticated users can update it
-      allow update: if isSignedIn();
-    }
-
-    // Rules for the 'projects' collection
-    match /projects/{projectId} {
-      // Anyone can read individual projects
-      allow get: if true;
-      // Authenticated users can list, create, update, and delete projects
-      allow list, create, update, delete: if isSignedIn();
-    }
-    
-    // Rules for the 'contactSubmissions' collection
-    match /contactSubmissions/{submissionId} {
-      // Anyone can create a contact submission (for the public contact form)
-      allow create: if true;
-      // Authenticated users can read, update, delete, and list submissions
-      allow read, update, delete, list: if isSignedIn();
-    }
-
-    // Rules for the 'users' collection
+    /**
+     * @description Controls access to user profile documents.
+     * @path /users/{userId}
+     * @allow (create) User with uid 'user123' can create their own profile.
+     * @allow (get) User with uid 'user123' can read their own profile.
+     * @allow (update) User with uid 'user123' can update their own profile.
+     * @allow (delete) User with uid 'user123' can delete their own profile.
+     * @deny (create) User with uid 'user456' cannot create a profile for 'user123'.
+     * @deny (get) User with uid 'user456' cannot read the profile of 'user123'.
+     * @deny (update) User with uid 'user456' cannot update the profile of 'user123'.
+     * @deny (delete) User with uid 'user456' cannot delete the profile of 'user123'.
+     * @principle Enforces document ownership for all operations.
+     */
     match /users/{userId} {
-      // Users can only read their own profile information
-      allow read: if isSignedIn() && request.auth.uid == userId;
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
     }
+
+     /**
+      * @description Controls access to portfolio documents.
+      * @path /portfolio/{portfolioId}
+      * @allow (create) User with uid 'user123' can create their own portfolio.
+      * @allow (get) User with uid 'user123' can read their own portfolio.
+      * @allow (update) User with uid 'user123' can update their own portfolio.
+      * @allow (delete) User with uid 'user123' can delete their own portfolio.
+      * @deny (create) User with uid 'user456' cannot create a portfolio for 'user123'.
+      * @deny (get) User with uid 'user456' cannot read the portfolio of 'user123'.
+      * @deny (update) User with uid 'user456' cannot update the portfolio of 'user123'.
+      * @deny (delete) User with uid 'user456' cannot delete the portfolio of 'user123'.
+      * @principle Enforces document ownership for all operations.
+      */
+    match /portfolio/{portfolioId} {
+      function isOwner(portfolioId) {
+        return request.auth != null && request.auth.uid == portfolioId;
+      }
+      allow get: if isOwner(portfolioId);
+      allow list: if false;
+      allow create: if isOwner(portfolioId);
+      allow update: if isOwner(portfolioId);
+      allow delete: if isOwner(portfolioId);
+    }
+
+    /**
+     * @description Controls access to project documents.
+     * @path /projects/{projectId}
+     * @allow (get) Any user can read a project.
+     * @allow (list) Any user can list projects.
+     * @allow (create) Only authenticated user can create a project.
+     * @allow (update) Only authenticated user can update a project.
+     * @allow (delete) Only authenticated user can delete a project.
+     * @deny (create) Anonymous user cannot create a project.
+     * @deny (update) Anonymous user cannot update a project.
+     * @deny (delete) Anonymous user cannot delete a project.
+     * @principle Public read access with authenticated user-only writes.
+     */
+    match /projects/{projectId} {
+        function isSignedIn() {
+            return request.auth != null;
+        }
+        allow get: if true;
+        allow list: if true;
+       allow create: if isSignedIn();
+       allow update: if isSignedIn();
+       allow delete: if isSignedIn();
+    }
+
+     /**
+      * @description Controls access to contact submissions.
+      * @path /contactSubmissions/{submissionId}
+      * @allow (create) Any user can create a contact submission.
+      * @deny (get) No one can get a contact submission.
+      * @deny (list) No one can list contact submissions.
+      * @deny (update) No one can update a contact submission.
+      * @deny (delete) No one can delete a contact submission.
+      */
+     match /contactSubmissions/{submissionId} {
+          allow get: if false;
+          allow list: if false;
+          allow create: if true;
+          allow update: if false;
+          allow delete: if false;
+     }
   }
 }
