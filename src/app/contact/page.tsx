@@ -3,11 +3,9 @@
 import Header from '@/components/header';
 import Contact from '@/components/sections/contact';
 import Footer from '@/components/footer';
-import { PortfolioDataProvider } from '@/context/PortfolioDataProvider';
 
 export default function ContactPage() {
   return (
-    <PortfolioDataProvider>
       <div className="flex min-h-dvh flex-col">
         <Header />
         <main className="flex-1">
@@ -15,6 +13,5 @@ export default function ContactPage() {
         </main>
         <Footer />
       </div>
-    </PortfolioDataProvider>
   );
 }

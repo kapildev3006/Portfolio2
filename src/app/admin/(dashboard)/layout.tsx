@@ -4,7 +4,6 @@
 import AdminSidebar from '@/components/admin/sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import ClientProviders from './client-providers';
-import { PortfolioDataProvider } from '@/context/PortfolioDataProvider';
 import useAuth from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -33,15 +32,13 @@ export default function DashboardLayout({
   }
 
   return (
-    <PortfolioDataProvider>
-      <SidebarProvider>
-        <div className="group/sidebar-wrapper flex min-h-dvh w-full bg-muted/40">
-          <AdminSidebar />
-          <ClientProviders>
-            {children}
-          </ClientProviders>
-        </div>
-      </SidebarProvider>
-    </PortfolioDataProvider>
+    <SidebarProvider>
+      <div className="group/sidebar-wrapper flex min-h-dvh w-full bg-muted/40">
+        <AdminSidebar />
+        <ClientProviders>
+          {children}
+        </ClientProviders>
+      </div>
+    </SidebarProvider>
   );
 }
