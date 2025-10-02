@@ -65,10 +65,17 @@ export default function AdminLoginPage() {
       router.push('/admin');
     } catch (error: any) {
       console.error('Login failed:', error);
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+      if (error.code === 'auth/invalid-credential') {
+        errorMessage = 'Invalid email or password. Please try again.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: error.message || 'Invalid email or password. Please try again.',
+        description: errorMessage,
       });
     }
   };
