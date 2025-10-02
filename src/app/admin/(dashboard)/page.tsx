@@ -105,8 +105,18 @@ export default function AdminDashboardPage() {
   const newMessagesCount = submissions.filter(s => !s.isRead).length;
 
   const recentProjects = portfolioData?.projects?.slice(0, 2) || [];
-  const recentSubmissions = submissions.slice(0, 3);
   const lastUpdatedDate = new Date();
+
+  const getStatusPercentage = (status: ProjectStatus | undefined) => {
+    if (!status) return 25;
+    switch (status) {
+      case 'planning': return 25;
+      case 'in-progress': return 50;
+      case 'review': return 75;
+      case 'completed': return 100;
+      default: return 25;
+    }
+  };
 
   if (loading) {
     return <DashboardSkeleton />;
@@ -198,7 +208,9 @@ export default function AdminDashboardPage() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-6">
-            {recentProjects.map((project, index) => (
+            {recentProjects.map((project, index) => {
+              const progress = getStatusPercentage(project.status);
+              return (
                 <div key={index}>
                     <div className="flex justify-between items-center mb-2">
                         <div>
@@ -216,11 +228,12 @@ export default function AdminDashboardPage() {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Progress value={75} className="h-2 [&>div]:bg-gradient-to-r from-green-400 to-yellow-400" />
-                        <span className="text-sm font-medium text-muted-foreground">75%</span>
+                        <Progress value={progress} className="h-2 [&>div]:bg-gradient-to-r from-green-400 to-yellow-400" />
+                        <span className="text-sm font-medium text-muted-foreground">{progress}%</span>
                     </div>
                 </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
         <Card className="bg-card shadow-md">
