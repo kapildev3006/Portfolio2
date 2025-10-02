@@ -15,6 +15,7 @@ import {
   DollarSign,
   MessageSquare,
   Users,
+  Folder,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useContext } from 'react';
@@ -32,6 +33,7 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { formatDistanceToNow } from 'date-fns';
 
 function DashboardSkeleton() {
@@ -43,10 +45,9 @@ function DashboardSkeleton() {
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <Card key={i}>
+          <Card key={i} className="bg-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <Skeleton className="h-5 w-1/3" />
-              <Skeleton className="h-6 w-6" />
+              <Skeleton className="h-8 w-8" />
             </CardHeader>
             <CardContent>
               <Skeleton className="h-8 w-1/2" />
@@ -56,7 +57,7 @@ function DashboardSkeleton() {
         ))}
       </div>
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <Card>
+        <Card className="bg-card">
           <CardHeader>
             <Skeleton className="h-6 w-1/2" />
           </CardHeader>
@@ -64,7 +65,7 @@ function DashboardSkeleton() {
             <Skeleton className="h-40 w-full" />
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-card">
           <CardHeader>
             <Skeleton className="h-6 w-1/2" />
           </CardHeader>
@@ -84,12 +85,14 @@ export default function AdminDashboardPage() {
 
   const loading = portfolioLoading || projectsLoading || submissionsLoading;
   
-  const heroName = portfolioData?.hero?.name || 'Admin';
   const totalProjects = projects.length;
-  const unreadMessages = submissions.filter(s => !s.isRead).length;
+  const newMessagesCount = submissions.filter(s => !s.isRead).length;
 
-  const recentProjects = projects.slice(0, 3);
-  const recentSubmissions = submissions.slice(0, 5);
+  const recentProjects = [
+    { title: 'E-commerce Platform', company: 'TechStart Inc', progress: 75, status: 'In Progress', date: '15/01/2024' },
+    { title: 'Mobile Banking App', company: 'FinanceFlow', progress: 90, status: 'Review', date: '10/01/2024' },
+  ];
+  const recentSubmissions = submissions.slice(0, 3);
 
   if (loading) {
     return <DashboardSkeleton />;
@@ -97,145 +100,138 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="flex-1 bg-background p-8 text-foreground">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold">Welcome, {heroName}!</h1>
-        <p className="text-muted-foreground">
-          Here's a quick overview of your portfolio dashboard.
-        </p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+            <h1 className="text-4xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground">
+                Welcome back! Here's what's happening with your projects.
+            </p>
+        </div>
+        <div className="text-right">
+            <p className="text-sm text-muted-foreground">Last updated</p>
+            <div className="flex items-center gap-2">
+                <p className="font-medium">28/09/2025</p>
+                <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
+            </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
-            <Briefcase className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalProjects}</div>
-            <p className="text-xs text-muted-foreground">
-              projects are currently showcased
-            </p>
-          </CardContent>
+        <Card className="bg-card shadow-md">
+            <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                    <div className="bg-blue-500/20 text-blue-400 p-3 rounded-lg">
+                        <Folder className="h-6 w-6" />
+                    </div>
+                    <p className="text-sm font-medium text-green-400">+12%</p>
+                </div>
+                <div className="mt-4">
+                    <h3 className="text-3xl font-bold">{totalProjects}</h3>
+                    <p className="text-sm text-muted-foreground">Total Projects</p>
+                </div>
+            </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Clients</CardTitle>
-            <Users className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground">
-              +2 since last month
-            </p>
-          </CardContent>
+        <Card className="bg-card shadow-md">
+            <CardContent className="p-6">
+                 <div className="flex justify-between items-start">
+                    <div className="bg-green-500/20 text-green-400 p-3 rounded-lg">
+                        <Users className="h-6 w-6" />
+                    </div>
+                    <p className="text-sm font-medium text-green-400">+8%</p>
+                </div>
+                <div className="mt-4">
+                    <h3 className="text-3xl font-bold">48</h3>
+                    <p className="text-sm text-muted-foreground">Active Clients</p>
+                </div>
+            </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">New Messages</CardTitle>
-            <MessageSquare className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{unreadMessages}</div>
-            <p className="text-xs text-muted-foreground">
-              unread messages in your inbox
-            </p>
-          </CardContent>
+        <Card className="bg-card shadow-md">
+            <CardContent className="p-6">
+                 <div className="flex justify-between items-start">
+                    <div className="bg-purple-500/20 text-purple-400 p-3 rounded-lg">
+                        <MessageSquare className="h-6 w-6" />
+                    </div>
+                    <p className="text-sm font-medium text-green-400">+5</p>
+                </div>
+                <div className="mt-4">
+                    <h3 className="text-3xl font-bold">{newMessagesCount}</h3>
+                    <p className="text-sm text-muted-foreground">New Messages</p>
+                </div>
+            </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-            <DollarSign className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$12,450</div>
-            <p className="text-xs text-muted-foreground">
-              +15.2% from last month
-            </p>
-          </CardContent>
+        <Card className="bg-card shadow-md">
+            <CardContent className="p-6">
+                 <div className="flex justify-between items-start">
+                    <div className="bg-yellow-500/20 text-yellow-400 p-3 rounded-lg">
+                        <DollarSign className="h-6 w-6" />
+                    </div>
+                    <p className="text-sm font-medium text-green-400">+18%</p>
+                </div>
+                <div className="mt-4">
+                    <h3 className="text-3xl font-bold">$84.2K</h3>
+                    <p className="text-sm text-muted-foreground">Revenue</p>
+                </div>
+            </CardContent>
         </Card>
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-8 xl:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center">
-            <div className="grid gap-2">
-              <CardTitle>Recent Projects</CardTitle>
-              <CardDescription>
-                Your most recently added projects.
-              </CardDescription>
-            </div>
-            <Button asChild size="sm" className="ml-auto gap-1">
-              <Link href="/admin/projects">
-                View All
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
+        <Card className="bg-card shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Recent Projects</CardTitle>
+            <Button asChild variant="link" className="text-green-400">
+              <Link href="/admin/projects">View All</Link>
             </Button>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Project</TableHead>
-                  <TableHead className="hidden sm:table-cell">Tags</TableHead>
-                  <TableHead className="text-right">Date Added</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentProjects.map((project) => (
-                  <TableRow key={project.id}>
-                    <TableCell>
-                      <div className="font-medium">{project.title}</div>
-                      <div className="hidden text-sm text-muted-foreground md:inline">
-                        {project.description.substring(0, 40)}...
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <div className="flex flex-wrap gap-1">
-                        {project.tags.slice(0, 2).map(tag => (
-                          <Badge key={tag} variant="outline">{tag}</Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {project.createdAt ? formatDistanceToNow(project.createdAt.toDate(), { addSuffix: true }) : 'N/A'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <CardContent className="space-y-6">
+            {recentProjects.map((project, index) => (
+                <div key={index}>
+                    <div className="flex justify-between items-center mb-2">
+                        <div>
+                            <p className="font-semibold">{project.title}</p>
+                            <p className="text-sm text-muted-foreground">{project.company}</p>
+                        </div>
+                        <div className="text-right">
+                           <Badge variant={project.status === 'In Progress' ? 'secondary' : 'destructive'} className={project.status === 'In Progress' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"}>
+                               {project.status}
+                           </Badge>
+                           <p className="text-sm text-muted-foreground mt-1">{project.date}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Progress value={project.progress} className="h-2 [&>div]:bg-gradient-to-r from-green-400 to-yellow-400" />
+                        <span className="text-sm font-medium text-muted-foreground">{project.progress}%</span>
+                    </div>
+                </div>
+            ))}
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center">
-             <div className="grid gap-2">
-              <CardTitle>Recent Messages</CardTitle>
-              <CardDescription>
-                Latest messages from your contact form.
-              </CardDescription>
-            </div>
-            <Button asChild size="sm" className="ml-auto gap-1">
-              <Link href="/admin/contacts">
-                View All
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
+        <Card className="bg-card shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Recent Messages</CardTitle>
+             <Button asChild variant="link" className="text-green-400">
+              <Link href="/admin/contacts">View All</Link>
             </Button>
           </CardHeader>
-          <CardContent className="grid gap-8">
+          <CardContent className="space-y-4">
             {recentSubmissions.map((submission) => (
-              <div key={submission.id} className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
+              <div key={submission.id} className="flex items-start gap-4 p-3 rounded-lg bg-secondary/30 border-l-2 border-green-400">
+                <Avatar className="h-10 w-10 border-2 border-border">
                    <AvatarFallback>{submission.name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    {submission.name}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
+                <div className="grid gap-1 flex-1">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm font-medium leading-none flex items-center gap-2">
+                        {submission.name}
+                        <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(submission.createdAt.toDate(), { addSuffix: true })}
+                    </p>
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate">
                     {submission.subject}
                   </p>
-                </div>
-                <div className="ml-auto text-sm text-muted-foreground">
-                    {formatDistanceToNow(submission.createdAt.toDate(), { addSuffix: true })}
                 </div>
               </div>
             ))}
@@ -245,3 +241,5 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
+    
