@@ -12,7 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useSidebar } from '../ui/sidebar';
 import Link from 'next/link';
 import { useContext } from 'react';
 import { Skeleton } from '../ui/skeleton';
@@ -20,12 +19,13 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
+import useContactSubmissions from '@/hooks/use-contact-submissions';
 
 
 export default function AdminHeader() {
   const { portfolioData, loading } = useContext(PortfolioDataContext);
+  const { submissions, loading: submissionsLoading } = useContactSubmissions();
   const router = useRouter();
-  const { state } = useSidebar();
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -35,6 +35,8 @@ export default function AdminHeader() {
   const name = portfolioData?.hero?.name || 'Admin';
   const imageUrl = portfolioData?.hero?.imageUrl || '';
   const fallback = name ? name.substring(0, 2).toUpperCase() : 'AD';
+
+  const hasUnread = !submissionsLoading && submissions.some(s => !s.isRead);
 
   return (
     <header className="flex h-20 items-center justify-between border-b border-sidebar-border bg-card px-8">
@@ -60,7 +62,9 @@ export default function AdminHeader() {
           <Link href="/admin/notifications">
             <Bell className="h-5 w-5" />
             <span className="sr-only">Notifications</span>
-            <span className="absolute right-1 top-1 block h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background"></span>
+            {hasUnread && (
+              <span className="absolute right-1 top-1 block h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" title="New notifications"></span>
+            )}
           </Link>
         </Button>
         <DropdownMenu>
