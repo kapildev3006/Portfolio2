@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bell, UserPlus, MessageSquare, AlertTriangle, Settings, WifiOff } from 'lucide-react';
+import { Bell, UserPlus, MessageSquare, AlertTriangle, Settings, WifiOff, Check } from 'lucide-react';
 import React from 'react';
 import Link from 'next/link';
 import useContactSubmissions from '@/hooks/use-contact-submissions';
@@ -57,6 +57,25 @@ export default function AdminNotificationsPage() {
           title: "Error",
           description: "Could not mark all notifications as read. Please check permissions.",
           variant: "destructive",
+        });
+      });
+  };
+
+  const handleMarkAsRead = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    updateContactSubmissionStatus(id, true)
+      .then(() => {
+        toast({
+          title: 'Notification marked as read.',
+        });
+      })
+      .catch((error) => {
+        console.error('Failed to mark as read:', error);
+        toast({
+          title: 'Error',
+          description: 'Could not mark notification as read.',
+          variant: 'destructive',
         });
       });
   };
@@ -134,7 +153,20 @@ export default function AdminNotificationsPage() {
                          <p className="text-xs text-muted-foreground">
                             {formatDistanceToNow(submission.createdAt.toDate(), { addSuffix: true })}
                          </p>
-                         {!submission.isRead && <div className="h-2 w-2 rounded-full bg-primary" title="Unread"></div>}
+                         {!submission.isRead && (
+                           <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                onClick={(e) => handleMarkAsRead(e, submission.id)}
+                                title="Mark as read"
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <div className="h-2 w-2 rounded-full bg-primary" title="Unread"></div>
+                           </div>
+                         )}
                       </div>
                     </div>
                     <p className="text-sm text-muted-foreground">New message from <span className="font-medium text-foreground">{submission.name}</span>.</p>
