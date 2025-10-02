@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Users,
   Folder,
+  Briefcase,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useContext } from 'react';
@@ -30,7 +31,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 
 function DashboardSkeleton() {
   return (
@@ -83,11 +84,9 @@ export default function AdminDashboardPage() {
   const totalProjects = portfolioData?.projects?.length || 0;
   const newMessagesCount = submissions.filter(s => !s.isRead).length;
 
-  const recentProjects = [
-    { title: 'E-commerce Platform', company: 'TechStart Inc', progress: 75, status: 'In Progress', date: '15/01/2024' },
-    { title: 'Mobile Banking App', company: 'FinanceFlow', progress: 90, status: 'Review', date: '10/01/2024' },
-  ];
+  const recentProjects = portfolioData?.projects?.slice(0, 2) || [];
   const recentSubmissions = submissions.slice(0, 3);
+  const lastUpdatedDate = new Date();
 
   if (loading) {
     return <DashboardSkeleton />;
@@ -105,7 +104,7 @@ export default function AdminDashboardPage() {
         <div className="text-right">
             <p className="text-sm text-muted-foreground">Last updated</p>
             <div className="flex items-center gap-2">
-                <p className="font-medium">28/09/2025</p>
+                <p className="font-medium">{format(lastUpdatedDate, 'dd/MM/yyyy')}</p>
                 <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
             </div>
         </div>
@@ -184,18 +183,21 @@ export default function AdminDashboardPage() {
                     <div className="flex justify-between items-center mb-2">
                         <div>
                             <p className="font-semibold">{project.title}</p>
-                            <p className="text-sm text-muted-foreground">{project.company}</p>
+                            <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                                <Briefcase className="h-4 w-4" />
+                                {project.tags[0] || 'General'}
+                            </p>
                         </div>
                         <div className="text-right">
-                           <Badge variant={project.status === 'In Progress' ? 'secondary' : 'destructive'} className={project.status === 'In Progress' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"}>
-                               {project.status}
+                           <Badge variant={'secondary'} className={"bg-blue-500/20 text-blue-400 border-blue-500/30"}>
+                               In Progress
                            </Badge>
-                           <p className="text-sm text-muted-foreground mt-1">{project.date}</p>
+                           <p className="text-sm text-muted-foreground mt-1">{project.createdAt ? format(project.createdAt.toDate(), 'dd/MM/yyyy') : 'N/A'}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Progress value={project.progress} className="h-2 [&>div]:bg-gradient-to-r from-green-400 to-yellow-400" />
-                        <span className="text-sm font-medium text-muted-foreground">{project.progress}%</span>
+                        <Progress value={75} className="h-2 [&>div]:bg-gradient-to-r from-green-400 to-yellow-400" />
+                        <span className="text-sm font-medium text-muted-foreground">75%</span>
                     </div>
                 </div>
             ))}
@@ -218,7 +220,7 @@ export default function AdminDashboardPage() {
                   <div className="flex justify-between items-center">
                     <p className="text-sm font-medium leading-none flex items-center gap-2">
                         {submission.name}
-                        <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                        {!submission.isRead && <span className="h-2 w-2 rounded-full bg-green-500"></span>}
                     </p>
                     <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(submission.createdAt.toDate(), { addSuffix: true })}
