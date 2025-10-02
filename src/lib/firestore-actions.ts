@@ -178,14 +178,13 @@ export async function deleteProject(id: string): Promise<{success: boolean, mess
   try {
     const docRef = doc(db, 'projects', id);
     
-    deleteDoc(docRef)
-      .catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-          path: docRef.path,
-          operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
+    deleteDoc(docRef).catch((serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'delete',
       });
+      errorEmitter.emit('permission-error', permissionError);
+    });
 
     return {
       message: 'Project has been successfully deleted.',
@@ -201,6 +200,7 @@ export async function deleteProject(id: string): Promise<{success: boolean, mess
 }
 
 const aboutSchema = z.object({
+  subtitle: z.string(),
   skills: z.array(z.object({
     id: z.string(),
     title: z.string(),
@@ -222,6 +222,7 @@ const aboutSchema = z.object({
 });
 
 export async function saveAboutData(data: { 
+  subtitle: string,
   skills: Omit<SkillCategory, 'icon'>[], 
   experience: Omit<Experience, 'icon'>[],
   achievements: Omit<Achievement, 'icon'>[] 
@@ -232,13 +233,14 @@ export async function saveAboutData(data: {
 
         const dataToSave = {
             about: {
+                subtitle: validatedData.subtitle,
                 skills: validatedData.skills,
                 experience: validatedData.experience,
             },
             achievements: validatedData.achievements,
         };
 
-        setDoc(portfolioDocRef, dataToSave, { merge: true }).catch((serverError) => {
+        await setDoc(portfolioDocRef, dataToSave, { merge: true }).catch((serverError) => {
             const permissionError = new FirestorePermissionError({
                 path: portfolioDocRef.path,
                 operation: 'update',
@@ -364,7 +366,7 @@ export async function saveSettingsData(data: z.infer<typeof settingsSchema>) {
             }
         };
 
-        setDoc(portfolioDocRef, dataToSave, { merge: true }).catch((serverError) => {
+        await setDoc(portfolioDocRef, dataToSave, { merge: true }).catch((serverError) => {
             const permissionError = new FirestorePermissionError({
                 path: portfolioDocRef.path,
                 operation: 'update',

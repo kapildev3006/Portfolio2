@@ -60,6 +60,9 @@
         "about": {
           "type": "object",
           "properties": {
+            "subtitle": {
+              "type": "string"
+            },
             "skills": {
               "type": "array",
               "items": {

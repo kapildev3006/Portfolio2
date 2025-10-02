@@ -63,6 +63,10 @@ const achievementSchema = z.object({
   date: z.string().min(4, 'Date is too short'),
 });
 
+const aboutPageSchema = z.object({
+  subtitle: z.string().min(10, 'Subtitle is too short'),
+});
+
 // Skill Form Component
 const SkillForm = ({
   skill,
@@ -298,7 +302,18 @@ function AdminAboutPageSkeleton() {
         <Skeleton className="h-10 w-1/2" />
         <Skeleton className="h-4 w-1/3 mt-2" />
       </div>
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-1">
+        <Card>
+           <CardHeader>
+            <Skeleton className="h-8 w-1/3" />
+            <Skeleton className="h-4 w-1/2" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-20 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 mt-8">
         <Card>
           <CardHeader>
             <Skeleton className="h-8 w-1/3" />
@@ -344,25 +359,40 @@ export default function AdminAboutPage() {
   
   const { toast } = useToast();
 
+  const form = useForm<z.infer<typeof aboutPageSchema>>({
+    resolver: zodResolver(aboutPageSchema),
+    defaultValues: {
+      subtitle: '',
+    },
+  });
+
   React.useEffect(() => {
     if (portfolioData) {
+      form.reset({
+        subtitle: portfolioData.about.subtitle,
+      })
       setCurrentSkills(portfolioData.about.skills);
       setCurrentExperience(portfolioData.about.experience);
       setCurrentAchievements(portfolioData.achievements);
     }
-  }, [portfolioData]);
+  }, [portfolioData, form]);
   
   const handleSave = async (
+      subtitle: string,
       skills: Omit<SkillCategory, 'icon'>[], 
       experience: Omit<Experience, 'icon'>[],
       achievements: Omit<Achievement, 'icon'>[]
     ) => {
-    const result = await saveAboutData({ skills, experience, achievements });
+    const result = await saveAboutData({ subtitle, skills, experience, achievements });
     toast({
       title: result.success ? 'Success!' : 'Error',
       description: result.message,
       variant: result.success ? 'default' : 'destructive',
     });
+  };
+
+  const handleSubtitleSubmit = (values: z.infer<typeof aboutPageSchema>) => {
+    handleSave(values.subtitle, currentSkills, currentExperience, currentAchievements);
   };
 
   const handleSkillSave = (skill: Omit<SkillCategory, 'icon'>) => {
@@ -375,13 +405,13 @@ export default function AdminAboutPage() {
       updatedSkills = [...currentSkills, skill];
     }
     setCurrentSkills(updatedSkills);
-    handleSave(updatedSkills, currentExperience, currentAchievements);
+    handleSave(form.getValues('subtitle'), updatedSkills, currentExperience, currentAchievements);
   };
 
   const handleSkillDelete = (skillId: string) => {
     const updatedSkills = currentSkills.filter(s => s.id !== skillId);
     setCurrentSkills(updatedSkills);
-    handleSave(updatedSkills, currentExperience, currentAchievements);
+    handleSave(form.getValues('subtitle'), updatedSkills, currentExperience, currentAchievements);
     toast({ title: 'Skill Deleted' });
   };
   
@@ -395,13 +425,13 @@ export default function AdminAboutPage() {
       updatedExperience = [...currentExperience, experience];
     }
     setCurrentExperience(updatedExperience);
-    handleSave(currentSkills, updatedExperience, currentAchievements);
+    handleSave(form.getValues('subtitle'), currentSkills, updatedExperience, currentAchievements);
   };
 
   const handleExperienceDelete = (experienceId: string) => {
     const updatedExperience = currentExperience.filter(e => e.id !== experienceId);
     setCurrentExperience(updatedExperience);
-    handleSave(currentSkills, updatedExperience, currentAchievements);
+    handleSave(form.getValues('subtitle'), currentSkills, updatedExperience, currentAchievements);
     toast({ title: 'Journey Item Deleted' });
   };
 
@@ -415,13 +445,13 @@ export default function AdminAboutPage() {
       updatedAchievements = [...currentAchievements, achievement];
     }
     setCurrentAchievements(updatedAchievements);
-    handleSave(currentSkills, currentExperience, updatedAchievements);
+    handleSave(form.getValues('subtitle'), currentSkills, currentExperience, updatedAchievements);
   };
 
   const handleAchievementDelete = (achievementId: string) => {
     const updatedAchievements = currentAchievements.filter(a => a.id !== achievementId);
     setCurrentAchievements(updatedAchievements);
-    handleSave(currentSkills, currentExperience, updatedAchievements);
+    handleSave(form.getValues('subtitle'), currentSkills, currentExperience, updatedAchievements);
     toast({ title: 'Achievement Deleted' });
   };
 
@@ -434,9 +464,42 @@ export default function AdminAboutPage() {
       <div className="mb-8">
         <h1 className="text-4xl font-bold">Manage About Page</h1>
         <p className="text-muted-foreground">
-          Update your skills, professional journey, and achievements.
+          Update your bio, skills, professional journey, and achievements.
         </p>
       </div>
+
+       <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>About Page Bio</CardTitle>
+          <CardDescription>
+            This bio will be displayed on your public "About" page.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+           <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubtitleSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="subtitle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bio / Subtitle</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="A detailed paragraph about your passion, skills, and what you do."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit">Save Bio</Button>
+              </form>
+           </Form>
+        </CardContent>
+      </Card>
+
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Manage Skills */}

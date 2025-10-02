@@ -14,7 +14,7 @@ import {
 export const sidebarNavItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutGrid },
   { href: '/admin/profile', label: 'Profile', icon: UserCircle },
-  { href: '/admin/about', label: 'About Page', icon: UserCircle },
+  { href: '/admin/about', label: 'About', icon: UserCircle },
   { href: '/admin/projects', label: 'Projects', icon: Briefcase },
   { href: '/admin/stats', label: 'Stats', icon: BarChart2 },
   { href: '/admin/notifications', label: 'Notifications', icon: Bell },
