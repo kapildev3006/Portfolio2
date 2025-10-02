@@ -1,111 +1,125 @@
 /**
- * @file Firestore Security Rules
- * @version 2
+ * @fileoverview Firestore Security Rules for the Portfolio application.
  *
- * @description
- * This ruleset enforces a strict authorization model based on ownership and role-based access control.
- * It is designed to protect user data and ensure that only authorized users can access specific resources.
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for user profiles and portfolio data.
+ * Contact form submissions are publicly writeable but only readable by authenticated users.
+ * Projects are publicly readable, but only the authenticated owner can modify.
  *
  * Data Structure:
- * - `/users/{userId}`: Stores user profile information. Accessible only to the user themselves.
- * - `/portfolio/{portfolioId}`: Stores the main portfolio data. Access control is not specified.
- * - `/projects/{projectId}`: Stores individual portfolio projects. Access control is not specified.
- * - `/contactSubmissions/{submissionId}`: Stores contact form submissions from visitors.
+ * - /users/{userId}: Stores user profile information, accessible only to the owner.
+ * - /portfolio/{portfolioId}: Stores the portfolio data, accessible only to the owner.
+ * - /projects/{projectId}: Stores portfolio projects, publicly readable but owner-writable.
+ * - /contactSubmissions/{submissionId}: Stores contact form submissions, publicly writeable but readable by authenticated users.
  *
  * Key Security Decisions:
- * - User data is strictly private, accessible only to the authenticated user.
- * - Unspecified access control for `/portfolio` and `/projects`.
- * - Contact submissions are secured, and only authorized users (e.g., admins) can access them.
- * - The ruleset focuses on authorization and does not enforce strict data validation.
+ * - Users can only read and write their own profile data.
+ * - Portfolio data is private and accessible only to the owner.
+ * - Project data is publicly readable to showcase the portfolio.
+ * - Contact form submissions are publicly writeable to allow anyone to send messages, but only readable by authenticated users.
  *
- * NOTE: These rules are generated in "Prototyping Mode," prioritizing secure authorization.
- * Data shape validation is omitted to allow for rapid iteration.
+ * Denormalization for Authorization:
+ * - Projects do not currently have an ownerId field. This will need to be added to the schema to properly enforce owner-only writes.
+ *
+ * Structural Segregation:
+ * - The application uses top-level collections for both public (projects) and private (user profiles) data.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Defines a global function to check if a user is signed in.
-     * @returns {boolean} True if the user is signed in, false otherwise.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Defines a global function to check if the request is made by the owner of the document.
-     * @param {string} userId The user ID to compare against the request's authentication UID.
-     * @returns {boolean} True if the request is made by the owner, false otherwise.
-     */
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    /**
-     * @description Defines a global function to check if the request is made by the owner of an existing document.
-     * @param {string} userId The user ID to compare against the request's authentication UID.
-     * @returns {boolean} True if the request is made by the owner and the document exists, false otherwise.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * @description Rules for user profile data.
+     * @description Allows users to manage their own profile data.
      * @path /users/{userId}
-     * @allow (create) Signed-in user creates their own profile.
-     * @allow (get, update, delete) Signed-in user accesses their own profile.
-     * @deny (create) Signed-in user attempts to create a profile for another user.
-     * @deny (get, update, delete) Signed-in user attempts to access another user's profile.
-     * @principle Enforces user-ownership for profile data.
+     * @allow (create) - User with UID 'user_abc' can create their profile document at /users/user_abc.
+     * @allow (get, update, delete) - User with UID 'user_abc' can read, update, and delete their profile document at /users/user_abc.
+     * @deny (create) - User with UID 'user_xyz' cannot create a profile document at /users/user_abc.
+     * @deny (get, update, delete) - User with UID 'user_xyz' cannot read, update, or delete the profile document at /users/user_abc.
+     * @principle Enforces document ownership for user profiles.
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
-      allow list: if false;
+      allow list: if false; // Disable listing of all users.
       allow create: if isOwner(userId);
       allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Rules for main portfolio data.
+     * @description Allows users to manage their own portfolio data.
      * @path /portfolio/{portfolioId}
-     * @allow (get, list) Everyone can read portfolio data.
-     * @allow (create, update, delete) No one can modify portfolio data (explicitly denied for safety).
-     * @deny (create, update, delete) Any user tries to modify the portfolio.
-     * @principle Open read access, restricted write access.
+     * @allow (create) - User with UID 'user_abc' can create their portfolio document at /portfolio/user_abc.
+     * @allow (get, update, delete) - User with UID 'user_abc' can read, update, and delete their portfolio document at /portfolio/user_abc.
+     * @deny (create) - User with UID 'user_xyz' cannot create a portfolio document at /portfolio/user_abc.
+     * @deny (get, update, delete) - User with UID 'user_xyz' cannot read, update, or delete the portfolio document at /portfolio/user_abc.
+     * @principle Enforces document ownership for portfolio data.
      */
     match /portfolio/{portfolioId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Rules for individual portfolio projects.
-     * @path /projects/{projectId}
-     * @allow (get, list) Everyone can read project data.
-     * @allow (create, update, delete) No one can modify project data (explicitly denied for safety).
-     * @deny (create, update, delete) Any user tries to modify the project.
-     * @principle Open read access, restricted write access.
-     */
-    match /projects/{projectId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+      allow get: if isOwner(portfolioId);
+      allow list: if false; // Disable listing of all portfolios.
+      allow create: if isOwner(portfolioId);
+      allow update: if isExistingOwner(portfolioId);
+      allow delete: if isExistingOwner(portfolioId);
     }
 
      /**
-      * @description Rules for contact form submissions.
-      * @path /contactSubmissions/{submissionId}
-      * @allow (list) Any signed in user can read contact submissions.
-      * @allow (create) Any unauthenticated user can submit the form.
-      * @deny (update, delete) Any user can not update or delete contact submissions
-      * @principle Only signed-in user can view the submitted form.
+      * @description Allows anyone to read the projects, but only the owner can modify them.
+      * @path /projects/{projectId}
+      * @allow (get, list) - Any user, authenticated or not, can read the project.
+      * @allow (create) - User with UID 'user_abc' can create a project where request.resource.data.ownerId == 'user_abc'.
+      * @allow (update, delete) - User with UID 'user_abc' can update/delete a project where resource.data.ownerId == 'user_abc' and the document exists.
+      * @deny (create) - User with UID 'user_xyz' cannot create a project where request.resource.data.ownerId != 'user_xyz'.
+      * @deny (update, delete) - User with UID 'user_xyz' cannot update/delete a project where resource.data.ownerId != 'user_xyz'.
+      * @principle Public read access with owner-only writes for portfolio projects.
       */
+     match /projects/{projectId} {
+        allow get, list: if true;
+        allow create: if request.auth != null; // TODO: Add owner validation once the schema is updated with an ownership field.
+        allow update: if request.auth != null && resource != null; // TODO: Add owner validation once the schema is updated with an ownership field.
+        allow delete: if request.auth != null && resource != null; // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+    /**
+     * @description Allows anyone to create a contact form submission, but only authenticated users can view them.
+     * @path /contactSubmissions/{submissionId}
+     * @allow (create) - Any user, authenticated or not, can create a contact submission.
+     * @allow (get, list) - Only authenticated users can read contact submissions.
+     * @deny (get, list) - Unauthenticated users cannot read contact submissions.
+     * @deny (update, delete) - No one can update or delete a contact submission.
+     * @principle Public write access for contact submissions, restricted read access to authenticated users.
+     */
     match /contactSubmissions/{submissionId} {
       allow get, list: if isSignedIn();
       allow create: if true;
       allow update, delete: if false;
+    }
+
+    // --- Helper Functions ---
+
+    /**
+     * @description Checks if the request is made by the owner of the resource.
+     * @param {string} userId - The user ID to check against.
+     * @return {boolean} - True if the user is the owner, false otherwise.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the request is made by the existing owner of the resource, and that the resource exists.
+     * @param {string} userId - The user ID to check against.
+     * @return {boolean} - True if the user is the owner and the resource exists, false otherwise.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Checks if the user is signed in.
+     * @return {boolean} - True if the user is signed in, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
     }
   }
 }
