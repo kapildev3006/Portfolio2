@@ -31,6 +31,7 @@ import { deleteProject } from '@/lib/firestore-actions';
 import { useToast } from '@/hooks/use-toast';
 import { cva } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
+import type { ProjectStatus } from '@/lib/types';
 
 type AdminProjectCardProps = {
   project: ProjectType;
@@ -83,8 +84,8 @@ export default function AdminProjectCard({ project }: AdminProjectCardProps) {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover"
           />
-           <Badge className={cn(statusBadgeVariants({ status: project.status }), "absolute top-2 right-2")}>
-            {project.status.replace('-', ' ')}
+           <Badge className={cn(statusBadgeVariants({ status: project.status || 'planning' as ProjectStatus }), "absolute top-2 right-2")}>
+            {(project.status || 'planning').replace('-', ' ')}
           </Badge>
         </div>
       </CardHeader>
