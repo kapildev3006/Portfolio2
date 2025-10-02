@@ -1,136 +1,41 @@
-/**
- * @fileoverview Firestore Security Rules
- *
- * Core Philosophy:
- * This ruleset prioritizes secure data access by implementing distinct access control patterns for different data collections.
- * It focuses on verifying user identity, enforcing ownership where applicable, and restricting unauthorized data modification.
- * While data shape validation is relaxed for rapid iteration in this prototyping phase, authorization checks are strictly enforced.
- *
- * Data Structure:
- * - `/users/{userId}`: Stores user profile information. Access is restricted to the user themselves.
- * - `/portfolio/main`: Stores the main portfolio data. Access is restricted to authenticated users.
- * - `/projects/{projectId}`: Stores individual portfolio projects. Access is restricted to authenticated users.
- * - `/contactSubmissions/{submissionId}`: Stores contact form submissions from visitors.
- *   Write access restricted to adminEmail. Read access is not permitted.
- *
- * Key Security Decisions:
- * - User listing is denied to protect user privacy.
- * - The `portfolio` and `projects` collections are writable by any authenticated user.
- * - Contact submissions are only allowed from requests where request.auth.token.email is equal to the `adminEmail` stored in `/portfolio/main/settings/adminEmail`
- *
- * Denormalization for Authorization:
- * - The rules depend on `request.auth` for identity verification.
- */
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * @description Checks if the request is authenticated.
-     * @return {bool} True if the request is authenticated, false otherwise.
-     */
+    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * @description Checks if the authenticated user ID matches the provided user ID.
-     * @param {string} userId - The user ID to compare against the authenticated user ID.
-     * @return {bool} True if the authenticated user ID matches the provided user ID, false otherwise.
-     */
-    function isOwner(userId) {
-      return request.auth.uid == userId;
+    // Rules for the 'portfolio' collection
+    match /portfolio/{docId} {
+      // Anyone can read the main portfolio document
+      allow read: if true;
+      // Only authenticated users can update it
+      allow update: if isSignedIn();
     }
 
-    /**
-     * @description Checks if the authenticated user is the owner and the resource exists.
-     * @param {string} userId - The user ID to compare against the authenticated user ID.
-     * @return {bool} True if the authenticated user is the owner and the resource exists, false otherwise.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * @description Checks if the request is coming from an admin email
-     * @return {bool} True if the request is authenticated as the admin user, false otherwise.
-     */
-    function isAdminRequest() {
-      return request.auth.token.email == get(/databases/$(database)/documents/portfolio/main).data.settings.adminEmail;
-    }
-
-    /**
-     * @description Rules for the /users/{userId} collection.
-     * @path /users/{userId}
-     * @allow (create) User with ID 'user123' can create their own profile.
-     * @allow (get) User with ID 'user123' can read their own profile.
-     * @allow (update) User with ID 'user123' can update their own profile.
-     * @allow (delete) User with ID 'user123' can delete their own profile.
-     * @deny (create) User with ID 'user123' cannot create another user's profile.
-     * @deny (get) User with ID 'user123' cannot read another user's profile.
-     * @deny (update) User with ID 'user123' cannot update another user's profile.
-     * @deny (delete) User with ID 'user123' cannot delete another user's profile.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
-     */
-    match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Rules for the /portfolio/main document.
-     * @path /portfolio/main
-     * @allow (get) Any user can read the portfolio.
-     * @allow (update) Any authenticated user can update the portfolio.
-     * @deny (create) No one can create a portfolio document (it should be pre-existing).
-     * @deny (delete) No one can delete the portfolio document.
-     * @principle Allows public read access but requires authentication for writes.
-     */
-    match /portfolio/{portfolioId} {
-        allow get: if true;
-        allow list: if false;
-        allow create: if false;
-        allow update: if isSignedIn();
-        allow delete: if false;
-    }
-
-    /**
-     * @description Rules for the /projects/{projectId} collection.
-     * @path /projects/{projectId}
-     * @allow (get) Any user can read a project.
-     * @allow (list) Any user can list projects.
-     * @allow (create) Any authenticated user can create a project.
-     * @allow (update) Any authenticated user can update a project.
-     * @allow (delete) Any authenticated user can delete a project.
-     * @principle Allows public read access with authenticated writes.
-     */
+    // Rules for the 'projects' collection
     match /projects/{projectId} {
+      // Anyone can read individual projects
       allow get: if true;
-      allow list: if true;
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && resource != null;
-      allow delete: if isSignedIn() && resource != null;
+      // Authenticated users can list, create, update, and delete projects
+      allow list, create, update, delete: if isSignedIn();
+    }
+    
+    // Rules for the 'contactSubmissions' collection
+    match /contactSubmissions/{submissionId} {
+      // Anyone can create a contact submission (for the public contact form)
+      allow create: if true;
+      // Authenticated users can read, update, delete, and list submissions
+      allow read, update, delete, list: if isSignedIn();
     }
 
-    /**
-     * @description Rules for the /contactSubmissions/{submissionId} collection.
-     * @path /contactSubmissions/{submissionId}
-     * @allow (create) Create a new submission as an admin.
-     * @deny (get) No one can read the contact submissions.
-     * @deny (list) No one can list the contact submissions.
-     * @deny (update) No one can update the contact submissions.
-     * @deny (delete) No one can delete the contact submissions.
-     * @principle Only admin can create a contact submission. No one can read, list, update, or delete submissions.
-     */
-    match /contactSubmissions/{submissionId} {
-      allow get: if false;
-      allow list: if false;
-      allow create: if isAdminRequest();
-      allow update: if false;
-      allow delete: if false;
+    // Rules for the 'users' collection
+    match /users/{userId} {
+      // Users can only read their own profile information
+      allow read: if isSignedIn() && request.auth.uid == userId;
     }
   }
 }
