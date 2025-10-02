@@ -116,7 +116,15 @@ export default function ProjectForm({ project, onClose }: { project?: ProjectTyp
 
   const form = useForm<z.infer<typeof projectFormSchema>>({
     resolver: zodResolver(projectFormSchema),
-    defaultValues: {
+    defaultValues: isEditMode && project ? {
+        title: project.title,
+        description: project.description,
+        techstack: project.tags.join(', '),
+        liveUrl: project.liveUrl,
+        sourceUrl: project.sourceUrl,
+        imageUrl: project.imageUrl,
+        status: project.status,
+      } : {
       title: '',
       description: '',
       techstack: '',
