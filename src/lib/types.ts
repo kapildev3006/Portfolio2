@@ -24,6 +24,7 @@ export type Project = {
   imageHint: string;
   liveUrl?: string;
   sourceUrl?: string;
+  createdAt?: any; // Using `any` for Firebase Timestamp flexibility
 };
 
 export type Service = {

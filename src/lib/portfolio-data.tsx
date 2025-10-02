@@ -2,7 +2,7 @@
 
 import type { PortfolioData, SkillCategory, Experience, Achievement, Project } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { doc, getDoc, getDocs, collection, query, orderBy } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -79,35 +79,11 @@ const defaultData: PortfolioData = {
   }
 };
 
-async function getProjects(): Promise<Project[]> {
-  try {
-    const projectsCollection = collection(db, 'projects');
-    const q = query(projectsCollection, orderBy('createdAt', 'desc'));
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) {
-      return defaultData.projects;
-    }
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
-  } catch (error) {
-     if ((error as any).code === 'permission-denied') {
-        const permissionError = new FirestorePermissionError({
-            path: 'projects',
-            operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    } else {
-        console.error("Error fetching projects: ", error);
-    }
-    return defaultData.projects;
-  }
-}
-
-
+// This function will NO LONGER fetch projects. Projects are now streamed in PortfolioDataProvider.
 export async function getPortfolioData(): Promise<PortfolioData> {
     const portfolioDocRef = doc(db, 'portfolio', 'main');
     try {
         const docSnap = await getDoc(portfolioDocRef);
-        const projects = await getProjects();
 
         if (docSnap.exists()) {
             const dbData = docSnap.data();
@@ -143,14 +119,15 @@ export async function getPortfolioData(): Promise<PortfolioData> {
                     github: dbData.socials?.github || defaultData.socials.github,
                     twitter: dbData.socials?.twitter || defaultData.socials.twitter,
                 },
-                projects: projects,
+                // Return default/empty projects. The real data is streamed by the provider.
+                projects: defaultData.projects, 
                 services: defaultData.services,
                 testimonials: defaultData.testimonials,
                 settings: dbData.settings,
             };
         } else {
             console.log("No such document! Returning default data.");
-            return {...defaultData, projects: await getProjects()};
+            return defaultData;
         }
     } catch (error) {
         if ((error as any).code === 'permission-denied') {
@@ -162,6 +139,6 @@ export async function getPortfolioData(): Promise<PortfolioData> {
         } else {
             console.error("Error fetching portfolio data: ", error);
         }
-        return {...defaultData, projects: await getProjects()};
+        return defaultData;
     }
 }

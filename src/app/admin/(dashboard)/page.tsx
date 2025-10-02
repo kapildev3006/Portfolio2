@@ -6,12 +6,9 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-  ArrowUpRight,
-  Briefcase,
   DollarSign,
   MessageSquare,
   Users,
@@ -21,7 +18,6 @@ import Link from 'next/link';
 import { useContext } from 'react';
 import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
 import { Skeleton } from '@/components/ui/skeleton';
-import useProjects from '@/hooks/use-projects';
 import useContactSubmissions from '@/hooks/use-contact-submissions';
 import {
   Table,
@@ -80,12 +76,11 @@ function DashboardSkeleton() {
 
 export default function AdminDashboardPage() {
   const { portfolioData, loading: portfolioLoading } = useContext(PortfolioDataContext);
-  const { projects, loading: projectsLoading } = useProjects();
   const { submissions, loading: submissionsLoading } = useContactSubmissions();
 
-  const loading = portfolioLoading || projectsLoading || submissionsLoading;
+  const loading = portfolioLoading || submissionsLoading;
   
-  const totalProjects = projects.length;
+  const totalProjects = portfolioData?.projects?.length || 0;
   const newMessagesCount = submissions.filter(s => !s.isRead).length;
 
   const recentProjects = [
@@ -241,5 +236,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
-    

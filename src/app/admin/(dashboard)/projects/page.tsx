@@ -16,9 +16,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import ProjectForm from '@/components/admin/add-project-form';
-import useProjects from '@/hooks/use-projects';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
+import type { Project } from '@/lib/types';
 
 const ProjectSkeleton = () => (
   <Card className="flex h-full transform flex-col overflow-hidden bg-card">
@@ -37,8 +38,12 @@ const ProjectSkeleton = () => (
 );
 
 export default function AdminProjectsPage() {
-  const { projects, loading, error } = useProjects();
+  const { portfolioData, loading } = useContext(PortfolioDataContext);
   const [dialogOpen, setDialogOpen] = useState(false);
+  
+  // For now, no error state is passed from the new provider, so we can consider it null
+  const error = null; 
+  const projects = portfolioData?.projects || [];
 
   return (
     <div className="flex-1 bg-background p-8 text-foreground">
@@ -112,7 +117,7 @@ export default function AdminProjectsPage() {
             <ProjectSkeleton />
           </>
         ) : (
-          projects.map((project) => (
+          projects.map((project: Project) => (
             <AdminProjectCard key={project.id} project={project} />
           ))
         )}

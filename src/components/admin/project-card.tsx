@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CalendarDays, Edit, Trash2 } from 'lucide-react';
-import type { Project as ProjectType } from '@/hooks/use-projects';
+import type { Project as ProjectType } from '@/lib/types';
 import { format } from 'date-fns';
 import {
   Dialog,
