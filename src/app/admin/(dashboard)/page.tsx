@@ -105,6 +105,7 @@ export default function AdminDashboardPage() {
   const newMessagesCount = submissions.filter(s => !s.isRead).length;
 
   const recentProjects = portfolioData?.projects?.slice(0, 2) || [];
+  const recentSubmissions = submissions.slice(0, 3);
   const lastUpdatedDate = new Date();
 
   const getStatusPercentage = (status: ProjectStatus | undefined) => {
