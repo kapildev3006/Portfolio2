@@ -37,20 +37,6 @@ export function PortfolioDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (authLoading) {
-      setLoading(true);
-      return; // Wait until auth state is resolved.
-    }
-    
-    // This provider now only fetches data if a user is authenticated.
-    // Public pages should rely on a simpler data fetching mechanism if needed,
-    // or be wrapped in this provider on a page-by-page basis.
-    if (!user) {
-        setLoading(false); // Not an admin, stop loading.
-        return;
-    }
-
-    // User is authenticated, proceed with fetching all data.
     setLoading(true);
     const projectsQuery = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
 
@@ -71,35 +57,43 @@ export function PortfolioDataProvider({ children }: { children: ReactNode }) {
         setLoading(false);
     }, (err) => {
         console.error("Error fetching projects snapshot:", err);
+        // For public users, we can still show base data without projects
+        fetchBaseData().then(baseData => {
+            if (baseData) {
+                setPortfolioData({
+                    ...baseData,
+                    projects: [], // Projects failed to load
+                });
+            }
+        });
         setLoading(false);
     });
 
     return () => {
       unsubscribeProjects();
     };
-  }, [user, authLoading, fetchBaseData]);
+  }, [fetchBaseData]);
+
 
   const refreshPortfolioData = useCallback(async () => {
-    if (user) {
-        setLoading(true);
-        const baseData = await fetchBaseData();
-        if (baseData) {
-            // This assumes projects are still being listened to by the snapshot listener.
-            // We just merge the refreshed base data.
-            setPortfolioData(currentData => ({
-                ...(currentData || {}),
-                ...baseData,
-                projects: currentData?.projects || []
-            } as PortfolioData));
-        }
-        setLoading(false);
+    setLoading(true);
+    const baseData = await fetchBaseData();
+    if (baseData) {
+        // This assumes projects are still being listened to by the snapshot listener.
+        // We just merge the refreshed base data.
+        setPortfolioData(currentData => ({
+            ...(currentData || {}),
+            ...baseData,
+            projects: currentData?.projects || []
+        } as PortfolioData));
     }
-  }, [fetchBaseData, user]);
+    setLoading(false);
+  }, [fetchBaseData]);
 
 
   return (
     <PortfolioDataContext.Provider value={{ portfolioData, loading, refreshPortfolioData }}>
-      {process.env.NODE_ENV === 'development' && <FirebaseErrorListener />}
+      {process.env.NODE_ENV === 'development' && user && <FirebaseErrorListener />}
       {children}
     </PortfolioDataContext.Provider>
   );
