@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/toaster"
 import './globals.css';
 import ScrollToTop from '@/components/scroll-to-top';
 import { ThemeProvider } from '@/components/theme-provider';
+import { PortfolioDataProvider } from '@/context/PortfolioDataProvider';
 
 export const metadata: Metadata = {
   title: 'Portfolio',
@@ -31,7 +32,9 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            {children}
+            <PortfolioDataProvider>
+              {children}
+            </PortfolioDataProvider>
             <Toaster />
             <ScrollToTop />
           </ThemeProvider>
