@@ -24,9 +24,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload } from 'lucide-react';
+import { Camera, Upload, FileText, Eye, RefreshCw, Download } from 'lucide-react';
 import React, { useEffect, useContext } from 'react';
-import { uploadImage, uploadFile } from '@/actions/server-actions';
+import { uploadImageToCloudinary, uploadResumeToCloudinary } from '@/actions/upload-actions';
 import { saveProfileData } from '@/lib/firestore-actions';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
@@ -47,20 +47,47 @@ const profileSchema = z.object({
   twitter: z.string().url('Invalid URL').optional().or(z.literal('')),
   imageUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
   resumeUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+  resumeFileName: z.string().optional(),
 });
 
-const ResumeUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => void; currentUrl?: string }) => {
+const ResumeUploader = ({ 
+  onUpload, 
+  currentUrl, 
+  currentFileName 
+}: { 
+  onUpload: (url: string, fileName: string) => void; 
+  currentUrl?: string;
+  currentFileName?: string;
+}) => {
     const [isUploading, setIsUploading] = React.useState(false);
+    const [showUploader, setShowUploader] = React.useState(!currentUrl);
     const { toast } = useToast();
+
+    React.useEffect(() => {
+      if (currentUrl) {
+        setShowUploader(false);
+      }
+    }, [currentUrl]);
 
     const onDrop = React.useCallback(async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
       if (!file) return;
 
+      // Client-side validation
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        toast({
+          title: 'File Too Large',
+          description: `Please select a PDF smaller than ${maxSize / 1024 / 1024}MB. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
       if (file.type !== 'application/pdf') {
           toast({
               title: 'Invalid File Type',
-              description: 'Please upload a PDF file.',
+              description: 'Please upload a PDF file only.',
               variant: 'destructive',
           });
           return;
@@ -71,31 +98,76 @@ const ResumeUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => v
       formData.append('file', file);
 
       try {
-        const result = await uploadFile(formData);
+        console.log('📄 Starting resume upload...');
+        const result = await uploadResumeToCloudinary(formData);
+        console.log('📥 Resume upload result:', result);
 
         if (result.success && result.fileUrl) {
-            onUpload(result.fileUrl);
+            onUpload(result.fileUrl, result.originalFileName || 'resume.pdf');
+            setShowUploader(false);
             toast({
-                title: 'Resume Uploaded!',
-                description: 'Your resume has been successfully updated.',
+                title: 'Success!',
+                description: result.message,
             });
+            console.log('✅ Resume URL set:', result.fileUrl);
+            console.log('✅ Original filename:', result.originalFileName);
         } else {
             toast({
                 title: 'Upload Failed',
                 description: result.message,
                 variant: 'destructive',
             });
+            console.log('❌ Resume upload failed:', result.message);
         }
       } catch (error) {
+        console.error('💥 Client error during resume upload:', error);
         toast({
-            title: 'Upload Failed',
-            description: 'An unexpected error occurred.',
+            title: 'Network Error',
+            description: `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
             variant: 'destructive',
         });
       } finally {
         setIsUploading(false);
       }
     }, [onUpload, toast]);
+
+    const handleDownload = React.useCallback(async () => {
+      if (currentUrl && currentFileName) {
+        try {
+          // Force download by fetching the file and creating a blob
+          const response = await fetch(currentUrl);
+          if (!response.ok) throw new Error('Failed to fetch file');
+          
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          
+          // Create download link with original filename
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = currentFileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Clean up the blob URL
+          window.URL.revokeObjectURL(url);
+          
+          toast({
+            title: 'Download Started',
+            description: `Downloading ${currentFileName}...`,
+          });
+        } catch (error) {
+          console.error('Download failed:', error);
+          toast({
+            title: 'Download Failed',
+            description: 'Could not download the file. Opening in new tab instead.',
+            variant: 'destructive',
+          });
+          // Fallback: open in new tab
+          window.open(currentUrl, '_blank');
+        }
+      }
+    }, [currentUrl, currentFileName, toast]);
     
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
       onDrop,
@@ -103,29 +175,101 @@ const ResumeUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => v
       accept: { 'application/pdf': ['.pdf'] },
     });
 
+    // Show current resume when available
+    if (currentUrl && !showUploader && !isUploading) {
+      return (
+        <div className="space-y-4">
+          {/* Current Resume Display */}
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-green-50 border-green-200">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-green-100 rounded-full">
+                <FileText className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="font-medium text-green-800">Resume Uploaded</p>
+                <p className="text-sm text-green-600">
+                  {currentFileName || 'Your current resume is ready to view'}
+                </p>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleDownload}
+                className="border-green-200 text-green-700 hover:bg-green-50"
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Download
+              </Button>
+              <Button 
+                asChild 
+                variant="outline" 
+                size="sm"
+                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+              >
+                <a href={currentUrl?.includes('/raw/') ? `https://docs.google.com/viewer?url=${encodeURIComponent(currentUrl)}` : currentUrl} target="_blank" rel="noopener noreferrer">
+                  <Eye className="w-4 h-4 mr-1" />
+                  Preview
+                </a>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowUploader(true)}
+                className="border-orange-200 text-orange-700 hover:bg-orange-50"
+              >
+                <RefreshCw className="w-4 h-4 mr-1" />
+                Change
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Show uploader (either no current resume or user wants to change)
     return (
-      <div 
-        {...getRootProps()} 
-        className={cn(
-          "flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer text-muted-foreground",
-          isDragActive ? "border-primary bg-primary/10" : "border-input"
-        )}
-      >
-        <input {...getInputProps()} />
-        <Upload className="w-10 h-10 mb-2" />
-        {isUploading ? (
-          <p>Uploading...</p>
-        ) : isDragActive ? (
-          <p>Drop the file here...</p>
-        ) : (
-          <p>Drag 'n' drop your resume here, or click to select a file</p>
-        )}
-        <p className="text-xs mt-1">(PDF format only)</p>
-        {currentUrl && !isUploading && (
-            <Button asChild variant="link" className="mt-2" onClick={(e) => e.stopPropagation()}>
-                <a href={currentUrl} target="_blank" rel="noopener noreferrer">View Current Resume</a>
+      <div className="space-y-4">
+        {currentUrl && (
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>Uploading a new resume will replace the current one</span>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setShowUploader(false)}
+            >
+              Cancel
             </Button>
+          </div>
         )}
+        
+        <div 
+          {...getRootProps()} 
+          className={cn(
+            "flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer text-muted-foreground transition-colors",
+            isDragActive ? "border-primary bg-primary/10" : "border-input hover:border-primary/50"
+          )}
+        >
+          <input {...getInputProps()} />
+          <Upload className="w-10 h-10 mb-2" />
+          {isUploading ? (
+            <div className="text-center">
+              <p className="font-medium">Uploading...</p>
+              <p className="text-xs mt-1">Please wait while we upload your resume</p>
+            </div>
+          ) : isDragActive ? (
+            <p className="font-medium">Drop the PDF file here...</p>
+          ) : (
+            <div className="text-center">
+              <p className="font-medium">
+                {currentUrl ? 'Upload New Resume' : 'Upload Your Resume'}
+              </p>
+              <p className="text-sm mt-1">Drag & drop your resume here, or click to browse</p>
+            </div>
+          )}
+          <p className="text-xs mt-2 px-3 py-1 bg-muted rounded-full">(PDF format only, max 10MB)</p>
+        </div>
       </div>
     );
 };
@@ -215,6 +359,7 @@ export default function AdminProfilePage() {
         subtitle: portfolioData.hero?.subtitle || '',
         imageUrl: portfolioData.hero?.imageUrl || '',
         resumeUrl: portfolioData.hero?.resumeUrl || '',
+        resumeFileName: portfolioData.hero?.resumeFileName || '',
         email: portfolioData.contact?.email || '',
         phone: portfolioData.contact?.phone || '',
         location: portfolioData.contact?.location || '',
@@ -230,26 +375,60 @@ export default function AdminProfilePage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Client-side file validation
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: 'File Too Large',
+        description: `Please select an image smaller than ${maxSize / 1024 / 1024}MB. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid File Type',
+        description: 'Please select a valid image file (JPG, PNG, GIF, WebP).',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsUploading(true);
     const formData = new FormData();
     formData.append('image', file);
 
-    const result = await uploadImage(formData);
+    try {
+      console.log('🚀 Starting image upload...');
+      const result = await uploadImageToCloudinary(formData);
+      console.log('📥 Upload result:', result);
 
-    if (result.success && result.imageUrl) {
-      form.setValue('imageUrl', result.imageUrl);
+      if (result.success && result.imageUrl) {
+        form.setValue('imageUrl', result.imageUrl);
+        toast({
+          title: 'Success!',
+          description: result.message,
+        });
+        console.log('✅ Image URL set:', result.imageUrl);
+      } else {
+        toast({
+          title: 'Upload Failed',
+          description: result.message,
+          variant: 'destructive',
+        });
+        console.log('❌ Upload failed:', result.message);
+      }
+    } catch (error) {
+      console.error('💥 Client error during upload:', error);
       toast({
-        title: 'Image Uploaded!',
-        description: 'Your profile picture has been updated.',
-      });
-    } else {
-      toast({
-        title: 'Upload Failed',
-        description: result.message,
+        title: 'Network Error',
+        description: `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
+    } finally {
+      setIsUploading(false);
     }
-    setIsUploading(false);
   };
 
   const onSubmit = async (values: z.infer<typeof profileSchema>) => {
@@ -433,8 +612,12 @@ export default function AdminProfilePage() {
                     <FormItem>
                       <FormControl>
                          <ResumeUploader 
-                            onUpload={(url) => field.onChange(url)}
+                            onUpload={(url, fileName) => {
+                              field.onChange(url);
+                              form.setValue('resumeFileName', fileName);
+                            }}
                             currentUrl={field.value}
+                            currentFileName={form.watch('resumeFileName')}
                          />
                       </FormControl>
                       <FormMessage />

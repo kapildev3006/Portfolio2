@@ -96,6 +96,7 @@ export type PortfolioData = {
     imageUrl: string;
     imageHint: string;
     resumeUrl: string;
+    resumeFileName?: string;
   };
   about: {
     subtitle: string;

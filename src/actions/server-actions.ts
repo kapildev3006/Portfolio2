@@ -36,18 +36,61 @@ export async function submitContactForm(prevState: any, formData: FormData) {
 
 
 export async function uploadImage(formData: FormData) {
+  console.log('Upload image function called');
+  
   const file = formData.get('image') as File;
   if (!file) {
+    console.log('No file provided');
     return {
       message: 'No image file provided.',
       success: false,
     };
   }
   
+  console.log('File details:', { name: file.name, size: file.size, type: file.type });
+  
+  // Check file size (limit to 10MB)
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    console.log('File too large:', file.size);
+    return {
+      message: `File too large. Please use an image smaller than ${maxSize / 1024 / 1024}MB.`,
+      success: false,
+    };
+  }
+  
+  // Check file type
+  if (!file.type.startsWith('image/')) {
+    console.log('Invalid file type:', file.type);
+    return {
+      message: 'Please upload a valid image file (PNG, JPG, JPEG, GIF, WebP).',
+      success: false,
+    };
+  }
+  
+  // Check environment variables
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  
+  console.log('Environment check:', { 
+    cloudName: !!cloudName, 
+    apiKey: !!apiKey, 
+    apiSecret: !!apiSecret 
+  });
+  
+  if (!cloudName || !apiKey || !apiSecret) {
+    console.error('Missing Cloudinary credentials');
+    return {
+      message: 'Server configuration error: Missing Cloudinary credentials.',
+      success: false,
+    };
+  }
+  
   cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
   });
 
   try {
@@ -56,8 +99,12 @@ export async function uploadImage(formData: FormData) {
 
     const results = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload_stream({
-        // Optionally, you can add upload presets, tags, etc.
-        // folder: "portfolio_profiles",
+        folder: "portfolio_profiles",
+        transformation: [
+          { width: 400, height: 400, crop: "fill", gravity: "face" },
+          { quality: "auto", fetch_format: "auto" }
+        ],
+        tags: ["profile", "portfolio"]
       }, (error, result) => {
         if (error) {
           reject(error);
@@ -75,7 +122,7 @@ export async function uploadImage(formData: FormData) {
   } catch (error) {
     console.error('Error uploading image:', error);
     return {
-      message: 'Failed to upload image.',
+      message: 'Failed to upload image: ' + (error as Error).message,
       success: false,
     };
   }

@@ -69,10 +69,10 @@ export default function Hero() {
                 <Link href="/projects">View My Work</Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="w-full md:w-auto">
-                <Link href={hero.resumeUrl} target="_blank" rel="noopener noreferrer">
+                <a href={hero.resumeUrl?.includes('/image/upload/') ? hero.resumeUrl.replace('/image/upload/', '/image/upload/fl_attachment/') : hero.resumeUrl} target="_blank" rel="noopener noreferrer">
                   <Download className="mr-2 h-4 w-4" />
                   Download CV
-                </Link>
+                </a>
               </Button>
           </AnimatedDiv>
           <AnimatedDiv className="flex justify-center md:justify-start gap-4 mt-6">
