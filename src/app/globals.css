@@ -8,7 +8,7 @@
   }
   
   :root {
-    --background: 0 0% 100%;
+    --background: 210 30% 96%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -38,7 +38,7 @@
   }
 
   .dark {
-    --background: 222 83% 6%;
+    --background: 222 53% 6%;
     --foreground: 210 40% 98%;
     --card: 222 83% 10%;
     --card-foreground: 210 40% 98%;
@@ -71,9 +71,9 @@
   
   body:not(.admin-body) {
     background-color: hsl(var(--background));
-    background-image: radial-gradient(at 20% 20%, hsla(222, 70%, 95%, 0.3) 0px, transparent 50%),
-                      radial-gradient(at 80% 20%, hsla(217, 80%, 90%, 0.2) 0px, transparent 50%),
-                      radial-gradient(at 80% 80%, hsla(260, 80%, 95%, 0.2) 0px, transparent 50%);
+    background-image: radial-gradient(at 0% 0%, hsla(210, 100%, 90%, 0.5) 0px, transparent 50%),
+                      radial-gradient(at 100% 0%, hsla(230, 100%, 90%, 0.4) 0px, transparent 50%),
+                      radial-gradient(at 50% 100%, hsla(280, 100%, 90%, 0.3) 0px, transparent 50%);
   }
 }
 
