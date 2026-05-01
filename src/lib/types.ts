@@ -28,6 +28,7 @@ export type Project = {
   sourceUrl?: string;
   createdAt?: any; // Using `any` for Firebase Timestamp flexibility
   status: ProjectStatus;
+  isVisible?: boolean;
 };
 
 export type Service = {
@@ -47,6 +48,8 @@ export type SkillCategory = {
   title: string;
   skills: string;
   icon: React.ReactNode;
+  order?: number;
+  isVisible?: boolean;
 }
 
 export type Experience = {
@@ -56,6 +59,8 @@ export type Experience = {
   period: string;
   description: string;
   icon: React.ReactNode;
+  order?: number;
+  isVisible?: boolean;
 }
 
 export type Achievement = {
@@ -64,6 +69,30 @@ export type Achievement = {
   description: string;
   date: string;
   icon?: React.ReactNode;
+  order?: number;
+  certificateUrl?: string;
+  certificateName?: string;
+  allowDownload?: boolean;
+  allowView?: boolean;
+  isVisible?: boolean;
+}
+
+export type EducationItem = {
+  id: string;
+  degree: string;
+  school: string;
+  period: string;
+  description?: string;
+  order?: number;
+  isVisible?: boolean;
+}
+
+export type CustomSection = {
+  id: string;
+  title: string;
+  content: string;
+  order: number;
+  isVisible?: boolean;
 }
 
 export type ContactSubmission = {
@@ -97,16 +126,41 @@ export type PortfolioData = {
     imageHint: string;
     resumeUrl: string;
     resumeFileName?: string;
+    isResumeVisible?: boolean;
+    isImageVisible?: boolean;
   };
   about: {
     subtitle: string;
+    bio: string;
     skills: Omit<SkillCategory, 'icon'>[];
     experience: Omit<Experience, 'icon'>[];
+    education: EducationItem[];
+    headings?: {
+      skills?: string;
+      experience?: string;
+      education?: string;
+      bio?: string;
+    };
+    visibility?: {
+      skills: boolean;
+      experience: boolean;
+      education: boolean;
+      bio: boolean;
+      achievements: boolean;
+    };
+    sectionOrder?: {
+      bio: number;
+      skills: number;
+      experience: number;
+      education: number;
+      achievements: number;
+    };
   };
   achievements: Omit<Achievement, 'icon'>[];
   projects: Project[];
   services: Service[];
   testimonials: Testimonial[];
+  customSections?: CustomSection[];
   contact: {
     email: string;
     phone?: string;

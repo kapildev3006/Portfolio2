@@ -19,6 +19,8 @@ import Image from 'next/image';
 import type { Project as ProjectType, ProjectStatus } from '@/lib/types';
 import { projectStatusEnum } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Switch } from '../ui/switch';
+import { Label } from '../ui/label';
 
 const projectFormSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
@@ -28,6 +30,7 @@ const projectFormSchema = z.object({
   sourceUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
   imageUrl: z.string().url({ message: 'Please upload an image.' }).min(1, 'Please upload an image.'),
   status: projectStatusEnum,
+  isVisible: z.boolean().default(true),
 });
 
 const ImageUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => void; currentUrl?: string }) => {
@@ -124,6 +127,7 @@ export default function ProjectForm({ project, onClose }: { project?: ProjectTyp
         sourceUrl: project.sourceUrl,
         imageUrl: project.imageUrl,
         status: project.status,
+        isVisible: project.isVisible ?? true,
       } : {
       title: '',
       description: '',
@@ -132,6 +136,7 @@ export default function ProjectForm({ project, onClose }: { project?: ProjectTyp
       sourceUrl: '',
       imageUrl: '',
       status: 'planning',
+      isVisible: true,
     },
   });
 
@@ -145,6 +150,7 @@ export default function ProjectForm({ project, onClose }: { project?: ProjectTyp
         sourceUrl: project.sourceUrl,
         imageUrl: project.imageUrl,
         status: project.status,
+        isVisible: project.isVisible ?? true,
       });
     }
   }, [isEditMode, project, form]);
@@ -215,6 +221,26 @@ export default function ProjectForm({ project, onClose }: { project?: ProjectTyp
                   </SelectContent>
                 </Select>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="isVisible"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
+                <div className="space-y-0.5">
+                  <FormLabel>Public Visibility</FormLabel>
+                  <p className="text-[10px] text-muted-foreground">
+                    Show on public website.
+                  </p>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
               </FormItem>
             )}
           />

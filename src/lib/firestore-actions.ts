@@ -22,6 +22,8 @@ const profileSchema = z.object({
   twitter: z.string().url('Invalid URL').optional().or(z.literal('')),
   imageUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
   resumeUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+  isResumeVisible: z.boolean().optional(),
+  isImageVisible: z.boolean().optional(),
 });
 
 
@@ -38,6 +40,8 @@ export async function saveProfileData(data: z.infer<typeof profileSchema>) {
                 subtitle: validatedData.subtitle,
                 imageUrl: validatedData.imageUrl,
                 resumeUrl: validatedData.resumeUrl,
+                isResumeVisible: validatedData.isResumeVisible,
+                isImageVisible: validatedData.isImageVisible,
             },
             contact: {
                 email: validatedData.email,
@@ -87,6 +91,7 @@ const projectFormSchema = z.object({
   sourceUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
   imageUrl: z.string().url({ message: 'Please upload an image.' }).min(1, 'Please upload an image.'),
   status: projectStatusEnum,
+  isVisible: z.boolean().optional(),
 });
 
 
@@ -202,6 +207,7 @@ export async function deleteProject(id: string): Promise<{success: boolean, mess
 
 const aboutSchema = z.object({
   subtitle: z.string(),
+  bio: z.string().optional(),
   skills: z.array(z.object({
     id: z.string(),
     title: z.string(),
@@ -213,20 +219,65 @@ const aboutSchema = z.object({
     company: z.string(),
     period: z.string(),
     description: z.string(),
+    order: z.number().optional(),
   })),
+  education: z.array(z.object({
+    id: z.string(),
+    degree: z.string(),
+    school: z.string(),
+    period: z.string(),
+    description: z.string().optional(),
+    order: z.number().optional(),
+  })).optional(),
   achievements: z.array(z.object({
     id: z.string(),
     title: z.string(),
     description: z.string(),
     date: z.string(),
+    order: z.number().optional(),
+    certificateUrl: z.string().optional(),
+    certificateName: z.string().optional(),
+    allowDownload: z.boolean().optional(),
+    allowView: z.boolean().optional(),
   })),
+  headings: z.object({
+    skills: z.string().optional(),
+    experience: z.string().optional(),
+    education: z.string().optional(),
+    bio: z.string().optional(),
+  }).optional(),
+  visibility: z.object({
+    skills: z.boolean().default(true),
+    experience: z.boolean().default(true),
+    education: z.boolean().default(true),
+    bio: z.boolean().default(true),
+    achievements: z.boolean().default(true),
+  }).optional(),
+  sectionOrder: z.object({
+    bio: z.number().default(1),
+    skills: z.number().default(2),
+    experience: z.number().default(3),
+    education: z.number().default(4),
+    achievements: z.number().default(5),
+  }).optional(),
+  customSections: z.array(z.object({
+    id: z.string(),
+    title: z.string(),
+    content: z.string(),
+    order: z.number(),
+  })).optional(),
 });
 
 export async function saveAboutData(data: { 
   subtitle: string,
+  bio?: string,
   skills: Omit<SkillCategory, 'icon'>[], 
   experience: Omit<Experience, 'icon'>[],
-  achievements: Omit<Achievement, 'icon'>[] 
+  education?: any[],
+  achievements: Omit<Achievement, 'icon'>[],
+  headings?: any,
+  visibility?: any,
+  customSections?: any[]
 }) {
     try {
         const validatedData = aboutSchema.parse(data);
@@ -235,10 +286,28 @@ export async function saveAboutData(data: {
         const dataToSave = {
             about: {
                 subtitle: validatedData.subtitle,
+                bio: validatedData.bio || '',
                 skills: validatedData.skills,
                 experience: validatedData.experience,
+                education: validatedData.education || [],
+                headings: validatedData.headings || {},
+                visibility: validatedData.visibility || {
+                    skills: true,
+                    experience: true,
+                    education: true,
+                    bio: true,
+                    achievements: true,
+                },
+                sectionOrder: validatedData.sectionOrder || {
+                    bio: 1,
+                    skills: 2,
+                    experience: 3,
+                    education: 4,
+                    achievements: 5,
+                },
             },
             achievements: validatedData.achievements,
+            customSections: validatedData.customSections || [],
         };
 
         await setDoc(portfolioDocRef, dataToSave, { merge: true }).catch((serverError) => {

@@ -5,7 +5,7 @@ import { createContext, useState, useEffect, ReactNode, useCallback } from 'reac
 import type { PortfolioData, Project } from '@/lib/types';
 import { getPortfolioData } from '@/lib/portfolio-data';
 import FirebaseErrorListener from '@/components/FirebaseErrorListener';
-import { onSnapshot, collection, query, orderBy } from 'firebase/firestore';
+import { onSnapshot, collection, query, orderBy, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import useAuth from '@/hooks/use-auth';
 
@@ -40,37 +40,42 @@ export function PortfolioDataProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     const projectsQuery = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
 
-    const unsubscribeProjects = onSnapshot(projectsQuery, async (snapshot) => {
-        const baseData = await fetchBaseData();
-        if (!baseData) {
-            setLoading(false);
-            return;
-        }
-
+    const unsubscribeProjects = onSnapshot(projectsQuery, (snapshot) => {
         const projectsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
-        
-        setPortfolioData({
-            ...baseData,
-            projects: projectsData,
-        });
-
-        setLoading(false);
+        setPortfolioData(current => ({
+            ...(current || {
+                hero: {} as any,
+                about: { subtitle: '', skills: [], experience: [] },
+                achievements: [],
+                contact: { email: '', phone: '', location: '' },
+                socials: { linkedin: '', github: '', twitter: '' },
+                services: [],
+                testimonials: [],
+            }),
+            projects: projectsData
+        } as PortfolioData));
     }, (err) => {
         console.error("Error fetching projects snapshot:", err);
-        // For public users, we can still show base data without projects
-        fetchBaseData().then(baseData => {
-            if (baseData) {
-                setPortfolioData({
-                    ...baseData,
-                    projects: [], // Projects failed to load
-                });
-            }
-        });
+    });
+
+    const unsubscribeBase = onSnapshot(doc(db, 'portfolio', 'main'), async (snapshot) => {
+        const baseData = await fetchBaseData();
+        if (baseData) {
+            setPortfolioData(current => ({
+                ...(current || { projects: [] }),
+                ...baseData,
+                projects: current?.projects || []
+            } as PortfolioData));
+        }
+        setLoading(false);
+    }, (err) => {
+        console.error("Error fetching base snapshot:", err);
         setLoading(false);
     });
 
     return () => {
       unsubscribeProjects();
+      unsubscribeBase();
     };
   }, [fetchBaseData]);
 

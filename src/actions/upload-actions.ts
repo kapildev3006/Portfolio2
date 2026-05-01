@@ -289,3 +289,50 @@ export async function downloadFileWithOriginalName(fileUrl: string, fileName: st
     };
   }
 }
+
+export async function uploadCertificateToCloudinary(formData: FormData) {
+  try {
+    const file = formData.get('file') as File;
+    if (!file) return { success: false, message: 'No file provided.' };
+
+    const originalName = file.name;
+    const isPdf = file.type === 'application/pdf';
+    
+    // Configure Cloudinary
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+    
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    
+    const uploadResult = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        {
+          resource_type: isPdf ? 'image' : 'auto', // Use image for PDF preview
+          folder: 'portfolio_certificates',
+          tags: ['portfolio', 'certificate']
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      ).end(buffer);
+    });
+    
+    const result = uploadResult as any;
+    
+    return {
+      success: true,
+      message: 'Certificate uploaded successfully!',
+      fileUrl: result.secure_url,
+      originalFileName: originalName,
+    };
+    
+  } catch (error) {
+    console.error('Upload error:', error);
+    return { success: false, message: 'Upload failed.' };
+  }
+}

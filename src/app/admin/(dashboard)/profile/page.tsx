@@ -33,6 +33,7 @@ import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
+import { Switch } from '@/components/ui/switch';
 
 
 const profileSchema = z.object({
@@ -48,6 +49,8 @@ const profileSchema = z.object({
   imageUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
   resumeUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
   resumeFileName: z.string().optional(),
+  isResumeVisible: z.boolean().optional(),
+  isImageVisible: z.boolean().optional(),
 });
 
 const ResumeUploader = ({ 
@@ -348,6 +351,8 @@ export default function AdminProfilePage() {
       linkedin: '',
       github: '',
       twitter: '',
+      isResumeVisible: true,
+      isImageVisible: true,
     },
   });
 
@@ -366,6 +371,8 @@ export default function AdminProfilePage() {
         linkedin: portfolioData.socials?.linkedin || '',
         github: portfolioData.socials?.github || '',
         twitter: portfolioData.socials?.twitter || '',
+        isResumeVisible: portfolioData.hero?.isResumeVisible ?? true,
+        isImageVisible: portfolioData.hero?.isImageVisible ?? true,
       });
     }
   }, [portfolioData, form]);
@@ -507,6 +514,25 @@ export default function AdminProfilePage() {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="isImageVisible"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm mb-6">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm">Profile Image Visibility</FormLabel>
+                      <CardDescription className="text-[10px]">Show your profile image to visitors.</CardDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -621,6 +647,25 @@ export default function AdminProfilePage() {
                          />
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="isResumeVisible"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm mt-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-sm">Resume Visibility</FormLabel>
+                        <CardDescription className="text-[10px]">Show "Download Resume" button to visitors.</CardDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
                     </FormItem>
                   )}
                 />

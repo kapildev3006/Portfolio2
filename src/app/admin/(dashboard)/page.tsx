@@ -34,7 +34,10 @@ import { Progress } from '@/components/ui/progress';
 import { format, formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { cva } from 'class-variance-authority';
-import type { ProjectStatus } from '@/lib/types';
+import type { ProjectStatus, PortfolioData } from '@/lib/types';
+import { Switch } from '@/components/ui/switch';
+import { saveProfileData } from '@/lib/firestore-actions';
+import { Eye, EyeOff, FileText, UserCircle } from 'lucide-react';
 
 const statusBadgeVariants = cva(
   "capitalize border-transparent",
@@ -266,6 +269,79 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-8">
+        <Card className="bg-card shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5 text-primary" />
+                Quick Visibility Controls
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">Manage what visitors see in your Hero section without leaving the dashboard.</p>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/20 border border-border">
+                <div className="flex items-center gap-4">
+                    <div className={cn("p-2 rounded-lg", portfolioData?.hero?.isImageVisible !== false ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500")}>
+                        <UserCircle className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <p className="font-semibold text-sm">Profile Image</p>
+                        <p className="text-[10px] text-muted-foreground">{portfolioData?.hero?.isImageVisible !== false ? "Currently visible to visitors" : "Hidden from public site"}</p>
+                    </div>
+                </div>
+                <Switch 
+                    checked={portfolioData?.hero?.isImageVisible !== false} 
+                    onCheckedChange={async (val) => {
+                        if (!portfolioData) return;
+                        const values = {
+                            name: portfolioData.hero.name,
+                            title: portfolioData.hero.title,
+                            subtitle: portfolioData.hero.subtitle,
+                            email: portfolioData.contact.email,
+                            imageUrl: portfolioData.hero.imageUrl,
+                            resumeUrl: portfolioData.hero.resumeUrl,
+                            isResumeVisible: portfolioData.hero.isResumeVisible,
+                            isImageVisible: val
+                        };
+                        await saveProfileData(values);
+                        refreshPortfolioData();
+                    }}
+                />
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/20 border border-border">
+                <div className="flex items-center gap-4">
+                    <div className={cn("p-2 rounded-lg", portfolioData?.hero?.isResumeVisible !== false ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500")}>
+                        <FileText className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <p className="font-semibold text-sm">Resume Download</p>
+                        <p className="text-[10px] text-muted-foreground">{portfolioData?.hero?.isResumeVisible !== false ? "Visitors can download CV" : "Download button is hidden"}</p>
+                    </div>
+                </div>
+                <Switch 
+                    checked={portfolioData?.hero?.isResumeVisible !== false} 
+                    onCheckedChange={async (val) => {
+                        if (!portfolioData) return;
+                        const values = {
+                            name: portfolioData.hero.name,
+                            title: portfolioData.hero.title,
+                            subtitle: portfolioData.hero.subtitle,
+                            email: portfolioData.contact.email,
+                            imageUrl: portfolioData.hero.imageUrl,
+                            resumeUrl: portfolioData.hero.resumeUrl,
+                            isResumeVisible: val,
+                            isImageVisible: portfolioData.hero.isImageVisible
+                        };
+                        await saveProfileData(values);
+                        refreshPortfolioData();
+                    }}
+                />
+            </div>
           </CardContent>
         </Card>
       </div>

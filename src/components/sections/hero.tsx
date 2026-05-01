@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useContext } from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
+import { cn } from '@/lib/utils';
 
 function HeroSkeleton() {
   return (
@@ -53,9 +54,12 @@ export default function Hero() {
         <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-indigo-950/30 rounded-full blur-[100px] translate-x-1/4 translate-y-1/4"></div>
       </div>
 
-      <div className="container mx-auto grid grid-cols-1 items-center gap-8 px-6 md:grid-cols-2 md:px-16 relative z-10 py-16">
+      <div className={cn(
+        "container mx-auto grid grid-cols-1 items-center gap-8 px-6 md:px-16 relative z-10 py-16",
+        hero.isImageVisible === false ? "md:grid-cols-1 max-w-4xl text-center" : "md:grid-cols-2"
+      )}>
         {/* Left: Text Content */}
-        <div className="space-y-6">
+        <div className={cn("space-y-6", hero.isImageVisible === false && "flex flex-col items-center")}>
           <AnimatedDiv>
             <h1 className="text-4xl font-extrabold sm:text-5xl text-foreground leading-tight">
               Hi, I'm <span className="text-primary">{hero.name}</span>
@@ -74,26 +78,28 @@ export default function Hero() {
             </p>
           </AnimatedDiv>
 
-          <AnimatedDiv className="flex flex-wrap gap-3">
+          <AnimatedDiv className={cn("flex flex-wrap gap-3", hero.isImageVisible === false && "justify-center")}>
             <Button asChild className="h-10 px-6 bg-primary text-black hover:bg-primary/90 font-bold text-sm rounded">
               <Link href="/projects">View My Work</Link>
             </Button>
-            <Button asChild variant="outline" className="h-10 px-6 text-sm rounded">
-              <a
-                href={hero.resumeUrl?.includes('/image/upload/')
-                  ? hero.resumeUrl.replace('/image/upload/', '/image/upload/fl_attachment/')
-                  : hero.resumeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Download CV
-              </a>
-            </Button>
+            {hero.isResumeVisible !== false && (
+              <Button asChild variant="outline" className="h-10 px-6 text-sm rounded">
+                <a
+                  href={hero.resumeUrl?.includes('/image/upload/')
+                    ? hero.resumeUrl.replace('/image/upload/', '/image/upload/fl_attachment/')
+                    : hero.resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download CV
+                </a>
+              </Button>
+            )}
           </AnimatedDiv>
 
-          <AnimatedDiv className="flex gap-3">
+          <AnimatedDiv className={cn("flex gap-3", hero.isImageVisible === false && "justify-center")}>
             <Link href={socials.github} className="w-9 h-9 flex items-center justify-center border border-border rounded bg-transparent text-muted-foreground hover:text-primary hover:border-primary transition-all">
               <Github size={16} />
             </Link>
@@ -107,24 +113,26 @@ export default function Hero() {
         </div>
 
         {/* Right: Profile Image */}
-        <AnimatedDiv className="flex justify-center md:justify-end items-center">
-          <div className="relative">
-            {/* Outer glow ring */}
-            <div className="absolute -inset-3 rounded-full border border-primary/30"></div>
-            {/* Inner accent ring */}
-            <div className="absolute -inset-1 rounded-full border-2 border-primary/60"></div>
+        {hero.isImageVisible !== false && (
+          <AnimatedDiv className="flex justify-center md:justify-end items-center">
+            <div className="relative">
+              {/* Outer glow ring */}
+              <div className="absolute -inset-3 rounded-full border border-primary/30"></div>
+              {/* Inner accent ring */}
+              <div className="absolute -inset-1 rounded-full border-2 border-primary/60"></div>
 
-            <div className="relative w-[260px] h-[260px] sm:w-[300px] sm:h-[300px] overflow-hidden rounded-full border-4 border-background shadow-xl">
-              <Image
-                src={hero.imageUrl}
-                alt={hero.name}
-                fill
-                className="object-cover"
-                priority
-              />
+              <div className="relative w-[260px] h-[260px] sm:w-[300px] sm:h-[300px] overflow-hidden rounded-full border-4 border-background shadow-xl">
+                <Image
+                  src={hero.imageUrl}
+                  alt={hero.name}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
             </div>
-          </div>
-        </AnimatedDiv>
+          </AnimatedDiv>
+        )}
       </div>
     </section>
   );

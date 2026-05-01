@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, Edit, Trash2 } from 'lucide-react';
+import { CalendarDays, Edit, Trash2, EyeOff } from 'lucide-react';
 import type { Project as ProjectType } from '@/lib/types';
 import { format } from 'date-fns';
 import {
@@ -84,9 +84,17 @@ export default function AdminProjectList({ project }: AdminProjectListItemProps)
         </td>
         <td className="p-4 font-semibold">{project.title}</td>
         <td className="p-4">
-             <Badge className={cn(statusBadgeVariants({ status: (project.status || 'planning') as ProjectStatus }))}>
-                {(project.status || 'planning').replace('-', ' ')}
-            </Badge>
+             <div className="flex items-center gap-2">
+                <Badge className={cn(statusBadgeVariants({ status: (project.status || 'planning') as ProjectStatus }))}>
+                    {(project.status || 'planning').replace('-', ' ')}
+                </Badge>
+                {project.isVisible === false && (
+                    <Badge variant="destructive" className="flex items-center gap-1 bg-red-500/20 text-red-500 border-red-500/30">
+                        <EyeOff className="h-3 w-3" />
+                        Private
+                    </Badge>
+                )}
+             </div>
         </td>
         <td className="p-4 text-muted-foreground">{formattedDate}</td>
         <td className="p-4">

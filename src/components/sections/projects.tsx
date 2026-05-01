@@ -29,7 +29,7 @@ function ProjectsSkeleton() {
 
 export default function Projects() {
   const { portfolioData, loading } = useContext(PortfolioDataContext);
-  const projects = portfolioData?.projects || [];
+  const projects = (portfolioData?.projects || []).filter(p => p.isVisible !== false);
 
   return (
     <section id="projects" className="w-full py-20 md:py-28">

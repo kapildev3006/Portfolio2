@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, Edit, Trash2, ChevronDown, ChevronUp, Code, ExternalLink } from 'lucide-react';
+import { CalendarDays, Edit, Trash2, ChevronDown, ChevronUp, Code, ExternalLink, Eye, EyeOff } from 'lucide-react';
 import type { Project as ProjectType } from '@/lib/types';
 import { format } from 'date-fns';
 import Link from 'next/link';
@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import ProjectForm from '@/components/admin/add-project-form';
 import { useState } from 'react';
-import { deleteProject } from '@/lib/firestore-actions';
+import { deleteProject, updateProjectData } from '@/lib/firestore-actions';
 import { useToast } from '@/hooks/use-toast';
 
 type AdminProjectCardProps = {
@@ -60,6 +60,24 @@ export default function AdminProjectCard({ project }: AdminProjectCardProps) {
     setDeleteDialogOpen(false);
   };
 
+  const toggleVisibility = async () => {
+    const newVisibility = project.isVisible !== false ? false : true;
+    const result = await updateProjectData(project.id, { 
+        ...project, 
+        isVisible: newVisibility,
+        techstack: project.tags.join(', ') // Ensure techstack is passed as string for validation
+    } as any);
+    
+    if (!result.success) {
+        toast({ title: 'Error', description: result.message, variant: 'destructive' });
+    } else {
+        toast({ 
+            title: `Project ${newVisibility ? 'Visible' : 'Hidden'}`, 
+            description: `This project is now ${newVisibility ? 'visible on' : 'hidden from'} the public site.` 
+        });
+    }
+  };
+
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 h-full">
       {/* Image */}
@@ -74,7 +92,7 @@ export default function AdminProjectCard({ project }: AdminProjectCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
         {/* Status badge */}
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3 flex items-center gap-2">
           <span className={`text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide
             ${project.status === 'completed' ? 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30' :
               project.status === 'in-progress' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30' :
@@ -82,6 +100,17 @@ export default function AdminProjectCard({ project }: AdminProjectCardProps) {
               'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30'}`}>
             {(project.status || 'planning').replace('-', ' ')}
           </span>
+          <button 
+            onClick={toggleVisibility}
+            className={`flex h-6 items-center gap-1 px-2 rounded-full text-[10px] font-semibold border transition-all
+                ${project.isVisible !== false 
+                    ? 'bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30 hover:bg-green-500/30' 
+                    : 'bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30 hover:bg-red-500/30'}`}
+            title={project.isVisible !== false ? "Hide from Public" : "Show to Public"}
+          >
+            {project.isVisible !== false ? <Eye size={12} /> : <EyeOff size={12} />}
+            {project.isVisible !== false ? 'Visible' : 'Private'}
+          </button>
         </div>
 
         {/* Admin action buttons - top left overlay */}

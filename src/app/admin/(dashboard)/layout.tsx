@@ -2,7 +2,7 @@
 'use client';
 
 import AdminSidebar from '@/components/admin/sidebar';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import ClientProviders from './client-providers';
 import useAuth from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
@@ -35,11 +35,20 @@ export default function DashboardLayout({
   return (
     <PortfolioDataProvider>
       <SidebarProvider>
-        <div className="group/sidebar-wrapper flex min-h-dvh w-full bg-muted/40">
+        <div className="group/sidebar-wrapper flex min-h-dvh w-full bg-muted/40 relative">
           <AdminSidebar />
-          <ClientProviders>
-            {children}
-          </ClientProviders>
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Mobile Sidebar Trigger */}
+            <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:hidden sticky top-0 z-30">
+              <SidebarTrigger />
+              <span className="font-bold">Admin Panel</span>
+            </header>
+            <main className="flex-1 overflow-y-auto">
+              <ClientProviders>
+                {children}
+              </ClientProviders>
+            </main>
+          </div>
         </div>
       </SidebarProvider>
     </PortfolioDataProvider>
