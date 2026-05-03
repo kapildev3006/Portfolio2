@@ -9,7 +9,9 @@ import { Button } from '@/components/ui/button';
 import { useContext } from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
-import { cn } from '@/lib/utils';
+import { cn, downloadFile } from '@/lib/utils';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 function HeroSkeleton() {
   return (
@@ -36,6 +38,8 @@ function HeroSkeleton() {
 
 export default function Hero() {
   const { portfolioData: data, loading } = useContext(PortfolioDataContext);
+  const [isDownloadingResume, setIsDownloadingResume] = useState(false);
+  const { toast } = useToast();
 
   if (loading || !data) {
     return <HeroSkeleton />;
@@ -83,18 +87,35 @@ export default function Hero() {
               <Link href="/projects">View My Work</Link>
             </Button>
             {hero.isResumeVisible !== false && (
-              <Button asChild variant="outline" className="h-10 px-6 text-sm rounded">
-                <a
-                  href={hero.resumeUrl?.includes('/image/upload/')
-                    ? hero.resumeUrl.replace('/image/upload/', '/image/upload/fl_attachment/')
-                    : hero.resumeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download CV
-                </a>
+              <Button 
+                variant="outline" 
+                className="h-10 px-6 text-sm rounded cursor-pointer"
+                disabled={isDownloadingResume}
+                onClick={async () => {
+                  if (!hero.resumeUrl) return;
+                  setIsDownloadingResume(true);
+                  try {
+                    const result = await downloadFile(
+                      hero.resumeUrl, 
+                      hero.resumeFileName || `${hero.name.replace(/\s+/g, '_')}_Resume.pdf`
+                    );
+                    if (!result.success) {
+                      toast({
+                        title: "Download failed",
+                        description: "Could not download the resume. Opening it in a new tab instead.",
+                        variant: "destructive",
+                      });
+                      window.open(hero.resumeUrl, '_blank');
+                    }
+                  } catch (error) {
+                    window.open(hero.resumeUrl, '_blank');
+                  } finally {
+                    setIsDownloadingResume(false);
+                  }
+                }}
+              >
+                <Download className={cn("mr-2 h-4 w-4", isDownloadingResume && "animate-bounce")} />
+                {isDownloadingResume ? 'Downloading...' : 'Download CV'}
               </Button>
             )}
           </AnimatedDiv>

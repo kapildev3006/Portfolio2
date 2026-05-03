@@ -22,6 +22,7 @@ const profileSchema = z.object({
   twitter: z.string().url('Invalid URL').optional().or(z.literal('')),
   imageUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
   resumeUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+  resumeFileName: z.string().optional(),
   isResumeVisible: z.boolean().optional(),
   isImageVisible: z.boolean().optional(),
 });
@@ -40,6 +41,7 @@ export async function saveProfileData(data: z.infer<typeof profileSchema>) {
                 subtitle: validatedData.subtitle,
                 imageUrl: validatedData.imageUrl,
                 resumeUrl: validatedData.resumeUrl,
+                resumeFileName: validatedData.resumeFileName,
                 isResumeVisible: validatedData.isResumeVisible,
                 isImageVisible: validatedData.isImageVisible,
             },

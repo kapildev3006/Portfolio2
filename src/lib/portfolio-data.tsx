@@ -92,6 +92,7 @@ export async function getPortfolioData(): Promise<Omit<PortfolioData, 'projects'
                     imageUrl: dbData.hero?.imageUrl || heroImage.imageUrl,
                     imageHint: dbData.hero?.imageHint || heroImage.imageHint,
                     resumeUrl: dbData.hero?.resumeUrl || defaultData.hero.resumeUrl,
+                    resumeFileName: dbData.hero?.resumeFileName || '',
                     isResumeVisible: dbData.hero?.isResumeVisible,
                     isImageVisible: dbData.hero?.isImageVisible,
                 },

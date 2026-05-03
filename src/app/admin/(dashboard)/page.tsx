@@ -99,7 +99,7 @@ function DashboardSkeleton() {
 }
 
 export default function AdminDashboardPage() {
-  const { portfolioData, loading: portfolioLoading } = useContext(PortfolioDataContext);
+  const { portfolioData, loading: portfolioLoading, refreshPortfolioData } = useContext(PortfolioDataContext);
   const { submissions, loading: submissionsLoading } = useContactSubmissions();
 
   const loading = portfolioLoading || submissionsLoading;

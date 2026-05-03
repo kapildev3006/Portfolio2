@@ -29,7 +29,7 @@ import React, { useEffect, useContext } from 'react';
 import { uploadImageToCloudinary, uploadResumeToCloudinary } from '@/actions/upload-actions';
 import { saveProfileData } from '@/lib/firestore-actions';
 import { useDropzone } from 'react-dropzone';
-import { cn } from '@/lib/utils';
+import { cn, downloadFile } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
@@ -136,29 +136,18 @@ const ResumeUploader = ({
 
     const handleDownload = React.useCallback(async () => {
       if (currentUrl && currentFileName) {
+        setIsUploading(true); // Reuse uploading state for download progress
         try {
-          // Force download by fetching the file and creating a blob
-          const response = await fetch(currentUrl);
-          if (!response.ok) throw new Error('Failed to fetch file');
+          const result = await downloadFile(currentUrl, currentFileName);
           
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          
-          // Create download link with original filename
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = currentFileName;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          
-          // Clean up the blob URL
-          window.URL.revokeObjectURL(url);
-          
-          toast({
-            title: 'Download Started',
-            description: `Downloading ${currentFileName}...`,
-          });
+          if (result.success) {
+            toast({
+              title: 'Download Started',
+              description: `Downloading ${currentFileName}...`,
+            });
+          } else {
+            throw new Error('Download failed');
+          }
         } catch (error) {
           console.error('Download failed:', error);
           toast({
@@ -166,8 +155,9 @@ const ResumeUploader = ({
             description: 'Could not download the file. Opening in new tab instead.',
             variant: 'destructive',
           });
-          // Fallback: open in new tab
           window.open(currentUrl, '_blank');
+        } finally {
+          setIsUploading(false);
         }
       }
     }, [currentUrl, currentFileName, toast]);
