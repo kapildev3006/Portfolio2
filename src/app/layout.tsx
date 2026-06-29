@@ -6,7 +6,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { PortfolioDataProvider } from '@/context/PortfolioDataProvider';
 
 export const metadata: Metadata = {
-  title: 'Portfolio',
+  title: 'Kapil Dev',
   description: 'A modern portfolio website',
 };
 

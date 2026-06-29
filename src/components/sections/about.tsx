@@ -92,7 +92,7 @@ const AchievementCard = ({ item }: { item: any }) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = result.certificateName || item.certificateName || 'certificate.pdf';
+        a.download = result.fileName || item.certificateName || 'certificate.pdf';
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
