@@ -13,7 +13,7 @@ import { Edit, Plus, Upload, Loader2 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
-import { uploadImage } from '@/actions/server-actions';
+import { uploadProjectImageToCloudinary } from '@/actions/upload-actions';
 import { saveProjectData, updateProjectData } from '@/lib/firestore-actions';
 import Image from 'next/image';
 import type { Project as ProjectType, ProjectStatus } from '@/lib/types';
@@ -44,9 +44,11 @@ const ImageUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => vo
       setIsUploading(true);
       const formData = new FormData();
       formData.append('image', file);
+      // Pass the existing image URL so the old Cloudinary asset is deleted before uploading the new one
+      if (currentUrl) formData.append('oldUrl', currentUrl);
 
       try {
-        const result = await uploadImage(formData);
+        const result = await uploadProjectImageToCloudinary(formData);
 
         if (result.success && result.imageUrl) {
             onUpload(result.imageUrl);

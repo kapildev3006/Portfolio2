@@ -53,6 +53,7 @@ const profileSchema = z.object({
   isImageVisible: z.boolean().optional(),
 });
 
+
 const ResumeUploader = ({ 
   onUpload, 
   currentUrl, 
@@ -99,6 +100,8 @@ const ResumeUploader = ({
       setIsUploading(true);
       const formData = new FormData();
       formData.append('file', file);
+      // Pass the existing resume URL so the server action deletes the old Cloudinary asset
+      if (currentUrl) formData.append('oldUrl', currentUrl);
 
       try {
         console.log('📄 Starting resume upload...');
@@ -162,6 +165,45 @@ const ResumeUploader = ({
       }
     }, [currentUrl, currentFileName, toast]);
     
+    /**
+     * Fetches the PDF bytes via the server proxy (which always returns
+     * Content-Type: application/pdf), then opens a blob: URL in a new tab.
+     * Blob URLs are ALWAYS rendered inline by the browser's native PDF viewer
+     * regardless of Content-Disposition or browser settings.
+     */
+    const handlePreview = React.useCallback(async () => {
+      if (!currentUrl) return;
+      setIsUploading(true);
+      try {
+        const proxyUrl = `/api/preview-pdf?url=${encodeURIComponent(currentUrl)}`;
+        const res = await fetch(proxyUrl);
+        if (!res.ok) throw new Error(`Failed to fetch PDF: ${res.statusText}`);
+        const blob = await res.blob();
+        // Force the blob type to application/pdf so the browser always treats it as PDF
+        const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        const tab = window.open(blobUrl, '_blank');
+        // Revoke after 60s to free memory (the tab will have loaded by then)
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+        if (!tab) {
+          toast({
+            title: 'Popup Blocked',
+            description: 'Please allow popups for this site to preview the resume.',
+            variant: 'destructive',
+          });
+        }
+      } catch (error) {
+        console.error('Preview failed:', error);
+        toast({
+          title: 'Preview Failed',
+          description: 'Could not load the PDF. Try downloading it instead.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsUploading(false);
+      }
+    }, [currentUrl, toast]);
+
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
       onDrop,
       multiple: false,
@@ -196,15 +238,14 @@ const ResumeUploader = ({
                 Download
               </Button>
               <Button 
-                asChild 
                 variant="outline" 
                 size="sm"
+                onClick={handlePreview}
+                disabled={isUploading}
                 className="border-blue-200 text-blue-700 hover:bg-blue-50"
               >
-                <a href={currentUrl?.includes('/raw/') ? `https://docs.google.com/viewer?url=${encodeURIComponent(currentUrl)}` : currentUrl} target="_blank" rel="noopener noreferrer">
-                  <Eye className="w-4 h-4 mr-1" />
-                  Preview
-                </a>
+                <Eye className="w-4 h-4 mr-1" />
+                {isUploading ? 'Loading...' : 'Preview'}
               </Button>
               <Button 
                 variant="outline" 
@@ -395,6 +436,9 @@ export default function AdminProfilePage() {
     setIsUploading(true);
     const formData = new FormData();
     formData.append('image', file);
+    // Pass the existing image URL so the server action can delete the old Cloudinary asset
+    const currentImageUrl = form.getValues('imageUrl');
+    if (currentImageUrl) formData.append('oldUrl', currentImageUrl);
 
     try {
       console.log('🚀 Starting image upload...');
