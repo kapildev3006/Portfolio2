@@ -174,7 +174,8 @@ export async function uploadResumeToCloudinary(formData: FormData) {
         {
           resource_type: 'raw', // MUST be 'raw' to preserve actual PDF bytes. 'image' rasterizes the PDF and breaks it.
           folder: 'portfolio_resumes',
-          public_id: `${sanitizedName}_${Date.now()}`, // No .pdf extension
+          public_id: `${sanitizedName}_${Date.now()}.pdf`, // Include .pdf extension — required for raw uploads to be accessible via URL
+          access_mode: 'public',  // Force public access so the CDN URL works without signing
           tags: ['portfolio', 'resume', 'pdf'],
         },
         (error, result) => {

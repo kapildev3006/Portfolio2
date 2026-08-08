@@ -7,11 +7,15 @@ export function cn(...inputs: ClassValue[]) {
 
 export async function downloadFile(url: string, fileName: string) {
   try {
-    const response = await fetch(url);
+    // Route through the server-side proxy to avoid CORS issues and ensure
+    // correct Content-Type: application/pdf (Cloudinary raw returns octet-stream)
+    const proxyUrl = `/api/preview-pdf?url=${encodeURIComponent(url)}`;
+    const response = await fetch(proxyUrl);
     if (!response.ok) throw new Error('Failed to fetch file');
     
     const blob = await response.blob();
-    const blobUrl = window.URL.createObjectURL(blob);
+    const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+    const blobUrl = window.URL.createObjectURL(pdfBlob);
     
     const link = document.createElement('a');
     link.href = blobUrl;

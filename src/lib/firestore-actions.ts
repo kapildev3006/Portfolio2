@@ -57,7 +57,7 @@ export async function saveProfileData(data: z.infer<typeof profileSchema>) {
             }
         };
 
-        setDoc(portfolioDocRef, dataToSave, { merge: true }).catch((serverError) => {
+        await setDoc(portfolioDocRef, dataToSave, { merge: true }).catch((serverError) => {
           const permissionError = new FirestorePermissionError({
             path: portfolioDocRef.path,
             operation: 'update',
