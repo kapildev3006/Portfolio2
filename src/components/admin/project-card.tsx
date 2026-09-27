@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, Edit, Trash2, ChevronDown, ChevronUp, Code, ExternalLink, Eye, EyeOff } from 'lucide-react';
+import { CalendarDays, Edit, Trash2, ChevronDown, ChevronUp, Code, ExternalLink, Eye, EyeOff, ArrowUp, ArrowDown } from 'lucide-react';
 import type { Project as ProjectType } from '@/lib/types';
 import { format } from 'date-fns';
 import Link from 'next/link';
@@ -32,9 +32,23 @@ import { useToast } from '@/hooks/use-toast';
 
 type AdminProjectCardProps = {
   project: ProjectType;
+  index?: number;
+  isFirst?: boolean;
+  isLast?: boolean;
+  isMoving?: boolean;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 };
 
-export default function AdminProjectCard({ project }: AdminProjectCardProps) {
+export default function AdminProjectCard({
+  project,
+  index,
+  isFirst,
+  isLast,
+  isMoving,
+  onMoveUp,
+  onMoveDown,
+}: AdminProjectCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -114,10 +128,44 @@ export default function AdminProjectCard({ project }: AdminProjectCardProps) {
         </div>
 
         {/* Admin action buttons - top left overlay */}
-        <div className="absolute top-3 left-3 flex gap-1">
+        <div className="absolute top-3 left-3 flex items-center gap-1 z-10">
+          {onMoveUp && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveUp();
+              }}
+              disabled={isFirst || isMoving}
+              title="Move project up"
+              className="h-7 w-7 flex items-center justify-center rounded-md bg-background/90 border border-border text-foreground hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-all shadow-sm"
+            >
+              <ArrowUp className="h-3.5 w-3.5" />
+            </button>
+          )}
+
+          {onMoveDown && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveDown();
+              }}
+              disabled={isLast || isMoving}
+              title="Move project down"
+              className="h-7 w-7 flex items-center justify-center rounded-md bg-background/90 border border-border text-foreground hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-all shadow-sm"
+            >
+              <ArrowDown className="h-3.5 w-3.5" />
+            </button>
+          )}
+
           <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
             <DialogTrigger asChild>
-              <button className="h-7 w-7 flex items-center justify-center rounded-md bg-background/90 border border-border text-foreground hover:text-primary hover:border-primary transition-all">
+              <button 
+                type="button"
+                className="h-7 w-7 flex items-center justify-center rounded-md bg-background/90 border border-border text-foreground hover:text-primary hover:border-primary transition-all shadow-sm"
+                title="Edit Project"
+              >
                 <Edit className="h-3.5 w-3.5" />
               </button>
             </DialogTrigger>
@@ -134,7 +182,11 @@ export default function AdminProjectCard({ project }: AdminProjectCardProps) {
 
           <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <AlertDialogTrigger asChild>
-              <button className="h-7 w-7 flex items-center justify-center rounded-md bg-background/90 border border-border text-destructive hover:border-destructive transition-all">
+              <button 
+                type="button"
+                className="h-7 w-7 flex items-center justify-center rounded-md bg-background/90 border border-border text-destructive hover:border-destructive transition-all shadow-sm"
+                title="Delete Project"
+              >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
             </AlertDialogTrigger>
@@ -159,8 +211,13 @@ export default function AdminProjectCard({ project }: AdminProjectCardProps) {
 
       {/* Content */}
       <div className="flex flex-col flex-1 p-5">
-        <h3 className="text-base font-bold text-foreground mb-1 group-hover:text-primary transition-colors line-clamp-1">
-          {project.title}
+        <h3 className="text-base font-bold text-foreground mb-1 group-hover:text-primary transition-colors line-clamp-1 flex items-center gap-1.5">
+          {typeof index === 'number' && (
+            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">
+              #{index + 1}
+            </span>
+          )}
+          <span className="truncate">{project.title}</span>
         </h3>
 
         {/* Date */}

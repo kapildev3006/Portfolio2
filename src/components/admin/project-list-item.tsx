@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, Edit, Trash2, EyeOff } from 'lucide-react';
+import { CalendarDays, Edit, Trash2, EyeOff, ArrowUp, ArrowDown } from 'lucide-react';
 import type { Project as ProjectType } from '@/lib/types';
 import { format } from 'date-fns';
 import {
@@ -37,6 +37,12 @@ import type { ProjectStatus } from '@/lib/types';
 
 type AdminProjectListItemProps = {
   project: ProjectType;
+  index?: number;
+  isFirst?: boolean;
+  isLast?: boolean;
+  isMoving?: boolean;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 };
 
 const statusBadgeVariants = cva(
@@ -56,7 +62,15 @@ const statusBadgeVariants = cva(
   }
 )
 
-export default function AdminProjectList({ project }: AdminProjectListItemProps) {
+export default function AdminProjectList({
+  project,
+  index,
+  isFirst,
+  isLast,
+  isMoving,
+  onMoveUp,
+  onMoveDown,
+}: AdminProjectListItemProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -82,7 +96,16 @@ export default function AdminProjectList({ project }: AdminProjectListItemProps)
                 <Image src={project.imageUrl} alt={project.title} fill className="object-cover" />
             </div>
         </td>
-        <td className="p-4 font-semibold">{project.title}</td>
+        <td className="p-4 font-semibold">
+          <div className="flex items-center gap-1.5">
+            {typeof index === 'number' && (
+              <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">
+                #{index + 1}
+              </span>
+            )}
+            <span>{project.title}</span>
+          </div>
+        </td>
         <td className="p-4">
              <div className="flex items-center gap-2">
                 <Badge className={cn(statusBadgeVariants({ status: (project.status || 'planning') as ProjectStatus }))}>
@@ -108,10 +131,34 @@ export default function AdminProjectList({ project }: AdminProjectListItemProps)
             </div>
         </td>
         <td className="p-4 text-right">
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end items-center gap-1">
+                {onMoveUp && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+                    disabled={isFirst || isMoving}
+                    onClick={onMoveUp}
+                    title="Move up"
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                )}
+                {onMoveDown && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+                    disabled={isLast || isMoving}
+                    onClick={onMoveDown}
+                    title="Move down"
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                  </Button>
+                )}
                  <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="Edit project">
                         <Edit className="h-4 w-4" />
                         </Button>
                     </DialogTrigger>
@@ -128,7 +175,7 @@ export default function AdminProjectList({ project }: AdminProjectListItemProps)
 
                 <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                     <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive/80">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive/80" title="Delete project">
                         <Trash2 className="h-4 w-4" />
                         </Button>
                     </AlertDialogTrigger>

@@ -114,29 +114,30 @@ export default function AdminContactsPage() {
   );
 
   return (
-    <div className="flex-1 bg-background p-8 text-foreground">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold">Contacts</h1>
-        <p className="text-muted-foreground">Manage your contact form submissions.</p>
+    <div className="flex-1 bg-background p-4 sm:p-6 lg:p-8 text-foreground max-w-7xl mx-auto w-full min-w-0">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Contacts</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1">Manage your contact form submissions.</p>
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <CardTitle>Submissions</CardTitle>
-            <div className="relative w-1/3">
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+            <div className="relative w-full sm:w-72">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 sm:h-5 sm:w-5 -translate-y-1/2 text-muted-foreground" />
                 <Input 
                   placeholder="Search submissions..." 
-                  className="pl-10" 
+                  className="pl-9 sm:pl-10 h-10 text-sm" 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
+        <CardContent className="p-0 sm:p-6 sm:pt-0">
+          <div className="overflow-x-auto w-full">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
@@ -207,6 +208,7 @@ export default function AdminContactsPage() {
             </TableBody>
             )}
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -80,7 +80,7 @@ export default function AdminLoginPage() {
     }
   };
   
-  if (user) {
+  if (loading || user) {
     return (
        <div className="flex min-h-screen items-center justify-center bg-background">
          <Loader2 className="h-10 w-10 animate-spin text-primary" />

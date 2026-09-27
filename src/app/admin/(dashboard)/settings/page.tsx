@@ -121,10 +121,10 @@ export default function AdminSettingsPage() {
   
   if (loading) {
     return (
-       <div className="flex-1 bg-background p-8 text-foreground">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold">Settings</h1>
-            <p className="text-muted-foreground">Manage your website and account settings.</p>
+       <div className="flex-1 bg-background p-4 sm:p-6 lg:p-8 text-foreground max-w-5xl mx-auto w-full min-w-0">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Settings</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Manage your website and account settings.</p>
           </div>
           <SettingsSkeleton />
       </div>
@@ -132,14 +132,14 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="flex-1 bg-background p-8 text-foreground">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">Manage your website and account settings.</p>
+    <div className="flex-1 bg-background p-4 sm:p-6 lg:p-8 text-foreground max-w-5xl mx-auto w-full min-w-0">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Settings</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1">Manage your website and account settings.</p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 sm:gap-8">
           {/* General Settings */}
           <Card>
               <CardHeader>
@@ -198,8 +198,8 @@ export default function AdminSettingsPage() {
                   )}
                 />
               </CardContent>
-              <CardFooter>
-                 <Button type="submit" disabled={form.formState.isSubmitting}>Save General Settings</Button>
+              <CardFooter className="p-4 sm:p-6 border-t flex justify-end">
+                <Button type="submit" className="w-full sm:w-auto" disabled={form.formState.isSubmitting}>Save General Settings</Button>
               </CardFooter>
           </Card>
 
@@ -280,8 +280,8 @@ export default function AdminSettingsPage() {
                   )}
                 />
               </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={form.formState.isSubmitting}>Save Theme Settings</Button>
+              <CardFooter className="p-4 sm:p-6 border-t flex justify-end">
+                <Button type="submit" className="w-full sm:w-auto" disabled={form.formState.isSubmitting}>Save Theme Settings</Button>
               </CardFooter>
           </Card>
 
@@ -331,22 +331,22 @@ export default function AdminSettingsPage() {
                   )}
                 />
               </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={form.formState.isSubmitting}>Save Account Settings</Button>
+              <CardFooter className="p-4 sm:p-6 border-t flex justify-end">
+                <Button type="submit" className="w-full sm:w-auto" disabled={form.formState.isSubmitting}>Save Account Settings</Button>
               </CardFooter>
           </Card>
 
           {/* Notification Settings Link */}
           <Card>
-              <CardHeader>
+              <CardHeader className="p-4 sm:p-6">
                 <CardTitle>Notification Settings</CardTitle>
                 <CardDescription>Manage how you receive notifications.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6 pt-0">
                   <p className="text-sm text-muted-foreground">You can configure your notification preferences for emails and in-app alerts on the dedicated notifications settings page.</p>
               </CardContent>
-              <CardFooter>
-                  <Button asChild variant="secondary">
+              <CardFooter className="p-4 sm:p-6 border-t flex justify-end">
+                  <Button asChild variant="secondary" className="w-full sm:w-auto">
                       <Link href="/admin/notifications/settings">Go to Notification Settings</Link>
                   </Button>
               </CardFooter>

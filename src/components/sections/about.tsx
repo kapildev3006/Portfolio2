@@ -50,7 +50,20 @@ const ExperienceCard = ({ item }: { item: Omit<Experience, 'icon'> }) => (
             <p className="text-sm text-primary">{item.company}</p>
           </div>
         </div>
-        <div className="text-sm text-muted-foreground font-medium">{item.period}</div>
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-muted-foreground font-medium">{item.period}</div>
+          {item.certificateUrl && (
+            <a 
+              href={item.certificateUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Certificate
+            </a>
+          )}
+        </div>
       </div>
     </CardHeader>
     <CardContent className="p-6 pt-2">
@@ -217,7 +230,7 @@ export default function About() {
             <h3 className="font-headline text-2xl font-bold">{headings.skills || 'My Skills'}</h3>
           </div>
           <div className="grid grid-cols-1 gap-4">
-            {about.skills.filter(s => s.isVisible !== false).sort((a, b) => (a.order || 0) - (b.order || 0)).map((skill, index) => (
+            {about.skills.filter(s => s.isVisible !== false).sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)).map((skill, index) => (
               <SkillCard key={index} skill={skill} />
             ))}
           </div>
@@ -235,7 +248,7 @@ export default function About() {
             <h3 className="font-headline text-2xl font-bold">{headings.experience || 'Professional Journey'}</h3>
           </div>
           <div className="space-y-6">
-            {about.experience.filter(e => e.isVisible !== false).sort((a, b) => (a.order || 0) - (b.order || 0)).map((item, index) => (
+            {about.experience.filter(e => e.isVisible !== false).sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)).map((item, index) => (
               <ExperienceCard key={index} item={item} />
             ))}
           </div>
@@ -253,7 +266,7 @@ export default function About() {
             <h3 className="font-headline text-2xl font-bold">{headings.education || 'Education'}</h3>
           </div>
           <div className="space-y-6">
-            {about.education?.filter(e => e.isVisible !== false).sort((a, b) => (a.order || 0) - (b.order || 0)).map((item, index) => (
+            {about.education?.filter(e => e.isVisible !== false).sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)).map((item, index) => (
               <EducationCard key={index} item={item} />
             )) || <p className="text-muted-foreground">No education details added yet.</p>}
           </div>
@@ -269,7 +282,7 @@ export default function About() {
         <AnimatedDiv key="achievements" className="space-y-6 lg:col-span-2">
            <div className="flex items-center gap-3">
             <Award className="w-8 h-8 text-primary" />
-            <h3 className="font-headline text-2xl font-bold">Notable Achievements</h3>
+            <h3 className="font-headline text-2xl font-bold">{headings.achievements || 'Notable Achievements'}</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {achievements.filter(a => a.isVisible !== false).sort((a, b) => (a.order || 0) - (b.order || 0)).map((item, index) => (
@@ -281,7 +294,9 @@ export default function About() {
     }
   ];
 
-  const visibleSections = sections.filter(s => s.visible).sort((a, b) => a.order - b.order);
+  const visibleSections = sections
+    .filter(s => s.visible)
+    .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
 
   return (
     <section id="about" className="w-full bg-background py-20 md:py-32">

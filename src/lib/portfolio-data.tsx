@@ -27,6 +27,7 @@ const defaultData: PortfolioData = {
   },
   about: {
     subtitle: 'Passionate Full Stack Developer with expertise in modern web technologies.',
+    bio: '',
     skills: [
       {
         id: uuidv4(),
@@ -47,7 +48,28 @@ const defaultData: PortfolioData = {
         period: '2023 - Present',
         description: 'Building scalable web applications and providing technical solutions for clients across various industries.',
       },
-    ]
+    ],
+    education: [],
+    headings: {
+      bio: 'My Bio',
+      skills: 'My Skills',
+      experience: 'Professional Journey',
+      education: 'Education',
+    },
+    visibility: {
+      bio: true,
+      skills: true,
+      experience: true,
+      education: true,
+      achievements: true,
+    },
+    sectionOrder: {
+      bio: 1,
+      skills: 2,
+      experience: 3,
+      education: 4,
+      achievements: 5,
+    },
   },
   achievements: [],
   projects: [], // Projects will be fetched from the provider
@@ -102,8 +124,9 @@ export async function getPortfolioData(): Promise<Omit<PortfolioData, 'projects'
                     skills: skillsWithIds,
                     experience: experienceWithIds,
                     education: dbData.about?.education || [],
-                    headings: dbData.about?.headings || {},
+                    headings: dbData.about?.headings || defaultData.about.headings || {},
                     visibility: dbData.about?.visibility || { skills: true, experience: true, education: true, bio: true, achievements: true },
+                    sectionOrder: dbData.about?.sectionOrder || { bio: 1, skills: 2, experience: 3, education: 4, achievements: 5 },
                 },
                 achievements: achievementsWithIds,
                 customSections: dbData.customSections || [],

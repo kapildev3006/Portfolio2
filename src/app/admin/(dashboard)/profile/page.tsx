@@ -24,7 +24,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload, FileText, Eye, RefreshCw, Download } from 'lucide-react';
+import { Camera, Upload, FileText, Eye, RefreshCw, Download, Loader2, Trash2 } from 'lucide-react';
 import React, { useEffect, useContext } from 'react';
 import { uploadImageToCloudinary, uploadResumeToCloudinary } from '@/actions/upload-actions';
 import { saveProfileData } from '@/lib/firestore-actions';
@@ -34,6 +34,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortfolioDataContext } from '@/context/PortfolioDataProvider';
 import { Switch } from '@/components/ui/switch';
+import { db } from '@/lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 
 const profileSchema = z.object({
@@ -56,12 +58,16 @@ const profileSchema = z.object({
 
 const ResumeUploader = ({ 
   onUpload, 
+  onRemove,
   currentUrl, 
-  currentFileName 
+  currentFileName,
+  onResolvedUrl,
 }: { 
   onUpload: (url: string, fileName: string) => void; 
+  onRemove?: () => void;
   currentUrl?: string;
   currentFileName?: string;
+  onResolvedUrl?: (url: string, fileName: string) => void;
 }) => {
     const [isUploading, setIsUploading] = React.useState(false);
     const [showUploader, setShowUploader] = React.useState(!currentUrl);
@@ -149,16 +155,21 @@ const ResumeUploader = ({
               description: `Downloading ${currentFileName}...`,
             });
           } else {
-            throw new Error('Download failed');
+            toast({
+              title: 'Download Failed',
+              description: 'The resume file is no longer available on storage. Please upload a new resume.',
+              variant: 'destructive',
+            });
+            setShowUploader(true);
           }
         } catch (error) {
           console.error('Download failed:', error);
           toast({
             title: 'Download Failed',
-            description: 'Could not download the file. Opening in new tab instead.',
+            description: 'Could not download the file. Please upload a new resume.',
             variant: 'destructive',
           });
-          window.open(currentUrl, '_blank');
+          setShowUploader(true);
         } finally {
           setIsUploading(false);
         }
@@ -177,7 +188,26 @@ const ResumeUploader = ({
       try {
         const proxyUrl = `/api/preview-pdf?url=${encodeURIComponent(currentUrl)}`;
         const res = await fetch(proxyUrl);
-        if (!res.ok) throw new Error(`Failed to fetch PDF: ${res.statusText}`);
+        if (!res.ok) {
+          if (res.status === 404) {
+            toast({
+              title: 'Resume Not Found',
+              description: 'The uploaded resume file could not be found on storage. Please upload your resume again.',
+              variant: 'destructive',
+            });
+            setShowUploader(true);
+            return;
+          }
+          throw new Error(`Failed to fetch PDF: ${res.statusText}`);
+        }
+
+        // If preview-pdf auto-resolved a dead link to the latest valid resume, sync it!
+        const resolvedUrl = res.headers.get('x-resolved-url');
+        if (resolvedUrl && resolvedUrl !== currentUrl && onResolvedUrl) {
+          const newName = decodeURIComponent(resolvedUrl.split('/').pop() || 'resume.pdf');
+          onResolvedUrl(resolvedUrl, newName);
+        }
+
         const blob = await res.blob();
         // Force the blob type to application/pdf so the browser always treats it as PDF
         const pdfBlob = new Blob([blob], { type: 'application/pdf' });
@@ -192,17 +222,17 @@ const ResumeUploader = ({
             variant: 'destructive',
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Preview failed:', error);
         toast({
           title: 'Preview Failed',
-          description: 'Could not load the PDF. Try downloading it instead.',
+          description: error?.message || 'Could not load the PDF. Please try uploading your resume again.',
           variant: 'destructive',
         });
       } finally {
         setIsUploading(false);
       }
-    }, [currentUrl, toast]);
+    }, [currentUrl, toast, onResolvedUrl]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
       onDrop,
@@ -215,47 +245,66 @@ const ResumeUploader = ({
       return (
         <div className="space-y-4">
           {/* Current Resume Display */}
-          <div className="flex items-center justify-between p-4 border rounded-lg bg-green-50 border-green-200">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-100 rounded-full">
-                <FileText className="w-5 h-5 text-green-600" />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-xl bg-card border-border/80 shadow-sm">
+            <div className="flex items-center space-x-3 min-w-0">
+              <div className="p-2.5 bg-primary/10 rounded-xl shrink-0 text-primary">
+                <FileText className="w-5 h-5" />
               </div>
-              <div>
-                <p className="font-medium text-green-800">Resume Uploaded</p>
-                <p className="text-sm text-green-600">
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-sm sm:text-base text-foreground">Resume Uploaded</p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate" title={currentFileName || 'resume.pdf'}>
                   {currentFileName || 'Your current resume is ready to view'}
                 </p>
               </div>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
               <Button 
+                type="button"
                 variant="outline" 
                 size="sm"
                 onClick={handleDownload}
-                className="border-green-200 text-green-700 hover:bg-green-50"
+                disabled={isUploading}
+                className="flex-1 sm:flex-initial h-9 text-xs sm:text-sm font-medium"
               >
-                <Download className="w-4 h-4 mr-1" />
+                <Download className="w-3.5 h-3.5 mr-1.5" />
                 Download
               </Button>
               <Button 
+                type="button"
                 variant="outline" 
                 size="sm"
                 onClick={handlePreview}
                 disabled={isUploading}
-                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                className="flex-1 sm:flex-initial h-9 text-xs sm:text-sm font-medium"
               >
-                <Eye className="w-4 h-4 mr-1" />
+                <Eye className="w-3.5 h-3.5 mr-1.5" />
                 {isUploading ? 'Loading...' : 'Preview'}
               </Button>
               <Button 
+                type="button"
                 variant="outline" 
                 size="sm"
                 onClick={() => setShowUploader(true)}
-                className="border-orange-200 text-orange-700 hover:bg-orange-50"
+                disabled={isUploading}
+                className="flex-1 sm:flex-initial h-9 text-xs sm:text-sm font-medium"
               >
-                <RefreshCw className="w-4 h-4 mr-1" />
+                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
                 Change
               </Button>
+              {onRemove && (
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  size="sm"
+                  onClick={onRemove}
+                  disabled={isUploading}
+                  className="flex-1 sm:flex-initial h-9 text-xs sm:text-sm font-medium text-destructive hover:text-destructive"
+                  title="Remove resume"
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                  Remove
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -266,12 +315,14 @@ const ResumeUploader = ({
     return (
       <div className="space-y-4">
         {currentUrl && (
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>Uploading a new resume will replace the current one</span>
+          <div className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground gap-2">
+            <span className="truncate">Uploading a new resume will replace the current one</span>
             <Button 
+              type="button"
               variant="ghost" 
               size="sm"
               onClick={() => setShowUploader(false)}
+              className="shrink-0"
             >
               Cancel
             </Button>
@@ -281,28 +332,28 @@ const ResumeUploader = ({
         <div 
           {...getRootProps()} 
           className={cn(
-            "flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer text-muted-foreground transition-colors",
+            "flex flex-col items-center justify-center p-4 sm:p-6 border-2 border-dashed rounded-xl cursor-pointer text-muted-foreground transition-colors",
             isDragActive ? "border-primary bg-primary/10" : "border-input hover:border-primary/50"
           )}
         >
           <input {...getInputProps()} />
-          <Upload className="w-10 h-10 mb-2" />
+          <Upload className="w-8 h-8 sm:w-10 sm:h-10 mb-2 text-muted-foreground" />
           {isUploading ? (
             <div className="text-center">
-              <p className="font-medium">Uploading...</p>
-              <p className="text-xs mt-1">Please wait while we upload your resume</p>
+              <p className="font-medium text-sm sm:text-base">Uploading...</p>
+              <p className="text-xs mt-1 text-muted-foreground">Please wait while we upload your resume</p>
             </div>
           ) : isDragActive ? (
-            <p className="font-medium">Drop the PDF file here...</p>
+            <p className="font-medium text-sm sm:text-base text-primary">Drop the PDF file here...</p>
           ) : (
-            <div className="text-center">
-              <p className="font-medium">
+            <div className="text-center px-2">
+              <p className="font-medium text-sm sm:text-base text-foreground">
                 {currentUrl ? 'Upload New Resume' : 'Upload Your Resume'}
               </p>
-              <p className="text-sm mt-1">Drag & drop your resume here, or click to browse</p>
+              <p className="text-xs sm:text-sm mt-1 text-muted-foreground">Drag & drop your resume here, or click to browse</p>
             </div>
           )}
-          <p className="text-xs mt-2 px-3 py-1 bg-muted rounded-full">(PDF format only, max 10MB)</p>
+          <p className="text-[11px] sm:text-xs mt-2 px-3 py-1 bg-muted rounded-full">(PDF format only, max 10MB)</p>
         </div>
       </div>
     );
@@ -488,10 +539,10 @@ export default function AdminProfilePage() {
   
   if (isLoading) {
     return (
-        <div className="flex-1 bg-background p-8 text-foreground">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold">My Profile</h1>
-            <p className="text-muted-foreground">Manage your personal information and settings.</p>
+        <div className="flex-1 bg-background p-4 sm:p-6 lg:p-8 text-foreground max-w-5xl mx-auto w-full">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">My Profile</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Manage your personal information and settings.</p>
           </div>
           <ProfileFormSkeleton />
         </div>
@@ -500,20 +551,20 @@ export default function AdminProfilePage() {
 
 
   return (
-    <div className="flex-1 bg-background p-8 text-foreground">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold">My Profile</h1>
-        <p className="text-muted-foreground">Manage your personal information and settings.</p>
+    <div className="flex-1 bg-background p-4 sm:p-6 lg:p-8 text-foreground max-w-5xl mx-auto w-full">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">My Profile</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1">Manage your personal information and settings.</p>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Card>
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6">
               <CardTitle>Personal Information</CardTitle>
               <CardDescription>Update your photo and personal details here.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="p-4 sm:p-6 pt-0 space-y-6">
               <FormField
                 control={form.control}
                 name="imageUrl"
@@ -521,7 +572,7 @@ export default function AdminProfilePage() {
                   <FormItem>
                     <FormLabel>Profile Picture</FormLabel>
                     <FormControl>
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                         <Avatar className="h-20 w-20">
                           <AvatarImage src={field.value} alt={form.getValues('name')} />
                           <AvatarFallback>
@@ -611,12 +662,12 @@ export default function AdminProfilePage() {
             </CardContent>
           </Card>
           
-          <Card className="mt-8">
-            <CardHeader>
+          <Card className="mt-6 sm:mt-8">
+            <CardHeader className="p-4 sm:p-6">
               <CardTitle>Contact Information</CardTitle>
               <CardDescription>Update your public contact details.</CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <CardContent className="p-4 sm:p-6 pt-0 grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="email"
@@ -659,12 +710,12 @@ export default function AdminProfilePage() {
             </CardContent>
           </Card>
 
-           <Card className="mt-8">
-            <CardHeader>
+          <Card className="mt-6 sm:mt-8">
+            <CardHeader className="p-4 sm:p-6">
               <CardTitle>Resume / CV</CardTitle>
               <CardDescription>Upload and manage your resume.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0">
                 <FormField
                   control={form.control}
                   name="resumeUrl"
@@ -672,9 +723,58 @@ export default function AdminProfilePage() {
                     <FormItem>
                       <FormControl>
                          <ResumeUploader 
-                            onUpload={(url, fileName) => {
+                            onUpload={async (url, fileName) => {
                               field.onChange(url);
                               form.setValue('resumeFileName', fileName);
+                              try {
+                                await setDoc(doc(db, 'portfolio', 'main'), {
+                                  hero: {
+                                    resumeUrl: url,
+                                    resumeFileName: fileName,
+                                  }
+                                }, { merge: true });
+                                if (refreshPortfolioData) await refreshPortfolioData();
+                                toast({
+                                  title: 'Resume Saved!',
+                                  description: 'Your resume has been uploaded and saved to your profile.',
+                                });
+                              } catch (err) {
+                                console.error('Failed to auto-save resume:', err);
+                              }
+                            }}
+                            onRemove={async () => {
+                              field.onChange('');
+                              form.setValue('resumeFileName', '');
+                              try {
+                                await setDoc(doc(db, 'portfolio', 'main'), {
+                                  hero: {
+                                    resumeUrl: '',
+                                    resumeFileName: '',
+                                  }
+                                }, { merge: true });
+                                if (refreshPortfolioData) await refreshPortfolioData();
+                                toast({
+                                  title: 'Resume Removed',
+                                  description: 'Your resume has been removed from your profile.',
+                                });
+                              } catch (err) {
+                                console.error('Failed to remove resume:', err);
+                              }
+                            }}
+                            onResolvedUrl={async (url, fileName) => {
+                              field.onChange(url);
+                              form.setValue('resumeFileName', fileName);
+                              try {
+                                await setDoc(doc(db, 'portfolio', 'main'), {
+                                  hero: {
+                                    resumeUrl: url,
+                                    resumeFileName: fileName,
+                                  }
+                                }, { merge: true });
+                                if (refreshPortfolioData) await refreshPortfolioData();
+                              } catch (err) {
+                                console.error('Failed to sync resolved resume URL:', err);
+                              }
                             }}
                             currentUrl={field.value}
                             currentFileName={form.watch('resumeFileName')}
@@ -706,12 +806,12 @@ export default function AdminProfilePage() {
             </CardContent>
           </Card>
 
-          <Card className="mt-8">
-             <CardHeader>
+          <Card className="mt-6 sm:mt-8">
+            <CardHeader className="p-4 sm:p-6">
               <CardTitle>Social Profiles</CardTitle>
               <CardDescription>Link your social media accounts.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
                  <FormField
                   control={form.control}
                   name="github"
@@ -752,8 +852,17 @@ export default function AdminProfilePage() {
                   )}
                 />
             </CardContent>
-             <CardFooter className="border-t px-6 py-4">
-              <Button type="submit">Save Changes</Button>
+            <CardFooter className="border-t p-4 sm:p-6 flex justify-end">
+              <Button type="submit" className="w-full sm:w-auto" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
             </CardFooter>
           </Card>
         </form>

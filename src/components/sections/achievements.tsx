@@ -39,7 +39,7 @@ function AchievementsSkeleton() {
 }
 
 export default function Achievements() {
-  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+  const [portfolioData, setPortfolioData] = useState<Omit<PortfolioData, 'projects'> | null>(null);
 
   useEffect(() => {
     async function fetchData() {

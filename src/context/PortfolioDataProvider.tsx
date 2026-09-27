@@ -5,9 +5,10 @@ import { createContext, useState, useEffect, ReactNode, useCallback } from 'reac
 import type { PortfolioData, Project } from '@/lib/types';
 import { getPortfolioData } from '@/lib/portfolio-data';
 import FirebaseErrorListener from '@/components/FirebaseErrorListener';
-import { onSnapshot, collection, query, orderBy, doc } from 'firebase/firestore';
+import { onSnapshot, collection, query, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import useAuth from '@/hooks/use-auth';
+import { sortProjects } from '@/lib/utils';
 
 interface PortfolioContextType {
   portfolioData: PortfolioData | null;
@@ -38,10 +39,11 @@ export function PortfolioDataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setLoading(true);
-    const projectsQuery = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
+    const projectsQuery = query(collection(db, 'projects'));
 
     const unsubscribeProjects = onSnapshot(projectsQuery, (snapshot) => {
-        const projectsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+        const rawProjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+        const projectsData = sortProjects(rawProjects);
         setPortfolioData(current => ({
             ...(current || {
                 hero: {} as any,

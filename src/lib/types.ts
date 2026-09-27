@@ -29,6 +29,7 @@ export type Project = {
   createdAt?: any; // Using `any` for Firebase Timestamp flexibility
   status: ProjectStatus;
   isVisible?: boolean;
+  order?: number;
 };
 
 export type Service = {
@@ -61,6 +62,7 @@ export type Experience = {
   icon: React.ReactNode;
   order?: number;
   isVisible?: boolean;
+  certificateUrl?: string;
 }
 
 export type Achievement = {
@@ -83,6 +85,7 @@ export type EducationItem = {
   school: string;
   period: string;
   description?: string;
+  certificateUrl?: string;
   order?: number;
   isVisible?: boolean;
 }
@@ -140,6 +143,7 @@ export type PortfolioData = {
       experience?: string;
       education?: string;
       bio?: string;
+      achievements?: string;
     };
     visibility?: {
       skills: boolean;

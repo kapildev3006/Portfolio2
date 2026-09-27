@@ -4,6 +4,7 @@
 import { Bell, ChevronDown, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,9 +40,11 @@ export default function AdminHeader() {
   const hasUnread = !submissionsLoading && submissions.some(s => !s.isRead);
 
   return (
-    <header className="flex h-20 items-center justify-between border-b border-sidebar-border bg-card px-8">
-      <div className="flex items-center gap-4">
-        <div className="hidden md:block">
+    <header className="sticky top-0 z-30 flex h-14 sm:h-16 lg:h-20 items-center justify-between border-b border-sidebar-border bg-card/95 backdrop-blur px-4 sm:px-6 lg:px-8">
+      <div className="flex items-center gap-3">
+        <SidebarTrigger className="lg:hidden" />
+        <span className="font-bold lg:hidden text-base">Admin Panel</span>
+        <div className="hidden lg:block">
             {loading ? (
                 <div className="space-y-2">
                     <Skeleton className="h-5 w-32" />

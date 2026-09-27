@@ -4,7 +4,7 @@
 
 import { z } from 'zod';
 import { db } from '@/lib/firebase';
-import { doc, setDoc, addDoc, collection, Timestamp, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, addDoc, collection, Timestamp, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { SkillCategory, Experience, Achievement } from '@/lib/types';
@@ -94,6 +94,7 @@ const projectFormSchema = z.object({
   imageUrl: z.string().url({ message: 'Please upload an image.' }).min(1, 'Please upload an image.'),
   status: projectStatusEnum,
   isVisible: z.boolean().optional(),
+  order: z.coerce.number().optional(),
 });
 
 
@@ -101,13 +102,14 @@ export async function saveProjectData(data: z.infer<typeof projectFormSchema>): 
   try {
     const validatedData = projectFormSchema.parse(data);
 
-    const dataToSave = {
+    const dataToSave: any = {
       ...validatedData,
       tags: validatedData.techstack.split(',').map(tag => tag.trim()),
       createdAt: Timestamp.now(),
+      order: validatedData.order ?? 0,
     };
     
-    delete (dataToSave as any).techstack;
+    delete dataToSave.techstack;
 
     const collectionRef = collection(db, 'projects');
     
@@ -145,11 +147,14 @@ export async function updateProjectData(id: string, data: z.infer<typeof project
   try {
     const validatedData = projectFormSchema.parse(data);
     
-    const dataToUpdate = {
+    const dataToUpdate: any = {
       ...validatedData,
       tags: validatedData.techstack.split(',').map(tag => tag.trim()),
     };
-    delete (dataToUpdate as any).techstack;
+    delete dataToUpdate.techstack;
+    if (dataToUpdate.order === undefined) {
+      delete dataToUpdate.order;
+    }
 
     const docRef = doc(db, 'projects', id);
     
@@ -178,6 +183,37 @@ export async function updateProjectData(id: string, data: z.infer<typeof project
     return {
       message: 'An unexpected error occurred while updating the project.',
       success: false,
+    };
+  }
+}
+
+export async function reorderProjects(orderedProjects: { id: string; order: number }[]): Promise<{ success: boolean; message: string }> {
+  try {
+    const CHUNK_SIZE = 500;
+    for (let i = 0; i < orderedProjects.length; i += CHUNK_SIZE) {
+      const chunk = orderedProjects.slice(i, i + CHUNK_SIZE);
+      const batch = writeBatch(db);
+      chunk.forEach(({ id, order }) => {
+        const docRef = doc(db, 'projects', id);
+        batch.update(docRef, { order });
+      });
+      await batch.commit();
+    }
+
+    return {
+      success: true,
+      message: 'Projects reordered successfully!',
+    };
+  } catch (error) {
+    console.error('Error reordering projects: ', error);
+    const permissionError = new FirestorePermissionError({
+      path: 'projects',
+      operation: 'update',
+    });
+    errorEmitter.emit('permission-error', permissionError);
+    return {
+      success: false,
+      message: 'Failed to reorder projects.',
     };
   }
 }
@@ -214,6 +250,8 @@ const aboutSchema = z.object({
     id: z.string(),
     title: z.string(),
     skills: z.string(),
+    order: z.coerce.number().optional(),
+    isVisible: z.boolean().optional(),
   })),
   experience: z.array(z.object({
     id: z.string(),
@@ -221,7 +259,9 @@ const aboutSchema = z.object({
     company: z.string(),
     period: z.string(),
     description: z.string(),
-    order: z.number().optional(),
+    certificateUrl: z.string().optional(),
+    order: z.coerce.number().optional(),
+    isVisible: z.boolean().optional(),
   })),
   education: z.array(z.object({
     id: z.string(),
@@ -229,14 +269,17 @@ const aboutSchema = z.object({
     school: z.string(),
     period: z.string(),
     description: z.string().optional(),
-    order: z.number().optional(),
+    certificateUrl: z.string().optional(),
+    order: z.coerce.number().optional(),
+    isVisible: z.boolean().optional(),
   })).optional(),
   achievements: z.array(z.object({
     id: z.string(),
     title: z.string(),
     description: z.string(),
     date: z.string(),
-    order: z.number().optional(),
+    order: z.coerce.number().optional(),
+    isVisible: z.boolean().optional(),
     certificateUrl: z.string().optional(),
     certificateName: z.string().optional(),
     allowDownload: z.boolean().optional(),
@@ -247,6 +290,7 @@ const aboutSchema = z.object({
     experience: z.string().optional(),
     education: z.string().optional(),
     bio: z.string().optional(),
+    achievements: z.string().optional(),
   }).optional(),
   visibility: z.object({
     skills: z.boolean().default(true),
@@ -256,17 +300,18 @@ const aboutSchema = z.object({
     achievements: z.boolean().default(true),
   }).optional(),
   sectionOrder: z.object({
-    bio: z.number().default(1),
-    skills: z.number().default(2),
-    experience: z.number().default(3),
-    education: z.number().default(4),
-    achievements: z.number().default(5),
+    bio: z.coerce.number().default(1),
+    skills: z.coerce.number().default(2),
+    experience: z.coerce.number().default(3),
+    education: z.coerce.number().default(4),
+    achievements: z.coerce.number().default(5),
   }).optional(),
   customSections: z.array(z.object({
     id: z.string(),
     title: z.string(),
     content: z.string(),
-    order: z.number(),
+    order: z.coerce.number().optional(),
+    isVisible: z.boolean().optional(),
   })).optional(),
 });
 
@@ -279,6 +324,13 @@ export async function saveAboutData(data: {
   achievements: Omit<Achievement, 'icon'>[],
   headings?: any,
   visibility?: any,
+  sectionOrder?: {
+    bio?: number;
+    skills?: number;
+    experience?: number;
+    education?: number;
+    achievements?: number;
+  },
   customSections?: any[]
 }) {
     try {

@@ -58,8 +58,8 @@ const statusBadgeVariants = cva(
 
 function DashboardSkeleton() {
   return (
-    <div className="flex-1 bg-background p-8 text-foreground">
-      <div className="mb-8">
+    <div className="flex-1 bg-background p-4 sm:p-6 lg:p-8 text-foreground max-w-7xl mx-auto w-full">
+      <div className="mb-6 sm:mb-8">
         <Skeleton className="h-10 w-1/2" />
         <Skeleton className="h-4 w-1/3 mt-2" />
       </div>
@@ -127,18 +127,18 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="flex-1 bg-background p-8 text-foreground">
-      <div className="mb-8 flex items-start justify-between">
+    <div className="flex-1 bg-background p-4 sm:p-6 lg:p-8 text-foreground max-w-7xl mx-auto w-full">
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-            <h1 className="text-4xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
                 Welcome back! Here's what's happening with your projects.
             </p>
         </div>
-        <div className="text-right">
-            <p className="text-sm text-muted-foreground">Last updated</p>
+        <div className="text-left sm:text-right shrink-0">
+            <p className="text-xs sm:text-sm text-muted-foreground">Last updated</p>
             <div className="flex items-center gap-2">
-                <p className="font-medium">{format(lastUpdatedDate, 'dd/MM/yyyy')}</p>
+                <p className="font-medium text-sm sm:text-base">{format(lastUpdatedDate, 'dd/MM/yyyy')}</p>
                 <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
             </div>
         </div>

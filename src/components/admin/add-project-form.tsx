@@ -31,6 +31,7 @@ const projectFormSchema = z.object({
   imageUrl: z.string().url({ message: 'Please upload an image.' }).min(1, 'Please upload an image.'),
   status: projectStatusEnum,
   isVisible: z.boolean().default(true),
+  order: z.coerce.number().optional(),
 });
 
 const ImageUploader = ({ onUpload, currentUrl }: { onUpload: (url: string) => void; currentUrl?: string }) => {
@@ -130,6 +131,7 @@ export default function ProjectForm({ project, onClose }: { project?: ProjectTyp
         imageUrl: project.imageUrl,
         status: project.status,
         isVisible: project.isVisible ?? true,
+        order: project.order,
       } : {
       title: '',
       description: '',
@@ -139,6 +141,7 @@ export default function ProjectForm({ project, onClose }: { project?: ProjectTyp
       imageUrl: '',
       status: 'planning',
       isVisible: true,
+      order: undefined,
     },
   });
 
@@ -153,6 +156,7 @@ export default function ProjectForm({ project, onClose }: { project?: ProjectTyp
         imageUrl: project.imageUrl,
         status: project.status,
         isVisible: project.isVisible ?? true,
+        order: project.order,
       });
     }
   }, [isEditMode, project, form]);

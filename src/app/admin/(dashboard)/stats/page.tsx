@@ -106,11 +106,11 @@ export default function AdminStatsPage() {
       value: {
         label: 'Count',
       },
-      ...projectTagData.reduce((acc, tag) => {
+      ...projectTagData.reduce((acc: Record<string, { label: string }>, tag) => {
         acc[tag.name] = { label: tag.name };
         return acc;
       }, {}),
-      ...skillData.reduce((acc, skill) => {
+      ...skillData.reduce((acc: Record<string, { label: string }>, skill) => {
         acc[skill.name] = { label: skill.name };
         return acc;
       }, {}),
