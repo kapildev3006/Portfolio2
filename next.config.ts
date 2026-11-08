@@ -1,9 +1,24 @@
-
 import type {NextConfig} from 'next';
+import path from 'path';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  outputFileTracingRoot: path.resolve(__dirname),
   experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      'three',
+      'date-fns',
+      'framer-motion',
+      '@radix-ui/react-icons',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-select',
+      '@radix-ui/react-toast',
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-accordion',
+    ],
     serverActions: {
       bodySizeLimit: '50mb',
     },

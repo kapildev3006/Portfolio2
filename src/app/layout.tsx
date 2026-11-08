@@ -4,6 +4,7 @@ import './globals.css';
 import ScrollToTop from '@/components/scroll-to-top';
 import { ThemeProvider } from '@/components/theme-provider';
 import { PortfolioDataProvider } from '@/context/PortfolioDataProvider';
+import ThreeBackgroundWrapper from '@/components/three-background-wrapper';
 
 export const metadata: Metadata = {
   title: 'Kapil Dev',
@@ -33,6 +34,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <PortfolioDataProvider>
+              <ThreeBackgroundWrapper />
               {children}
             </PortfolioDataProvider>
             <Toaster />

@@ -57,7 +57,7 @@ const ExperienceCard = ({ item }: { item: Omit<Experience, 'icon'> }) => (
               href={item.certificateUrl} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary transition-all duration-300 ease-out hover:scale-125 active:scale-95 origin-center"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               Certificate
@@ -85,7 +85,20 @@ const EducationCard = ({ item }: { item: EducationItem }) => (
             <p className="text-sm text-primary">{item.school}</p>
           </div>
         </div>
-        <div className="text-sm text-muted-foreground font-medium">{item.period}</div>
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-muted-foreground font-medium">{item.period}</div>
+          {item.certificateUrl && (
+            <a 
+              href={item.certificateUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary transition-all duration-300 ease-out hover:scale-125 active:scale-95 origin-center"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Certificate
+            </a>
+          )}
+        </div>
       </div>
     </CardHeader>
     {item.description && (
@@ -131,16 +144,16 @@ const AchievementCard = ({ item }: { item: any }) => {
                 href={item.certificateUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary transition-all duration-300 ease-out hover:scale-125 active:scale-95 origin-center"
               >
                 <ExternalLink className="w-3 h-3" />
-                View
+                Certificate
               </a>
             )}
             {item.certificateUrl && item.allowDownload && (
               <button 
                 onClick={handleDownload}
-                className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary transition-all duration-300 ease-out hover:scale-125 active:scale-95 origin-center"
               >
                 <Download className="w-3 h-3" />
                 Download
@@ -189,7 +202,7 @@ export default function About() {
 
   if (loading || !portfolioData) {
       return (
-        <section id="about" className="w-full bg-background py-20 md:py-32">
+        <section id="about" className="w-full bg-background/50 backdrop-blur-[1px] py-20 md:py-32">
             <AboutPageSkeleton />
         </section>
       )
@@ -299,7 +312,7 @@ export default function About() {
     .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
 
   return (
-    <section id="about" className="w-full bg-background py-20 md:py-32">
+    <section id="about" className="w-full bg-background/50 backdrop-blur-[1px] py-20 md:py-32">
        <div className="container mx-auto px-4 md:px-6">
         <AnimatedDiv className="mb-16 text-center">
           <h2 className="font-headline text-3xl font-bold tracking-tighter text-foreground sm:text-4xl md:text-5xl">

@@ -12,7 +12,10 @@ import { contactFormSchema, projectStatusEnum } from '@/lib/types';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
-  title: z.string().min(5, 'Title is too short'),
+  title: z.string().min(2, 'Title is too short'),
+  titles: z.array(z.string()).optional(),
+  titleInterval: z.coerce.number().min(0.5).max(30).optional(),
+  titleColor: z.string().optional(),
   subtitle: z.string().min(10, 'Subtitle is too short'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
@@ -38,6 +41,9 @@ export async function saveProfileData(data: z.infer<typeof profileSchema>) {
             hero: {
                 name: validatedData.name,
                 title: validatedData.title,
+                titles: validatedData.titles || (validatedData.title ? [validatedData.title] : []),
+                titleInterval: validatedData.titleInterval ?? 3,
+                titleColor: validatedData.titleColor || '',
                 subtitle: validatedData.subtitle,
                 imageUrl: validatedData.imageUrl,
                 resumeUrl: validatedData.resumeUrl,

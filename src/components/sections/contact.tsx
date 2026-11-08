@@ -78,7 +78,7 @@ export default function Contact() {
   }, [state, toast, form]);
 
   return (
-    <section id="contact" className="w-full bg-background py-20 md:py-32">
+    <section id="contact" className="w-full bg-background/50 backdrop-blur-[1px] py-20 md:py-32">
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid gap-16 lg:grid-cols-2">
           <AnimatedDiv className="space-y-8">

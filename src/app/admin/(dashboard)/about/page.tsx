@@ -1030,7 +1030,7 @@ export default function AdminAboutPage() {
                               href={item.certificateUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline bg-primary/10 px-2.5 py-1 rounded-md"
+                              className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline bg-primary/10 px-2.5 py-1 rounded-md transition-all duration-300 ease-out hover:scale-105 active:scale-95 origin-left"
                             >
                               <ExternalLink className="h-3 w-3" />
                               View Certificate

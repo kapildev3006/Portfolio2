@@ -21,6 +21,9 @@ const defaultData: PortfolioData = {
   hero: {
     name: 'Kapil Dev',
     title: 'Full Stack Developer',
+    titles: ['Full Stack Developer', 'Frontend Developer', 'Backend Developer', 'Next.js Specialist'],
+    titleInterval: 3,
+    titleColor: '',
     subtitle: 'Passionate Full Stack Developer with expertise in modern web technologies.',
     ...getImage('hero-image'),
     resumeUrl: '/resume.pdf',
@@ -110,6 +113,9 @@ export async function getPortfolioData(): Promise<Omit<PortfolioData, 'projects'
                 hero: {
                     name: dbData.settings?.siteTitle || dbData.hero?.name || defaultData.hero.name,
                     title: dbData.hero?.title || defaultData.hero.title,
+                    titles: dbData.hero?.titles && dbData.hero.titles.length > 0 ? dbData.hero.titles : (dbData.hero?.title ? [dbData.hero.title] : defaultData.hero.titles),
+                    titleInterval: dbData.hero?.titleInterval ?? defaultData.hero.titleInterval ?? 3,
+                    titleColor: dbData.hero?.titleColor || '',
                     subtitle: dbData.hero?.subtitle || defaultData.hero.subtitle,
                     imageUrl: dbData.hero?.imageUrl || heroImage.imageUrl,
                     imageHint: dbData.hero?.imageHint || heroImage.imageHint,

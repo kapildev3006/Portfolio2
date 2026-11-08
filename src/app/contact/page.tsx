@@ -1,4 +1,3 @@
-
 'use client'
 import Header from '@/components/header';
 import Contact from '@/components/sections/contact';
@@ -6,7 +5,7 @@ import Footer from '@/components/footer';
 
 export default function ContactPage() {
   return (
-      <div className="flex min-h-dvh flex-col">
+      <div className="relative z-10 flex min-h-dvh flex-col">
         <Header />
         <main className="flex-1">
           <Contact />

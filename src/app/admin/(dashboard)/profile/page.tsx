@@ -24,7 +24,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload, FileText, Eye, RefreshCw, Download, Loader2, Trash2 } from 'lucide-react';
+import { Camera, Upload, FileText, Eye, RefreshCw, Download, Loader2, Trash2, Plus, X, Sparkles, Clock, Palette, RotateCcw } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
 import React, { useEffect, useContext } from 'react';
 import { uploadImageToCloudinary, uploadResumeToCloudinary } from '@/actions/upload-actions';
 import { saveProfileData } from '@/lib/firestore-actions';
@@ -38,9 +40,34 @@ import { db } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
 
+const SOLID_PRESETS = [
+  { name: 'Sky', hex: '#38bdf8' },
+  { name: 'Cyan', hex: '#06b6d4' },
+  { name: 'Emerald', hex: '#10b981' },
+  { name: 'Purple', hex: '#a855f7' },
+  { name: 'Amber', hex: '#f59e0b' },
+  { name: 'Rose', hex: '#f43f5e' },
+  { name: 'White', hex: '#ffffff' },
+];
+
+const GRADIENT_PRESETS = [
+  { name: 'Cyan → Blue', value: 'linear-gradient(135deg, #06b6d4, #3b82f6)' },
+  { name: 'Emerald → Teal', value: 'linear-gradient(135deg, #10b981, #06b6d4)' },
+  { name: 'Sunset Flame', value: 'linear-gradient(135deg, #f59e0b, #ef4444)' },
+  { name: 'Cosmic Violet', value: 'linear-gradient(135deg, #8b5cf6, #ec4899)' },
+  { name: 'Neon Lime', value: 'linear-gradient(135deg, #a3e635, #10b981)' },
+  { name: 'Electric Sky', value: 'linear-gradient(135deg, #38bdf8, #818cf8)' },
+  { name: 'Gold Amber', value: 'linear-gradient(135deg, #fbbf24, #ea580c)' },
+  { name: 'Rose Pink', value: 'linear-gradient(135deg, #f43f5e, #fb7185)' },
+  { name: 'Aurora', value: 'linear-gradient(135deg, #38bdf8 0%, #a855f7 50%, #f43f5e 100%)' },
+];
+
 const profileSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
-  title: z.string().min(5, 'Title is too short'),
+  title: z.string().min(2, 'Title is too short'),
+  titles: z.array(z.string()).optional(),
+  titleInterval: z.coerce.number().min(0.5).max(30).optional(),
+  titleColor: z.string().optional(),
   subtitle: z.string().min(10, 'Subtitle is too short'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
@@ -417,6 +444,11 @@ function ProfileFormSkeleton() {
 export default function AdminProfilePage() {
   const { toast } = useToast();
   const [isUploading, setIsUploading] = React.useState(false);
+  const [newTitleInput, setNewTitleInput] = React.useState('');
+  const [colorMode, setColorMode] = React.useState<'solid' | 'gradient'>('solid');
+  const [gradientStart, setGradientStart] = React.useState('#06b6d4');
+  const [gradientEnd, setGradientEnd] = React.useState('#3b82f6');
+  const [gradientAngle, setGradientAngle] = React.useState('135deg');
   const { portfolioData, loading: isLoading, refreshPortfolioData } = useContext(PortfolioDataContext);
 
   const form = useForm<z.infer<typeof profileSchema>>({
@@ -424,6 +456,9 @@ export default function AdminProfilePage() {
     defaultValues: {
       name: '',
       title: '',
+      titles: [],
+      titleInterval: 3,
+      titleColor: '',
       subtitle: '',
       email: '',
       phone: '',
@@ -440,9 +475,20 @@ export default function AdminProfilePage() {
 
   useEffect(() => {
     if (portfolioData) {
+      if (portfolioData.hero?.titleColor?.includes('gradient') || portfolioData.hero?.titleColor?.includes('linear-')) {
+        setColorMode('gradient');
+      } else {
+        setColorMode('solid');
+      }
+
       form.reset({
         name: portfolioData.hero?.name || '',
         title: portfolioData.hero?.title || '',
+        titles: portfolioData.hero?.titles && portfolioData.hero.titles.length > 0
+          ? portfolioData.hero.titles
+          : (portfolioData.hero?.title ? [portfolioData.hero.title] : ['Full Stack Developer']),
+        titleInterval: portfolioData.hero?.titleInterval ?? 3,
+        titleColor: portfolioData.hero?.titleColor || '',
         subtitle: portfolioData.hero?.subtitle || '',
         imageUrl: portfolioData.hero?.imageUrl || '',
         resumeUrl: portfolioData.hero?.resumeUrl || '',
@@ -524,7 +570,11 @@ export default function AdminProfilePage() {
   };
 
   const onSubmit = async (values: z.infer<typeof profileSchema>) => {
-    const result = await saveProfileData(values);
+    let titles = values.titles && values.titles.length > 0 ? values.titles : [values.title];
+    if (values.title && !titles.includes(values.title)) {
+      titles = [values.title, ...titles];
+    }
+    const result = await saveProfileData({ ...values, titles });
     
     toast({
       title: result.success ? 'Profile Updated!' : 'Update Failed',
@@ -637,7 +687,7 @@ export default function AdminProfilePage() {
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Title / Role</FormLabel>
+                      <FormLabel>Primary Title / Role</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g., Full Stack Developer" {...field} />
                       </FormControl>
@@ -645,6 +695,401 @@ export default function AdminProfilePage() {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Rotating Sub-titles Manager */}
+              <div className="space-y-3 rounded-lg border p-4 bg-muted/20">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <div>
+                    <FormLabel className="text-sm font-semibold flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                      Rotating Sub-titles (Typewriter: Erase & Write)
+                    </FormLabel>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Add multiple titles/roles. On the website, each title writes out, stays for your configured time, then erases and writes the next in a continuous loop.
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono text-muted-foreground px-2 py-0.5 bg-muted rounded self-start sm:self-auto">
+                    {form.watch('titles')?.length || 0} {(form.watch('titles')?.length || 0) === 1 ? 'title' : 'titles'}
+                  </span>
+                </div>
+
+                {/* Badges / Chips list */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {(form.watch('titles') || []).map((t, idx) => (
+                    <Badge
+                      key={idx}
+                      variant="secondary"
+                      className="px-3 py-1.5 text-xs sm:text-sm font-medium flex items-center gap-2 bg-background border border-border shadow-sm group hover:border-primary/50 transition-colors"
+                    >
+                      <span className="text-primary font-mono text-[11px] font-bold">#{idx + 1}</span>
+                      <span>{t}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = form.getValues('titles') || [];
+                          const updated = current.filter((_, i) => i !== idx);
+                          form.setValue('titles', updated, { shouldDirty: true });
+                          if (updated.length > 0 && form.getValues('title') === t) {
+                            form.setValue('title', updated[0], { shouldDirty: true });
+                          }
+                        }}
+                        className="text-muted-foreground hover:text-destructive transition-colors ml-1 p-0.5 rounded-full hover:bg-destructive/10"
+                        title="Remove title"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </Badge>
+                  ))}
+                  {(!form.watch('titles') || form.watch('titles')?.length === 0) && (
+                    <p className="text-xs text-muted-foreground italic">No rotating titles added yet. Add your titles below!</p>
+                  )}
+                </div>
+
+                {/* Add new title input */}
+                <div className="flex gap-2 pt-2">
+                  <Input
+                    placeholder="e.g., Next.js Specialist, UI/UX Designer..."
+                    value={newTitleInput}
+                    onChange={(e) => setNewTitleInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const val = newTitleInput.trim();
+                        if (!val) return;
+                        const current = form.getValues('titles') || [];
+                        if (current.includes(val)) {
+                          toast({ title: 'Already exists', description: 'This title is already in your rotation list.' });
+                          return;
+                        }
+                        const updated = [...current, val];
+                        form.setValue('titles', updated, { shouldDirty: true });
+                        if (!form.getValues('title')) {
+                          form.setValue('title', val, { shouldDirty: true });
+                        }
+                        setNewTitleInput('');
+                      }
+                    }}
+                    className="h-9 text-sm"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0 h-9 px-3 gap-1"
+                    onClick={() => {
+                      const val = newTitleInput.trim();
+                      if (!val) return;
+                      const current = form.getValues('titles') || [];
+                      if (current.includes(val)) {
+                        toast({ title: 'Already exists', description: 'This title is already in your rotation list.' });
+                        return;
+                      }
+                      const updated = [...current, val];
+                      form.setValue('titles', updated, { shouldDirty: true });
+                      if (!form.getValues('title')) {
+                        form.setValue('title', val, { shouldDirty: true });
+                      }
+                      setNewTitleInput('');
+                    }}
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add</span>
+                  </Button>
+                </div>
+
+                {/* Motion Settings: Interval & Color */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-border/60">
+                  {/* Display Duration */}
+                  <div className="space-y-2 p-3 rounded-lg border border-border/50 bg-background/60">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-medium flex items-center gap-1.5 text-foreground">
+                        <Clock className="w-3.5 h-3.5 text-primary" />
+                        Rotation Interval
+                      </label>
+                      <Badge variant="outline" className="font-mono text-xs px-2 py-0.5 bg-primary/10 text-primary border-primary/30">
+                        {form.watch('titleInterval') ?? 3}s
+                      </Badge>
+                    </div>
+
+                    <div className="pt-2 pb-1">
+                      <Slider
+                        value={[form.watch('titleInterval') ?? 3]}
+                        min={1}
+                        max={15}
+                        step={0.5}
+                        onValueChange={([val]) => form.setValue('titleInterval', val, { shouldDirty: true })}
+                        className="w-full cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                      <span>Fast (1s)</span>
+                      <span>Default (3s)</span>
+                      <span>Slow (15s)</span>
+                    </div>
+
+                    {/* Quick Interval Preset Pills */}
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <span className="text-[10px] text-muted-foreground">Presets:</span>
+                      {[1.5, 2, 3, 5, 8].map((sec) => (
+                        <button
+                          key={sec}
+                          type="button"
+                          onClick={() => form.setValue('titleInterval', sec, { shouldDirty: true })}
+                          className={cn(
+                            "text-[10px] px-2 py-0.5 rounded border transition-colors",
+                            (form.watch('titleInterval') ?? 3) === sec
+                              ? "bg-primary text-primary-foreground border-primary font-bold"
+                              : "bg-muted/50 hover:bg-muted border-border/80 text-muted-foreground"
+                          )}
+                        >
+                          {sec}s
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Title Text Color & Gradient */}
+                  <div className="space-y-3 p-3 rounded-lg border border-border/50 bg-background/60">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-medium flex items-center gap-1.5 text-foreground">
+                        <Palette className="w-3.5 h-3.5 text-primary" />
+                        Subtitle Color & Gradient
+                      </label>
+
+                      {/* Mode Toggle: Solid vs Gradient */}
+                      <div className="flex items-center gap-0.5 p-0.5 bg-muted rounded-md border border-border/60">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setColorMode('solid');
+                            if (form.getValues('titleColor')?.includes('gradient')) {
+                              form.setValue('titleColor', '#10b981', { shouldDirty: true });
+                            }
+                          }}
+                          className={cn(
+                            "px-2 py-0.5 text-[11px] rounded font-medium transition-all",
+                            colorMode === 'solid'
+                              ? "bg-background text-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          Solid
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setColorMode('gradient');
+                            if (!form.getValues('titleColor')?.includes('gradient')) {
+                              form.setValue('titleColor', `linear-gradient(${gradientAngle}, ${gradientStart}, ${gradientEnd})`, { shouldDirty: true });
+                            }
+                          }}
+                          className={cn(
+                            "px-2 py-0.5 text-[11px] rounded font-medium transition-all",
+                            colorMode === 'gradient'
+                              ? "bg-background text-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          Gradient
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* SOLID COLOR CONTROLS */}
+                    {colorMode === 'solid' && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 pt-1">
+                          <div className="relative shrink-0">
+                            <input
+                              type="color"
+                              value={form.watch('titleColor')?.startsWith('#') ? form.watch('titleColor') : '#10b981'}
+                              onChange={(e) => form.setValue('titleColor', e.target.value, { shouldDirty: true })}
+                              className="w-9 h-9 p-0.5 rounded-lg border border-border bg-background cursor-pointer"
+                              title="Pick custom color"
+                            />
+                          </div>
+                          <Input
+                            placeholder="#10b981 or default"
+                            value={form.watch('titleColor') || ''}
+                            onChange={(e) => form.setValue('titleColor', e.target.value, { shouldDirty: true })}
+                            className="h-9 text-xs font-mono"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-9 px-2 text-xs text-muted-foreground hover:text-foreground shrink-0 gap-1"
+                            onClick={() => form.setValue('titleColor', '', { shouldDirty: true })}
+                            title="Reset to default theme color"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            Reset
+                          </Button>
+                        </div>
+
+                        {/* Preset Colors Palette */}
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                          <span className="text-[10px] text-muted-foreground">Palettes:</span>
+                          {SOLID_PRESETS.map((preset) => (
+                            <button
+                              key={preset.hex}
+                              type="button"
+                              onClick={() => form.setValue('titleColor', preset.hex, { shouldDirty: true })}
+                              className={cn(
+                                "w-5 h-5 rounded-full border transition-all flex items-center justify-center hover:scale-110",
+                                form.watch('titleColor')?.toLowerCase() === preset.hex.toLowerCase()
+                                  ? "ring-2 ring-primary ring-offset-1 border-white"
+                                  : "border-border/60 hover:border-foreground/50"
+                              )}
+                              style={{ backgroundColor: preset.hex }}
+                              title={preset.name}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* GRADIENT CONTROLS */}
+                    {colorMode === 'gradient' && (
+                      <div className="space-y-2.5">
+                        {/* 2-Stop Color Picker + Angle Selector */}
+                        <div className="flex items-center gap-2 pt-1">
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <input
+                              type="color"
+                              value={gradientStart}
+                              onChange={(e) => {
+                                const newStart = e.target.value;
+                                setGradientStart(newStart);
+                                form.setValue('titleColor', `linear-gradient(${gradientAngle}, ${newStart}, ${gradientEnd})`, { shouldDirty: true });
+                              }}
+                              className="w-8 h-8 p-0.5 rounded-lg border border-border bg-background cursor-pointer"
+                              title="Start Color"
+                            />
+                            <span className="text-xs text-muted-foreground font-mono">→</span>
+                            <input
+                              type="color"
+                              value={gradientEnd}
+                              onChange={(e) => {
+                                const newEnd = e.target.value;
+                                setGradientEnd(newEnd);
+                                form.setValue('titleColor', `linear-gradient(${gradientAngle}, ${gradientStart}, ${newEnd})`, { shouldDirty: true });
+                              }}
+                              className="w-8 h-8 p-0.5 rounded-lg border border-border bg-background cursor-pointer"
+                              title="End Color"
+                            />
+                          </div>
+
+                          {/* Direction angles */}
+                          <div className="flex items-center gap-1">
+                            {[
+                              { label: '→', angle: 'to right', title: 'Left to Right' },
+                              { label: '↘', angle: '135deg', title: 'Diagonal' },
+                              { label: '↓', angle: 'to bottom', title: 'Top to Bottom' },
+                            ].map((dir) => (
+                              <button
+                                key={dir.angle}
+                                type="button"
+                                onClick={() => {
+                                  setGradientAngle(dir.angle);
+                                  form.setValue('titleColor', `linear-gradient(${dir.angle}, ${gradientStart}, ${gradientEnd})`, { shouldDirty: true });
+                                }}
+                                className={cn(
+                                  "w-7 h-7 text-xs rounded border flex items-center justify-center transition-colors",
+                                  gradientAngle === dir.angle
+                                    ? "bg-primary text-primary-foreground border-primary font-bold"
+                                    : "bg-muted/40 hover:bg-muted border-border/80 text-muted-foreground"
+                                )}
+                                title={dir.title}
+                              >
+                                {dir.label}
+                              </button>
+                            ))}
+                          </div>
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground shrink-0 gap-1 ml-auto"
+                            onClick={() => form.setValue('titleColor', '', { shouldDirty: true })}
+                            title="Reset to default theme color"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            Reset
+                          </Button>
+                        </div>
+
+                        {/* Preset Gradients (9 modern gradients) */}
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-muted-foreground">Preset Gradients:</span>
+                          <div className="flex flex-wrap gap-1.5 pt-0.5">
+                            {GRADIENT_PRESETS.map((preset) => {
+                              const isSelected = form.watch('titleColor') === preset.value;
+                              return (
+                                <button
+                                  key={preset.name}
+                                  type="button"
+                                  onClick={() => form.setValue('titleColor', preset.value, { shouldDirty: true })}
+                                  className={cn(
+                                    "px-2.5 py-1 text-[11px] rounded-full font-medium transition-all shadow-sm text-white",
+                                    isSelected
+                                      ? "ring-2 ring-primary ring-offset-2 scale-105"
+                                      : "hover:scale-105 opacity-90 hover:opacity-100"
+                                  )}
+                                  style={{ backgroundImage: preset.value }}
+                                  title={preset.value}
+                                >
+                                  {preset.name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Live Preview Text */}
+                    <div className="pt-2 border-t border-border/40 text-xs flex items-center justify-between">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-muted-foreground text-[11px] shrink-0">Preview:</span>
+                        <span
+                          className="font-bold tracking-tight text-sm transition-all truncate"
+                          style={
+                            form.watch('titleColor')?.includes('gradient') || form.watch('titleColor')?.includes('linear-')
+                              ? {
+                                  backgroundImage: form.watch('titleColor'),
+                                  WebkitBackgroundClip: 'text',
+                                  WebkitTextFillColor: 'transparent',
+                                  backgroundClip: 'text',
+                                  display: 'inline-block',
+                                }
+                              : {
+                                  color: form.watch('titleColor') || undefined,
+                                }
+                          }
+                        >
+                          {form.watch('titles')?.[0] || form.watch('title') || 'Full Stack Developer'}
+                        </span>
+                      </div>
+
+                      {form.watch('titleColor') ? (
+                        <span
+                          className="w-4 h-4 rounded-full border border-border shadow-inner shrink-0 ml-2"
+                          style={
+                            form.watch('titleColor')?.includes('gradient') || form.watch('titleColor')?.includes('linear-')
+                              ? { backgroundImage: form.watch('titleColor') }
+                              : { backgroundColor: form.watch('titleColor') }
+                          }
+                        />
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground italic shrink-0 ml-2">Theme Default</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
                 <FormField
                   control={form.control}

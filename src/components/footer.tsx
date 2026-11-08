@@ -110,7 +110,7 @@ export default function Footer() {
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-sm hover:text-primary transition-colors">
+                  <Link href={link.href} className="inline-block text-sm hover:text-primary transition-all duration-300 ease-out hover:scale-105 origin-left">
                     {link.name}
                   </Link>
                 </li>

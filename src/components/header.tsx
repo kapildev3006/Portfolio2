@@ -31,7 +31,7 @@ export default function Header() {
       )}
     >
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-8">
-        <Link href="/" className="flex items-center gap-2 text-2xl font-bold">
+        <Link href="/" className="flex items-center gap-2 text-2xl font-bold transition-transform duration-300 ease-out hover:scale-105 active:scale-95 origin-left">
           <span className="text-primary">{portfolioData?.hero.name || 'Kapil Dev'}</span>
         </Link>
         
@@ -41,9 +41,9 @@ export default function Header() {
               key={item.name}
               href={item.href}
               className={cn(
-                'text-sm font-medium transition-all hover:text-primary',
+                'inline-block text-sm font-medium transition-all duration-300 ease-out hover:scale-125 hover:text-primary active:scale-95 origin-center',
                 item.href === pathname
-                  ? 'text-primary'
+                  ? 'text-primary font-semibold'
                   : 'text-muted-foreground'
               )}
             >
@@ -78,10 +78,10 @@ export default function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                 className={cn(
-                  'text-lg font-medium transition-colors hover:text-primary',
+                className={cn(
+                  'inline-block text-lg font-medium transition-all duration-300 ease-out hover:scale-125 hover:text-primary active:scale-95 origin-center',
                   item.href === pathname
-                    ? 'text-primary'
+                    ? 'text-primary font-semibold'
                     : 'text-muted-foreground'
                 )}
                 onClick={() => setIsMenuOpen(false)}

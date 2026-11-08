@@ -124,6 +124,9 @@ export type PortfolioData = {
   hero: {
     name: string;
     title: string;
+    titles?: string[];
+    titleInterval?: number;
+    titleColor?: string;
     subtitle: string;
     imageUrl: string;
     imageHint: string;
